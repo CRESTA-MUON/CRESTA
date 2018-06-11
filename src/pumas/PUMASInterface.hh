@@ -28,9 +28,11 @@
 #include "globals.hh"
 #include "G4Types.hh"
 
-#include "pumas/pumas.h"
+#include "pumas.h"
+
 
 namespace PUMASInterface {
+
 
 bool debugpumas = true;
 std::vector<std::vector<std::vector<int> > > material_grid;

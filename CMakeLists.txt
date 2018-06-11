@@ -92,13 +92,15 @@ endif()
 
 #----------------------------------------------------------------------------
 # USE PUMAS FLAG
+set(pumas_sources "")
+set(pumas_headers "")
 if(USE_PUMAS)
   message(STATUS "Including PUMAS in build.")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__USE_PUMAS__=1")
-  file(GLOB pumas_sources ${PROJECT_SOURCE_DIR}/external/pumas/*.c ${PROJECT_SOURCE_DIR}/external/pumas/*.cc)
-  file(GLOB pumas_headers ${PROJECT_SOURCE_DIR}/external/pumas/*.h ${PROJECT_SOURCE_DIR}/external/pumas/*.hh)
-  add_library (pumas ${pumas_sources} ${pumas_headers})
-  set(LINK_LIBRARIES "${LINK_LIBRARIES} pumas")
+  file(GLOB pumas_sources ${PROJECT_SOURCE_DIR}/src/pumas/*.c ${PROJECT_SOURCE_DIR}/src/pumas/*.cc)
+  file(GLOB pumas_headers ${PROJECT_SOURCE_DIR}/src/pumas/*.h ${PROJECT_SOURCE_DIR}/src/pumas/*.hh)
+  #add_library (pumas ${pumas_sources} ${pumas_headers})
+  #set(LINK_LIBRARIES "${LINK_LIBRARIES} pumas")
 endif()
 
 
@@ -112,8 +114,8 @@ message(STATUS "LINK LIBS : ${LINK_LIBRARIES}")
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*/*.cc ${PROJECT_SOURCE_DIR}/src/geo/*/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/src/*/*.hh ${PROJECT_SOURCE_DIR}/src/geo/*/*.hh)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*/*.cc ${PROJECT_SOURCE_DIR}/src/geo/*/*.cc ${pumas_sources})
+file(GLOB headers ${PROJECT_SOURCE_DIR}/src/*/*.hh ${PROJECT_SOURCE_DIR}/src/geo/*/*.hh ${pumas_headers})
 
 #----------------------------------------------------------------------------
 configure_file(cmake/setup.sh.in
@@ -138,7 +140,7 @@ target_link_libraries(chance_trackfit ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
 if(USE_PUMAS)
 add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)
-target_link_libraries(pumas_example  cresta)
+target_link_libraries(pumas_example  ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 endif()
 
 #----------------------------------------------------------------------------
@@ -167,5 +169,5 @@ endforeach()
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS cosmicraysim DESTINATION bin )
+#install(TARGETS cosmicraysim DESTINATION bin )
 #install(TARGETS pumas DESTINATION lib )

@@ -59,12 +59,15 @@ int main(int narg, char * argv[]){
             wf = 1;
         }
         std::cout << "Creating state" << std::endl;
-        struct pumas_state state = {.charge = -1.,
-                   .kinetic = kf,
-                    .weight = wf,
-                     .direction = { -sin_theta, 0., -cos_theta }
-        };
+  pumas_state state;
+  state.charge = -1.;
+  state.kinetic = kf;
+  state.weight  = wf;
+  state.direction[0] = -sin_theta;
+  state.direction[1] = 0.;
+  state.direction[2] = -cos_theta;
 
+  
         /* Transport the muon backwards */
         const double kinetic_threshold = kinetic_max * 1E+03;
         std::cout << "Transporting " << state.kinetic << " < " << kinetic_max * 1E+03-FLT_EPSILON << std::endl;

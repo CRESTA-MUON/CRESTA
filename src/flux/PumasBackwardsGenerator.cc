@@ -80,12 +80,15 @@ void PumasBackwardsGenerator::GeneratePrimaries(G4Event* anEvent)
   double wf = 1;
 
   // Update the PUMAS_STATE
-  struct pumas_state state = {.charge = -1.,
-           .kinetic = kf,
-            .weight = wf,
-             .direction = { -sin_theta, 0., -cos_theta }
-  };
+  pumas_state state;
+  state.charge = -1.;
+  state.kinetic = kf;
+  state.weight  = wf;
+  state.direction[0] = -sin_theta;
+  state.direction[1] = 0.;
+  state.direction[2] = -cos_theta;
 
+  
   // Update vectors
   fMuonPos    = G4ThreeVector(0, 0, 0);
   fMuonDir    = G4ThreeVector(-sin_theta, 0., -cos_theta);

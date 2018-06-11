@@ -38,8 +38,6 @@
 #include "db/DB.hh"
 
 
-#include "PumasBackwardsGenerator.hh"
-
 // Forward Declarations
 class G4Event;
 
@@ -164,6 +162,6 @@ protected:
 
 };
 //---------------------------------------------------------------------------------
-#endif __USE_PUMAS__
 } // - namespace COSMIC
+#endif __USE_PUMAS__
 #endif
