@@ -1229,7 +1229,6 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 	SetVectorC( &tempcombo );
 	double yChi2 = DoSingleTrackFitWithX();
 
-	// std::cout << "Getting posA" << std::endl;
 
 	// Get vectors from the fits
 	TVector3 posA = TVector3(temp_above_x, temp_above_y, 0.0);
@@ -1396,209 +1395,209 @@ void BristolPoCAFitter::ClearDriftVectors() {
 
 
 
-//fit two straight lines through the first and last sets of three data points
-void BristolPoCAFitter::TwoTrackFit()
-{
-	// std::cout << "Running Two Track Fit" << std::endl;
+// //fit two straight lines through the first and last sets of three data points
+// void BristolPoCAFitter::TwoTrackFit()
+// {
+// 	// std::cout << "Running Two Track Fit" << std::endl;
 
-	double zErrors[6] = {0.0};
-	double xHits[6], xErrors[6], yHits[6], yErrors[6];
-	double xLayers[6], yLayers[6];
+// 	double zErrors[6] = {0.0};
+// 	double xHits[6], xErrors[6], yHits[6], yErrors[6];
+// 	double xLayers[6], yLayers[6];
 
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	for (int i = 0; i < 3; i++) {
-		xHits[i] = values_rx[i];
-		xErrors[i] = values_re[i];
-		xLayers[i] = values_rz[i];
-	}
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	for (int i = 0; i < 3; i++) {
-		xHits[i + 3] = values_rx[i];
-		xErrors[i + 3] = values_re[i];
-		xLayers[i + 3] = values_rz[i];
-	}
-
-
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	for (int i = 0; i < 3; i++) {
-		yHits[i] = values_rx[i];
-		yErrors[i] = values_re[i];
-		yLayers[i] = values_rz[i];
-	}
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	for (int i = 0; i < 3; i++) {
-		yHits[i + 3] = values_rx[i];
-		yErrors[i + 3] = values_re[i];
-		yLayers[i + 3] = values_rz[i];
-	}
-
-// std::cout << "Got track hits" << std::endl;
-	double xMin = -300;
-	double xMax = 750;
-	double yMin = -300;
-	double yMax = 750;
-
-	TGraphErrors *xGraph, *yGraph, *xFitGraph, *yFitGraph;
-	TF1 *xLFitFunc, *xUFitFunc, *xLTrack, *xUTrack;
-	TF1 *yLFitFunc, *yUFitFunc, *yLTrack, *yUTrack;
-
-	xFitGraph = new TGraphErrors(6, xLayers, xHits, zErrors, xErrors);
-	yFitGraph = new TGraphErrors(6, yLayers, yHits, zErrors, yErrors);
-	xGraph = new TGraphErrors(6, xHits, xLayers, xErrors, zErrors);
-	yGraph = new TGraphErrors(6, yHits, yLayers, yErrors, zErrors);
+// 	FillSingleContainers(kFitAllAboveX);
+// 	SetVectorC( above_drift_xc );
+// 	for (int i = 0; i < 3; i++) {
+// 		xHits[i] = values_rx[i];
+// 		xErrors[i] = values_re[i];
+// 		xLayers[i] = values_rz[i];
+// 	}
+// 	FillSingleContainers(kFitAllBelowX);
+// 	SetVectorC( below_drift_xc );
+// 	for (int i = 0; i < 3; i++) {
+// 		xHits[i + 3] = values_rx[i];
+// 		xErrors[i + 3] = values_re[i];
+// 		xLayers[i + 3] = values_rz[i];
+// 	}
 
 
-	// std::cout << "UX LIM : " << (xLayers[3]+xLayers[2])/2.0 << " -> " << xLayers[0] << std::endl;
-	xLFitFunc = new TF1("xLFitFunc", "pol1", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-	xUFitFunc = new TF1("xUFitFunc", "pol1", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-	yLFitFunc = new TF1("yLFitFunc", "pol1", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-	yUFitFunc = new TF1("yUFitFunc", "pol1", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
+// 	FillSingleContainers(kFitAllAboveY);
+// 	SetVectorC( above_drift_yc );
+// 	for (int i = 0; i < 3; i++) {
+// 		yHits[i] = values_rx[i];
+// 		yErrors[i] = values_re[i];
+// 		yLayers[i] = values_rz[i];
+// 	}
+// 	FillSingleContainers(kFitAllBelowY);
+// 	SetVectorC( below_drift_yc );
+// 	for (int i = 0; i < 3; i++) {
+// 		yHits[i + 3] = values_rx[i];
+// 		yErrors[i + 3] = values_re[i];
+// 		yLayers[i + 3] = values_rz[i];
+// 	}
 
-	xLTrack = new TF1("xLTrack", "pol1", xMin, xMax);
-	xUTrack = new TF1("xUTrack", "pol1", xMin, xMax);
-	yLTrack = new TF1("yLTrack", "pol1", yMin, yMax);
-	yUTrack = new TF1("yUTrack", "pol1", yMin, yMax);
+// // std::cout << "Got track hits" << std::endl;
+// 	double xMin = -300;
+// 	double xMax = 750;
+// 	double yMin = -300;
+// 	double yMax = 750;
 
-	//fit ignoring error bars first, to set initial parameters
-	xFitGraph->Fit(xLFitFunc, "QEX0", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-	xFitGraph->Fit(xUFitFunc, "+QEX0", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-	yFitGraph->Fit(yLFitFunc, "QEX0", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-	yFitGraph->Fit(yUFitFunc, "+QEX0", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
+// 	TGraphErrors *xGraph, *yGraph, *xFitGraph, *yFitGraph;
+// 	TF1 *xLFitFunc, *xUFitFunc, *xLTrack, *xUTrack;
+// 	TF1 *yLFitFunc, *yUFitFunc, *yLTrack, *yUTrack;
 
-	//fit considering error bars to get a better fit
-	xFitGraph->Fit(xLFitFunc, "QF", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-	xFitGraph->Fit(xUFitFunc, "+QF", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-	yFitGraph->Fit(yLFitFunc, "QF", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-	yFitGraph->Fit(yUFitFunc, "+QF", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
-
-	//fix parameters for track line
-	xLTrack->FixParameter(0, (-xLFitFunc->GetParameter(0) / xLFitFunc->GetParameter(1)));
-	xLTrack->FixParameter(1, (1.0 / xLFitFunc->GetParameter(1)));
-	xUTrack->FixParameter(0, (-xUFitFunc->GetParameter(0) / xUFitFunc->GetParameter(1)));
-	xUTrack->FixParameter(1, (1.0 / xUFitFunc->GetParameter(1)));
-	yLTrack->FixParameter(0, (-yLFitFunc->GetParameter(0) / yLFitFunc->GetParameter(1)));
-	yLTrack->FixParameter(1, (1.0 / yLFitFunc->GetParameter(1)));
-	yUTrack->FixParameter(0, (-yUFitFunc->GetParameter(0) / yUFitFunc->GetParameter(1)));
-	yUTrack->FixParameter(1, (1.0 / yUFitFunc->GetParameter(1)));
-
-	//fit with fixed parameters, just to put the line on the graph
-	xGraph->Fit(xLTrack, "BQC", "", xMin, xMax);
-	xGraph->Fit(xUTrack, "+BQC", "", xMin, xMax);
-	yGraph->Fit(yLTrack, "BQC", "", yMin, yMax);
-	yGraph->Fit(yUTrack, "+BQC", "", yMin, yMax);
-
-	//format graphs
-	xGraph->GetXaxis()->SetLimits(xMin, xMax);
-	xGraph->GetXaxis()->SetTitle("x position (strip number)");
-	xGraph->GetYaxis()->SetTitle("z position (mm)");
-	xGraph->SetTitle("Track (x strips)");
-	xGraph->SetMarkerColor(4);
-	xGraph->SetMarkerStyle(20);
-	xGraph->SetMarkerSize(0.7);
-	yGraph->GetXaxis()->SetLimits(yMin, yMax);
-	yGraph->GetXaxis()->SetTitle("x position (strip number)");
-	yGraph->GetYaxis()->SetTitle("z position (mm)");
-	yGraph->SetTitle("Track (y strips)");
-	yGraph->SetMarkerColor(4);
-	yGraph->SetMarkerStyle(20);
-	yGraph->SetMarkerSize(0.7);
-
-	xFitGraph->SetMarkerColor(4);
-	xFitGraph->SetMarkerStyle(20);
-	xFitGraph->SetMarkerSize(0.7);
-	yFitGraph->SetMarkerColor(4);
-	yFitGraph->SetMarkerStyle(20);
-	yFitGraph->SetMarkerSize(0.7);
-
-	// std::cout << "U " << xUTrack->GetParameter(1) << " " << xUTrack->GetParameter(0) << std::endl;
-	// std::cout << "L " << xLTrack->GetParameter(1) << " " << xLTrack->GetParameter(0) << std::endl;
-
-	xScatterAngle = atan( abs((xUTrack->GetParameter(1) - xLTrack->GetParameter(1)) / (1 + xUTrack->GetParameter(1) * xLTrack->GetParameter(1))) );
-	yScatterAngle = atan( abs((yUTrack->GetParameter(1) - yLTrack->GetParameter(1)) / (1 + yUTrack->GetParameter(1) * yLTrack->GetParameter(1))) );
-
-	// std::cout << "xScatter Angle " << xScatterAngle << std::endl;
-
-	double temp_above_px = xUTrack->GetParameter(1);
-	double temp_above_py = yUTrack->GetParameter(1);
-	double temp_below_px = xLTrack->GetParameter(1);
-	double temp_below_py = yLTrack->GetParameter(1);
-
-	// Get the scatter angles
-	TVector3 grad1X(temp_above_px, 0., 1.);
-	TVector3 grad2X(temp_below_px, 0., 1.);
-
-	TVector3 grad1Y(0., temp_above_py, 1.);
-	TVector3 grad2Y(0., temp_below_py, 1.);
-
-	TVector3 grad1(temp_above_px, temp_above_py, 1.);
-	TVector3 grad2(temp_below_px, temp_below_py, 1.);
-
-	double scatter_x  = grad1X.Angle(grad2X);
-	double scatter_y  = grad1Y.Angle(grad2Y);
-	double scatter_3d = grad1.Angle(grad2);
-
-	// std::cout << "New Scatter Angle X : " << scatter_x << std::endl;
+// 	xFitGraph = new TGraphErrors(6, xLayers, xHits, zErrors, xErrors);
+// 	yFitGraph = new TGraphErrors(6, yLayers, yHits, zErrors, yErrors);
+// 	xGraph = new TGraphErrors(6, xHits, xLayers, xErrors, zErrors);
+// 	yGraph = new TGraphErrors(6, yHits, yLayers, yErrors, zErrors);
 
 
-	xUchi2 = xUFitFunc->GetChisquare();
-	xLchi2 = xLFitFunc->GetChisquare();
-	yUchi2 = yUFitFunc->GetChisquare();
-	yLchi2 = yLFitFunc->GetChisquare();
+// 	// std::cout << "UX LIM : " << (xLayers[3]+xLayers[2])/2.0 << " -> " << xLayers[0] << std::endl;
+// 	xLFitFunc = new TF1("xLFitFunc", "pol1", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
+// 	xUFitFunc = new TF1("xUFitFunc", "pol1", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
+// 	yLFitFunc = new TF1("yLFitFunc", "pol1", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
+// 	yUFitFunc = new TF1("yUFitFunc", "pol1", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
 
-	trackParams[4] = xUTrack->GetParameter(0);
-	trackParams[5] = xUTrack->GetParameter(1);
-	trackParams[6] = xLTrack->GetParameter(0);
-	trackParams[7] = xLTrack->GetParameter(1);
-	trackParams[8] = yUTrack->GetParameter(0);
-	trackParams[9] = yUTrack->GetParameter(1);
-	trackParams[10] = yLTrack->GetParameter(0);
-	trackParams[11] = yLTrack->GetParameter(1);
+// 	xLTrack = new TF1("xLTrack", "pol1", xMin, xMax);
+// 	xUTrack = new TF1("xUTrack", "pol1", xMin, xMax);
+// 	yLTrack = new TF1("yLTrack", "pol1", yMin, yMax);
+// 	yUTrack = new TF1("yUTrack", "pol1", yMin, yMax);
 
-	//save fit parametes so they can be used by other functions
-	xUFitPrms[0] = xUTrack->GetParameter(0);
-	xUFitPrms[1] = xUTrack->GetParameter(1);
-	xLFitPrms[0] = xLTrack->GetParameter(0);
-	xLFitPrms[1] = xLTrack->GetParameter(1);
-	yUFitPrms[0] = yUTrack->GetParameter(0);
-	yUFitPrms[1] = yUTrack->GetParameter(1);
-	yLFitPrms[0] = yLTrack->GetParameter(0);
-	yLFitPrms[1] = yLTrack->GetParameter(1);
+// 	//fit ignoring error bars first, to set initial parameters
+// 	xFitGraph->Fit(xLFitFunc, "QEX0", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
+// 	xFitGraph->Fit(xUFitFunc, "+QEX0", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
+// 	yFitGraph->Fit(yLFitFunc, "QEX0", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
+// 	yFitGraph->Fit(yUFitFunc, "+QEX0", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
 
-	// Get z intersection point at layer 13 zpos.
+// 	//fit considering error bars to get a better fit
+// 	xFitGraph->Fit(xLFitFunc, "QF", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
+// 	xFitGraph->Fit(xUFitFunc, "+QF", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
+// 	yFitGraph->Fit(yLFitFunc, "QF", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
+// 	yFitGraph->Fit(yUFitFunc, "+QF", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
 
-	//x_intersect = (-400 - xUTrack->GetParameter(0)) / xUTrack->GetParameter(1);
-	//y_intersect = (-400 - yUTrack->GetParameter(0)) / yUTrack->GetParameter(1);
+// 	//fix parameters for track line
+// 	xLTrack->FixParameter(0, (-xLFitFunc->GetParameter(0) / xLFitFunc->GetParameter(1)));
+// 	xLTrack->FixParameter(1, (1.0 / xLFitFunc->GetParameter(1)));
+// 	xUTrack->FixParameter(0, (-xUFitFunc->GetParameter(0) / xUFitFunc->GetParameter(1)));
+// 	xUTrack->FixParameter(1, (1.0 / xUFitFunc->GetParameter(1)));
+// 	yLTrack->FixParameter(0, (-yLFitFunc->GetParameter(0) / yLFitFunc->GetParameter(1)));
+// 	yLTrack->FixParameter(1, (1.0 / yLFitFunc->GetParameter(1)));
+// 	yUTrack->FixParameter(0, (-yUFitFunc->GetParameter(0) / yUFitFunc->GetParameter(1)));
+// 	yUTrack->FixParameter(1, (1.0 / yUFitFunc->GetParameter(1)));
 
-	// if (config.perEventPlots == 1) {
-	if (false) {
-		// if ((xUchi2 < 1) && (xLchi2 < 1) && (yUchi2 < 1) && (yLchi2 < 1)) {
-		xGraph->Write("x Two Track");
-		yGraph->Write("y Two Track");
-		// }
-	}
-	// //		xFitGraph->Write("x two-track fit");
-	// //		yFitGraph->Write("y two-track fit");
-	// 	}
-	// }
+// 	//fit with fixed parameters, just to put the line on the graph
+// 	xGraph->Fit(xLTrack, "BQC", "", xMin, xMax);
+// 	xGraph->Fit(xUTrack, "+BQC", "", xMin, xMax);
+// 	yGraph->Fit(yLTrack, "BQC", "", yMin, yMax);
+// 	yGraph->Fit(yUTrack, "+BQC", "", yMin, yMax);
 
-	//clean up allocated objects
-	delete xFitGraph;
-	delete yFitGraph;
-	delete xGraph;
-	delete yGraph;
-	delete xUFitFunc;
-	delete xLFitFunc;
-	delete yUFitFunc;
-	delete yLFitFunc;
-	delete xUTrack;
-	delete xLTrack;
-	delete yUTrack;
-	delete yLTrack;
-}
+// 	//format graphs
+// 	xGraph->GetXaxis()->SetLimits(xMin, xMax);
+// 	xGraph->GetXaxis()->SetTitle("x position (strip number)");
+// 	xGraph->GetYaxis()->SetTitle("z position (mm)");
+// 	xGraph->SetTitle("Track (x strips)");
+// 	xGraph->SetMarkerColor(4);
+// 	xGraph->SetMarkerStyle(20);
+// 	xGraph->SetMarkerSize(0.7);
+// 	yGraph->GetXaxis()->SetLimits(yMin, yMax);
+// 	yGraph->GetXaxis()->SetTitle("x position (strip number)");
+// 	yGraph->GetYaxis()->SetTitle("z position (mm)");
+// 	yGraph->SetTitle("Track (y strips)");
+// 	yGraph->SetMarkerColor(4);
+// 	yGraph->SetMarkerStyle(20);
+// 	yGraph->SetMarkerSize(0.7);
+
+// 	xFitGraph->SetMarkerColor(4);
+// 	xFitGraph->SetMarkerStyle(20);
+// 	xFitGraph->SetMarkerSize(0.7);
+// 	yFitGraph->SetMarkerColor(4);
+// 	yFitGraph->SetMarkerStyle(20);
+// 	yFitGraph->SetMarkerSize(0.7);
+
+// 	// std::cout << "U " << xUTrack->GetParameter(1) << " " << xUTrack->GetParameter(0) << std::endl;
+// 	// std::cout << "L " << xLTrack->GetParameter(1) << " " << xLTrack->GetParameter(0) << std::endl;
+
+// 	xScatterAngle = atan( abs((xUTrack->GetParameter(1) - xLTrack->GetParameter(1)) / (1 + xUTrack->GetParameter(1) * xLTrack->GetParameter(1))) );
+// 	yScatterAngle = atan( abs((yUTrack->GetParameter(1) - yLTrack->GetParameter(1)) / (1 + yUTrack->GetParameter(1) * yLTrack->GetParameter(1))) );
+
+// 	// std::cout << "xScatter Angle " << xScatterAngle << std::endl;
+
+// 	double temp_above_px = xUTrack->GetParameter(1);
+// 	double temp_above_py = yUTrack->GetParameter(1);
+// 	double temp_below_px = xLTrack->GetParameter(1);
+// 	double temp_below_py = yLTrack->GetParameter(1);
+
+// 	// Get the scatter angles
+// 	TVector3 grad1X(temp_above_px, 0., 1.);
+// 	TVector3 grad2X(temp_below_px, 0., 1.);
+
+// 	TVector3 grad1Y(0., temp_above_py, 1.);
+// 	TVector3 grad2Y(0., temp_below_py, 1.);
+
+// 	TVector3 grad1(temp_above_px, temp_above_py, 1.);
+// 	TVector3 grad2(temp_below_px, temp_below_py, 1.);
+
+// 	double scatter_x  = grad1X.Angle(grad2X);
+// 	double scatter_y  = grad1Y.Angle(grad2Y);
+// 	double scatter_3d = grad1.Angle(grad2);
+
+// 	// std::cout << "New Scatter Angle X : " << scatter_x << std::endl;
+
+
+// 	xUchi2 = xUFitFunc->GetChisquare();
+// 	xLchi2 = xLFitFunc->GetChisquare();
+// 	yUchi2 = yUFitFunc->GetChisquare();
+// 	yLchi2 = yLFitFunc->GetChisquare();
+
+// 	trackParams[4] = xUTrack->GetParameter(0);
+// 	trackParams[5] = xUTrack->GetParameter(1);
+// 	trackParams[6] = xLTrack->GetParameter(0);
+// 	trackParams[7] = xLTrack->GetParameter(1);
+// 	trackParams[8] = yUTrack->GetParameter(0);
+// 	trackParams[9] = yUTrack->GetParameter(1);
+// 	trackParams[10] = yLTrack->GetParameter(0);
+// 	trackParams[11] = yLTrack->GetParameter(1);
+
+// 	//save fit parametes so they can be used by other functions
+// 	xUFitPrms[0] = xUTrack->GetParameter(0);
+// 	xUFitPrms[1] = xUTrack->GetParameter(1);
+// 	xLFitPrms[0] = xLTrack->GetParameter(0);
+// 	xLFitPrms[1] = xLTrack->GetParameter(1);
+// 	yUFitPrms[0] = yUTrack->GetParameter(0);
+// 	yUFitPrms[1] = yUTrack->GetParameter(1);
+// 	yLFitPrms[0] = yLTrack->GetParameter(0);
+// 	yLFitPrms[1] = yLTrack->GetParameter(1);
+
+// 	// Get z intersection point at layer 13 zpos.
+
+// 	//x_intersect = (-400 - xUTrack->GetParameter(0)) / xUTrack->GetParameter(1);
+// 	//y_intersect = (-400 - yUTrack->GetParameter(0)) / yUTrack->GetParameter(1);
+
+// 	// if (config.perEventPlots == 1) {
+// 	if (false) {
+// 		// if ((xUchi2 < 1) && (xLchi2 < 1) && (yUchi2 < 1) && (yLchi2 < 1)) {
+// 		xGraph->Write("x Two Track");
+// 		yGraph->Write("y Two Track");
+// 		// }
+// 	}
+// 	// //		xFitGraph->Write("x two-track fit");
+// 	// //		yFitGraph->Write("y two-track fit");
+// 	// 	}
+// 	// }
+
+// 	//clean up allocated objects
+// 	delete xFitGraph;
+// 	delete yFitGraph;
+// 	delete xGraph;
+// 	delete yGraph;
+// 	delete xUFitFunc;
+// 	delete xLFitFunc;
+// 	delete yUFitFunc;
+// 	delete yLFitFunc;
+// 	delete xUTrack;
+// 	delete xLTrack;
+// 	delete yUTrack;
+// 	delete yLTrack;
+// }
 
 }
 
