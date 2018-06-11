@@ -14,7 +14,7 @@
 #include "pumas/pumas.h"
 using namespace PUMASInterface;
 
-int main(int narg, char * argv[]){
+int main(int narg, char * argv[]) {
 
     /* Parse the arguments */
     double rock_thickness = strtod(argv[1], NULL);
@@ -27,7 +27,7 @@ int main(int narg, char * argv[]){
 
     std::cout << "Got Inputs : " << std::endl;
 
-    pumas_context* context = PUMASInterface::BuildPUMAS();
+    pumas_context* context; // = PUMASInterface::BuildPUMAS();
     std::cout << "Built context : " << context << std::endl;
 
 
@@ -59,18 +59,18 @@ int main(int narg, char * argv[]){
             wf = 1;
         }
         std::cout << "Creating state" << std::endl;
-  pumas_state state;
-  state.charge = -1.;
-  state.kinetic = kf;
-  state.weight  = wf;
-  state.direction[0] = -sin_theta;
-  state.direction[1] = 0.;
-  state.direction[2] = -cos_theta;
+        pumas_state state;
+        state.charge = -1.;
+        state.kinetic = kf;
+        state.weight  = wf;
+        state.direction[0] = -sin_theta;
+        state.direction[1] = 0.;
+        state.direction[2] = -cos_theta;
 
-  
+
         /* Transport the muon backwards */
         const double kinetic_threshold = kinetic_max * 1E+03;
-        std::cout << "Transporting " << state.kinetic << " < " << kinetic_max * 1E+03-FLT_EPSILON << std::endl;
+        std::cout << "Transporting " << state.kinetic << " < " << kinetic_max * 1E+03 - FLT_EPSILON << std::endl;
         int count = 0;
         while (state.kinetic < kinetic_threshold - FLT_EPSILON) {
             std::cout << "While " << state.position[0] << " " << state.position[1] << " " << state.position[2] <<  std::endl;

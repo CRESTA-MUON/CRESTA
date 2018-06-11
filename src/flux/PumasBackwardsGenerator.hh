@@ -31,6 +31,7 @@
 #include "G4ParticleGun.hh"
 #include "G4Types.hh"
 #include <G4Box.hh>
+#include "pumas/pumas.h"
 
 #include "analysis/Analysis.hh"
 #include "analysis/VFluxProcessor.hh"
@@ -123,6 +124,7 @@ private:
     G4double fSpeedUp;      ///< MuonPDG    Info for auto flux processor
 
     double fKineticThreshold;
+    pumas_context* context;
 
 };
 //---------------------------------------------------------------------------------

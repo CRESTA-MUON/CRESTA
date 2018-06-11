@@ -14,7 +14,7 @@
   name: "GEO",
   index: "world",
   material: "G4_AIR",
-  size: ["30.*m", "30.0*m", "20.*m"],
+  size: ["60.*m", "60.0*m", "60.*m"],
   type: "box",
   color: [1.0,1.0,1.0],
 }
@@ -27,11 +27,35 @@
   index: "detector",
   type: "box",
   mother: "world",
-  material: "G4_Pb",
-  size: ["2.0*m","2.0*m","2.0*m"],
-  position: ["0.0*m","0.0","0.0"],
+  material: "G4_C",
+  size: ["20.0*m","20.0*m","60.0*m"],
+  position: ["0.0*m","0.0","0.0*m"],
 
 }
+
+
+{
+  name: "GEO",
+  index: "detector2",
+  type: "box",
+  mother: "detector",
+  material: "G4_AIR",
+  size: ["1.0*m","1.0*m","1.0*m"],
+  position: ["0.0*m","0.0","0.0*m"],
+}
+
+{
+  name: "GEO",
+  index: "detector3",
+  type: "box",
+  mother: "detector",
+  material: "G4_Pb",
+  size: ["3.0*m","3.0*m","3.0*m"],
+  position: ["0.0*m","0.0","20.0*m"],
+}
+
+
+
 
 // ---------------------------------------------------
 // Flux Generator Source Location : Default is Shukla

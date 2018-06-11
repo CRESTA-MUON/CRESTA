@@ -27,8 +27,11 @@
 #include "Randomize.hh"
 #include "globals.hh"
 #include "G4Types.hh"
-
+#include <unistd.h>
 #include "pumas.h"
+
+#include "db/ROOTHeaders.hh"
+#include "analysis/Analysis.hh"
 
 
 namespace PUMASInterface {
@@ -36,18 +39,18 @@ namespace PUMASInterface {
 
 bool debugpumas = true;
 std::vector<std::vector<std::vector<int> > > material_grid;
+std::vector<double> material_density;
+std::map<std::string, int> material_names;
 
-double xstep = 0.5;
+double xstep = 1.0;
 double xmin = -30.0;
 double xmax = 30.0;
-double ystep = 0.5;
+double ystep = 1.0;
 double ymin = -30.0;
 double ymax = 30.0;
-double zstep = 0.5;
+double zstep = 1.0;
 double zmin = -30.0;
 double zmax = 30.0;
-
-static struct pumas_context * context = NULL;
 
 
 static double gGlobalDensity = 2.65E+03;
@@ -86,48 +89,65 @@ static double medium2(struct pumas_context * context,
     struct pumas_state * state, struct pumas_medium ** medium_ptr)
 {
 
-	if (debugpumas) std::cout << "Calling Medium" << std::endl;
+	// if (debugpumas) std::cout << "Calling Medium" << std::endl;
+
 	// Get position of the state
 	double x = state->position[0];
 	double y = state->position[1];
 	double z = state->position[2];
 
-	// Check range
-	if (debugpumas) std::cout << "Checking Medium " << x << " " << y << " " << z << std::endl;
-	if (debugpumas) std::cout << "Checking Medium Min " << xmin << " " << ymin << " " << zmin << std::endl;
-	if (debugpumas) std::cout << "Checking Medium Max " << xmax << " " << ymax << " " << zmax << std::endl;
-	if (debugpumas) std::cout << "Checking Bool Max " << (x > xmax) << " " << (y > ymax) << " " << (z > zmax) << std::endl;
-	if (debugpumas) std::cout << "Checking Bool Min " << (x < xmin) << " " << (y < ymin) << " " << (z < zmin) << std::endl;
+	// LOG
+	// if (debugpumas) std::cout << "Checking Medium " << x << " " << y << " " << z << std::endl;
+	// if (debugpumas) std::cout << "Checking Medium Min " << xmin << " " << ymin << " " << zmin << std::endl;
+	// if (debugpumas) std::cout << "Checking Medium Max " << xmax << " " << ymax << " " << zmax << std::endl;
+	// if (debugpumas) std::cout << "Checking Bool Max " << (x > xmax) << " " << (y > ymax) << " " << (z > zmax) << std::endl;
+	// if (debugpumas) std::cout << "Checking Bool Min " << (x < xmin) << " " << (y < ymin) << " " << (z < zmin) << std::endl;
 
-	if (x < xmin || x > xmax) return -1;
-	if (y < ymin || y > ymax) return -1;
-	if (z < zmin || z > zmax) return -1;
-
+	// Check Ranges return if bad
+	if ((x < xmin || x > xmax) ||
+	    (y < ymin || y > ymax) ||
+	    (z < zmin || z > zmax)) {
+		gGlobalDensity = 0.0;
+		medium_ptr = NULL;
+		return -1;
+	}
 
 	// Get the corresponding indices in our grid for XYZ
 	uint xbin = (x - xmin)/xstep;
 	uint ybin = (y - ymin)/ystep;
 	uint zbin = (z - zmin)/zstep;
-	if (debugpumas) std::cout << "Getting material index " << xbin << " " << ybin << " " << zbin << std::endl;
+	
+	//
+	// if (debugpumas) std::cout << "Getting material index " << xbin << " " << ybin << " " << zbin << std::endl;
 	int material_index = material_grid[xbin][ybin][zbin]-1;
-	if (debugpumas) std::cout << "Index : " << material_index << std::endl;
+	
 
-	if (material_index < 0) return -1;
 
-	if (debugpumas) std::cout << "Setting medium ptr : " << medium_ptr << std::endl;
-	// Read from Geant4
-	if (medium_ptr != NULL) *medium_ptr = *medium_ptr = media + material_index;
+	// if (debugpumas) std::cout << "Index : " << material_index << std::endl;
+
+	// If bad material also kill transport
+	if (material_index < 0){
+		gGlobalDensity = 0.0;
+		medium_ptr = NULL;
+		return -1;
+	} 
+
+	// if (debugpumas) std::cout << "Setting medium ptr : " << medium_ptr << std::endl;
+
+	// Set the medium and density accordingly
+	if (medium_ptr != NULL) *medium_ptr = media;
+	gGlobalDensity = material_density[material_index];
 
 	// Check inside the world volume
-	if (debugpumas) std::cout << "Checking Step" << std::endl;
+	// if (debugpumas) std::cout << "Checking Step" << std::endl;
 
 	// return step size depending on distance to next boundary...
-	double step = 1;
-	if (debugpumas) std::cout << "Returning " << step << std::endl;
+	double step = 0.25; // feature size
+	// if (debugpumas) std::cout << "Returning " << step << std::endl;
 	return step;
 }
 
-pumas_context* BuildPUMAS(){
+pumas_context* BuildPUMAS(TH2D* histXY, TH2D* histXZ, TH2D* histYZ){
 
 	
 	std::cout << "Building context" << std::endl;
@@ -138,13 +158,22 @@ pumas_context* BuildPUMAS(){
 	std::cout << "Mapping materials" << std::endl;
 
 	/* Map the PUMAS material indices */
-	pumas_material_index("StandardRock", &media[0].material);
 	G4Navigator* nav =  G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
+
 
 	// Create our grid
 	int nbinsx = (xmax - xmin)/xstep;
 	int nbinsy = (ymax - ymin)/ystep;
 	int nbinsz = (zmax - zmin)/zstep;
+
+
+	// Make histograms
+	histXY = new TH2D("histXY","histXY", nbinsx, xmin, xmax, nbinsy, ymin, ymax);
+	histXZ = new TH2D("histXZ","histXZ", nbinsx, xmin, xmax, nbinsz, zmin, zmax);
+	histYZ = new TH2D("histYZ","histYZ", nbinsy, ymin, ymax, nbinsz, zmin, zmax);
+
+
+
 	for (int i = 0; i < nbinsx; i++){
 		material_grid.push_back(std::vector<std::vector<int> >(0));
 		for (int j = 0; j < nbinsy; j++){
@@ -162,32 +191,59 @@ pumas_context* BuildPUMAS(){
 				}
 				G4LogicalVolume* log = phys->GetLogicalVolume();
 				G4Material* mat = log->GetMaterial();
-				std::cout << "Setting material to : " << mat->GetDensity() / (g/cm3) << std::endl;
+				G4double density = mat->GetDensity() / (g/cm3);
 
-				material_grid[i][j].push_back(1);
+				int densityindex = 1;
+				if (material_names.find(mat->GetName()) != material_names.end()){
+					densityindex = material_names[mat->GetName()];
+				} else {
+					densityindex = material_names.size() + 1;
+					material_names[mat->GetName()] = densityindex;
+					std::cout << "Loaded Density : " << mat->GetName() << " " << density*1E3 << " : " << densityindex << std::endl;
+					material_density.push_back(density*1E3);
+				}
+				// std::cout << "DENSITY INDEX : " << i << " " << x << " " << j << " " << y << " : " << densityindex << std::endl;
+				material_grid[i][j].push_back(densityindex);
+
+				histXY->Fill(x,y,density);
+				histXZ->Fill(x,z,density);
+				histYZ->Fill(y,z,density);
+
+
 			}
 		}
 	}
 
+	TFile* out = new TFile("pumas.root","RECREATE");
+	out->cd();
+	histXY->Write();
+	histXZ->Write();
+	histYZ->Write();
+	out->Close();
+
+	pumas_material_index("StandardRock", &media[0].material);
+
+
+
 
 	std::cout << "Creating context" << std::endl;
+  pumas_context * context = new pumas_context();
+  std::cout << "Got context : " << context << std::endl;
 
 	/* Create a new PUMAS simulation context */
 	pumas_context_create(0, &context);
 
 	std::cout <<"Adding settings" << std::endl;
+  std::cout << "Got context : " << context << std::endl;
 	/* Configure the context for a backward transport */
 	context->forward = 0;
 
-	std::cout << "Setting Medium" << std::endl;
 	/* Set the medium callback */
 	context->medium = &medium2;
 
-	std::cout << " Setting random" << std::endl;
 	/* Provide a PRNG for the Monte-Carlo simulation */
 	context->random = &uniform01;
 
-	std::cout << "Retrun" << std::endl;
 	return context;
 }
 
