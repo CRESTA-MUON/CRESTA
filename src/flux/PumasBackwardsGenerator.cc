@@ -52,6 +52,22 @@ using namespace PUMASInterface;
 
 namespace COSMIC {
 
+
+// PUMAS CLASS should consist of all the static functions we just showed
+// Call function should initialise them and the density mapping should be bundled with them too.
+// User defines a set of bin edges for the TH3D that defines the grid mapping.
+// Then just have following functions
+// - Set pumas_state
+// - Transport pumas_state
+// - GetWeight pumas_state
+// Class keeps track of all positions for future reference if required.
+// Random number defined from CLHEP
+// Weight calculate done by the generator itself. Means someone could use the
+// Transport class outside of the main cosmic package to save all particles that
+// Enter the correct geometry.
+// Context of the pumas class should be read from the database, user can specify other options.
+
+
 //----------------------------------------------------------------------------//
 PumasBackwardsGenerator::PumasBackwardsGenerator()
 {
@@ -86,7 +102,7 @@ void PumasBackwardsGenerator::Setup() {
   context = PUMASInterface::BuildPUMAS(histXY, histXZ, histYZ);
   context->scheme = PUMAS_SCHEME_HYBRID;
   context->longitudinal = 0;
-  context->kinetic_limit = fKineticThreshold;  
+  context->kinetic_limit = fKineticThreshold;
   context->distance_max = 500.0;
 
   std::cout << "Built context : " << context << std::endl;
@@ -106,16 +122,11 @@ void PumasBackwardsGenerator::GeneratePrimaries(G4Event* anEvent)
   double sin_theta = sin(theta);
   double cos_phi   = cos(phi);
   double sin_phi   = sin(phi);
-  double kf = 210;
-  double wf = 1;
-
-    // G4double cos_theta = fZenithPDF->GetRandom();
-    // G4double phi = CLHEP::twopi * G4UniformRand(); //phi uniform in [-pi, pi];
-    // G4double sin_theta = std::sqrt(1 - cos_theta * cos_theta);
-    // G4double x = sin_theta * cos(phi);
-    // G4double y = sin_theta * sin(phi);
-    // G4double z = cos_theta;
-    // return G4ThreeVector(x, y, -z);
+  double kinetic_min = 0.1 * MeV;
+  double kinetic_max = 1000.0 * GeV;
+  const double rk = log(kinetic_max / kinetic_min);
+  double kf = kinetic_min * exp(rk * PUMASInterface::uniform01(context));
+  double wf = kf * rk;
 
   // Update the PUMAS_STATE
   struct pumas_state state = {
@@ -131,7 +142,7 @@ void PumasBackwardsGenerator::GeneratePrimaries(G4Event* anEvent)
 
   // Update vectors
   fMuonPos    = G4ThreeVector(0, 0, 0);
-  fMuonDir    = G4ThreeVector(-sin_theta, 0., -cos_theta);
+  fMuonDir    = G4ThreeVector(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta );
   fMuonEnergy = kf * MeV;
   fMuonTime   = 1 * ns;
 
@@ -143,8 +154,6 @@ void PumasBackwardsGenerator::GeneratePrimaries(G4Event* anEvent)
 
   // While the muon is less than some threshold, project backwards
   // while (state.kinetic < fKineticThreshold - FLT_EPSILON) {
-
-  // std::cout << "While " << state.kinetic << " " << state.weight << " " << state.direction[0] << " " << state.direction[1] << " " << state.direction[2] << std::endl;
 
   posX.push_back( state.position[0]*m );
   posY.push_back( state.position[1]*m );
@@ -165,24 +174,24 @@ void PumasBackwardsGenerator::GeneratePrimaries(G4Event* anEvent)
   // break;
   // }
   // }
-  const double wi = state.weight *
-                    spectrum_gaisser(-state.direction[2], state.kinetic);
 
-  // G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
-  // if (pVVisManager) {
-  //   G4Polyline polyline;
-  //   G4Colour colour(1., 1., 0.);
-  //   G4VisAttributes attribs(colour);
+  const double wi = state.weight * spectrum_gaisser(-state.direction[2], state.kinetic);
 
-  //   polyline.SetVisAttributes(attribs);
-  //   for (int i = 0; i < posX.size(); i++) {
+  G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+  if (pVVisManager) {
+    G4Polyline polyline;
+    G4Colour colour(1., 1., 0.);
+    G4VisAttributes attribs(colour);
 
-  //     polyline.push_back( G4ThreeVector(posX[i], posY[i], posZ[i]));
-  //   }
-  //   pVVisManager->Draw(polyline);
-  // }
+    polyline.SetVisAttributes(attribs);
+    for (int i = 0; i < posX.size(); i++) {
 
+      polyline.push_back( G4ThreeVector(posX[i], posY[i], posZ[i]));
+    }
+    pVVisManager->Draw(polyline);
+  }
 
+  fEventWeight = wi;
 
   // Get a weight for the muon depending on its angle and momentum.
 
@@ -213,6 +222,14 @@ PumasBackwardsProcessor::PumasBackwardsProcessor(PumasBackwardsGenerator * gen, 
 
 bool PumasBackwardsProcessor::BeginOfRunAction(const G4Run* /*run*/) {
 
+  std::string tableindex = "pumas";
+  std::cout << "FLX: Registering PumasPrimaryFluxProcessor NTuples " << tableindex << std::endl;
+
+  G4AnalysisManager* man = G4AnalysisManager::Instance();
+
+  // Fill index energy
+  fEventWeightIndex = man ->CreateNtupleDColumn(tableindex + "_w");
+
   return true;
 }
 
@@ -221,6 +238,9 @@ bool PumasBackwardsProcessor::ProcessEvent(const G4Event* /*event*/) {
   // Register Trigger State
   fHasInfo = true;
   fTime    = 1.0;
+
+  G4AnalysisManager* man = G4AnalysisManager::Instance();
+  man->FillNtupleDColumn(fEventWeightIndex,   fGenerator->GetEventWeight());
 
   return true;
 }

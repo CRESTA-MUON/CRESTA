@@ -2,7 +2,7 @@
 {
   name: "GLOBAL",
   index: "config",
-  flux: "pumasback",
+  flux: "shukla",
   physics: "QGSP_BERT_HP",
   batchcommands: "",
 }
@@ -14,45 +14,23 @@
   name: "GEO",
   index: "world",
   material: "G4_AIR",
-  size: ["60.*m", "60.0*m", "60.*m"],
+  size: ["300.*m", "300.0*m", "100.*m"],
   type: "box",
   color: [1.0,1.0,1.0],
 }
 
 // --------------------------------------------------
 // Detector
-
-{
-  name: "GEO",
-  index: "detector",
-  type: "box",
-  mother: "world",
-  material: "G4_C",
-  size: ["20.0*m","20.0*m","60.0*m"],
-  position: ["0.0*m","0.0","0.0*m"],
-
-}
-
-
 {
   name: "GEO",
   index: "detector2",
   type: "box",
-  mother: "detector",
+  mother: "world",
   material: "G4_AIR",
   size: ["1.0*m","1.0*m","1.0*m"],
   position: ["0.0*m","0.0","0.0*m"],
   sensitive: "truemuon"
-}
-
-{
-  name: "GEO",
-  index: "detector3",
-  type: "box",
-  mother: "detector",
-  material: "G4_Pb",
-  size: ["3.0*m","3.0*m","3.0*m"],
-  position: ["0.0*m","0.0","20.0*m"],
+  drawstyle: "solid"
 }
 
 
@@ -63,6 +41,12 @@
 {
   name: "FLUX",
   index: "source_box",
-  size: ["3.0*m", "3.0*m", "0.5*m"],
-  position: ["0.0","0.0", "9.75*m"],
+  size: ["300.0*m", "300.0*m", "0.05*m"],
+  position: ["0.0","0.0", "49.95*m"],
+}
+{
+  name: "FLUX",
+  index: "target_box_0",
+  size: ["1.0*m","1.0*m","1.0*m"],
+  position: ["0.0*m","0.0","0.0*m"],
 }

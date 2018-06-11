@@ -72,6 +72,8 @@ public:
     inline G4double GetExposureTime() { return fExposureTime; };
     inline void SetExposureTime(double d){ fMuonTime = d; };
 
+    inline double GetEventWeight() { return fEventWeight; };
+
 private:
 
     G4double fMinEnergy; ///< Min Energy Range to integrate/throw
@@ -121,7 +123,8 @@ private:
     G4ThreeVector fMuonDir; ///< MuonDir    Info for auto flux processor
     G4ThreeVector fMuonPos; ///< MuonPos    Info for auto flux processor
     G4double fMuonPDG;      ///< MuonPDG    Info for auto flux processor
-    G4double fSpeedUp;      ///< MuonPDG    Info for auto flux processor
+    G4double fSpeedUp;      ///< MuonPDG     Info for auto flux processor
+    double fEventWeight;
 
     double fKineticThreshold;
     pumas_context* context;
@@ -160,7 +163,7 @@ public:
 protected:
 
   PumasBackwardsGenerator* fGenerator; ///< Pointer to associated generator
-  
+  int fEventWeightIndex;
 
 };
 //---------------------------------------------------------------------------------

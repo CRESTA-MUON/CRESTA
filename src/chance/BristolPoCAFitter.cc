@@ -23,6 +23,10 @@ BristolPoCAFitter::BristolPoCAFitter() :
 	fMinADriftY(3),
 	fMinBDriftX(3),
 	fMinBDriftY(3) {
+		above_drift_xc = 0;
+		above_drift_yc = 0;
+		below_drift_xc = 0;
+		below_drift_yc = 0;
 }
 
 BristolPoCAFitter::~BristolPoCAFitter() {
@@ -30,6 +34,7 @@ BristolPoCAFitter::~BristolPoCAFitter() {
 
 void BristolPoCAFitter::ReadInputTTree(TTree* t, std::string prefixa, std::string prefixb) {
 
+	std::cout << "Creating new vectors" << std::endl;
 	above_rpc_xx = new std::vector<double>(1, 0.0);
 	above_rpc_xt = new std::vector<double>(1, 0.0);
 	above_rpc_xz = new std::vector<double>(1, 0.0);
@@ -38,6 +43,7 @@ void BristolPoCAFitter::ReadInputTTree(TTree* t, std::string prefixa, std::strin
 	above_rpc_yt = new std::vector<double>(1, 0.0);
 	above_rpc_yz = new std::vector<double>(1, 0.0);
 	above_rpc_ye = new std::vector<double>(1, 0.0);
+	std::cout << "Registering vectors" << std::endl;
 	t->SetBranchAddress( (prefixa + "_rpc_xx").c_str(), &above_rpc_xx);
 	t->SetBranchAddress( (prefixa + "_rpc_xt").c_str(), &above_rpc_xt);
 	t->SetBranchAddress( (prefixa + "_rpc_xz").c_str(), &above_rpc_xz);
@@ -1169,6 +1175,7 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 	double temp_below_py = 0.0;
 	double temp_below_yz = 0.0;
 
+	// std::cout << "Doing single track fits" << std::endl;
 	// Perform an Upper X fit
 	FillSingleContainers(kFitAllAboveX);
 	SetVectorC( above_drift_xc );
@@ -1189,18 +1196,19 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 	SetVectorC( below_drift_yc );
 	DoSingleTrackFitWithX(&temp_below_y, &temp_below_py, &temp_below_yz);
 
+	// std::cout << "Doing joint track fits" << std::endl;
 
 	// Perform a dodgy joint ABOVE+BELOW X Fit
 	FillSingleContainers(kFitAllX);
 	std::vector<bool> tempcombo;
 	if (above_drift_xc) {
 		for (int i = 0; i < above_drift_xc->size(); i++) {
-			tempcombo.push_back(above_drift_xc->at(i));
+			tempcombo.push_back(false); //above_drift_xc->at(i));
 		}
 	}
 	if (below_drift_xc) {
 		for (int i = 0; i < below_drift_xc->size(); i++) {
-			tempcombo.push_back(below_drift_xc->at(i));
+			tempcombo.push_back(false); //below_drift_xc->at(i));
 		}
 	}
 	SetVectorC( &tempcombo );
@@ -1221,6 +1229,7 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 	SetVectorC( &tempcombo );
 	double yChi2 = DoSingleTrackFitWithX();
 
+	// std::cout << "Getting posA" << std::endl;
 
 	// Get vectors from the fits
 	TVector3 posA = TVector3(temp_above_x, temp_above_y, 0.0);

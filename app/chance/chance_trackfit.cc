@@ -263,14 +263,20 @@ int main(int argc, char** argv) {
   std::cout << "APP: Reading Configuration" << std::endl;
   // bool fUseRPC = true;
   // bool fUseDrift = true;
-  int fMinARPCX = 3;
-  int fMinARPCY = 3;
-  int fMinBRPCX = 3;
-  int fMinBRPCY = 3;
+  int fMinARPCX = 2;
+  int fMinARPCY = 2;
+  int fMinBRPCX = 2;
+  int fMinBRPCY = 2;
   int fMinADriftX = 3;
   int fMinADriftY = 3;
   int fMinBDriftX = 3;
   int fMinBDriftY = 3;
+  if (gInputMode == kUseRPC) {
+    fMinARPCX = 3;
+    fMinARPCY = 3;
+    fMinBRPCX = 3;
+    fMinBRPCY = 3;
+  }
 
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
@@ -301,7 +307,9 @@ int main(int argc, char** argv) {
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Creating Output Tree" << std::endl;
 
-  TFile* o = new TFile((gInputFile + gOutputTag + ".root").c_str(), "RECREATE");
+  std::string strippedinput = gInputFile;
+  // strippedinput.erase( strippedinput.find(".root"), 4);
+  TFile* o = new TFile((strippedinput + "." + gOutputTag + ".root").c_str(), "RECREATE");
   TTree* otree = new TTree("T", "T");
 
   double fBestFitPars[7];
@@ -375,6 +383,7 @@ int main(int argc, char** argv) {
 
     if (i % 10000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
 
+    // std::cout << "Clearing" << std::endl;
     // Clear vectors if not using certain components
     if (gInputMode == kUseRPC) {
       pocafit->ClearDriftVectors();
@@ -388,6 +397,7 @@ int main(int argc, char** argv) {
       pocafit->SetUseDrift(true);
     }
 
+    // std::cout << "Offsetting" << std::endl;
     pocafit->ApplyOffsets();
 
 
@@ -430,7 +440,7 @@ int main(int argc, char** argv) {
       comboby = pocafit->GetBestComboForDriftHits(BristolPoCAFitter::kFitAllBelowY);
       pocafit->SetBelowComboY(&comboby);
     }
-
+    // std::cout << "Predicting" << std::endl;
 
     // Get the starting track values for above and below
     pocafit->SetUseAll();
@@ -474,6 +484,7 @@ int main(int argc, char** argv) {
     fPOCAScattering[4] = pocafitparams[12]; // fitVy;
     fPOCAScattering[5] = pocafitparams[13]; // fitVz;
 
+    // std::cout << "Calcing" << std::endl;
     // Apply Cuts to fits
     double chi2arpcx = pocafit->GetChi2AboveRPCX( stf_above_x, stf_above_px, 0.0 );
     double chi2arpcy = pocafit->GetChi2AboveRPCY( stf_above_y, stf_above_py, 0.0 );
@@ -718,7 +729,7 @@ int main(int argc, char** argv) {
     savecount++;  
 
     // Clean up look sharp
-    // delete min;
+    delete min;
   }
 
   // Save outputs to TTree

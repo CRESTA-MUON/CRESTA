@@ -43,14 +43,14 @@ std::vector<double> material_density;
 std::map<std::string, int> material_names;
 
 double xstep = 1.0;
-double xmin = -30.0;
-double xmax = 30.0;
+double xmin = -300.0;
+double xmax = 300.0;
 double ystep = 1.0;
-double ymin = -30.0;
-double ymax = 30.0;
+double ymin = -300.0;
+double ymax = 300.0;
 double zstep = 1.0;
-double zmin = -30.0;
-double zmax = 30.0;
+double zmin = -300.0;
+double zmax = 300.0;
 
 
 static double gGlobalDensity = 2.65E+03;
