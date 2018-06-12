@@ -1,0 +1,7 @@
+{
+  name: "GLOBAL",
+  index: "config",
+  flux: "shukla",
+  physics: "QGSP_BERT_HP",
+  batchcommands: "",
+}
