@@ -517,68 +517,69 @@ int main(int argc, char** argv) {
       continue;
     }
 
-    // int npars = 7;
-    // ROOT::Minuit2::MnUserParameters mn_param;
+    int npars = 7;
+    ROOT::Minuit2::MnUserParameters mn_param;
 
-    // mn_param.Add("vx", 225.0, 10);
-    // mn_param.Add("vy", 225.0, 10);
-    // mn_param.Add("vz", -250.0, 10);
-    // mn_param.Add("px1", 0.0, 10);
-    // mn_param.Add("px2", 0.0, 10);
-    // mn_param.Add("py1", 0.0, 10);
-    // mn_param.Add("py2", 0.0, 10);
+    mn_param.Add("vx", 225.0, 10);
+    mn_param.Add("vy", 225.0, 10);
+    mn_param.Add("vz", -250.0, 10);
+    mn_param.Add("px1", 0.0, 10);
+    mn_param.Add("px2", 0.0, 10);
+    mn_param.Add("py1", 0.0, 10);
+    mn_param.Add("py2", 0.0, 10);
 
-    // pocafit->SetUseAll();
+    pocafit->SetUseAll();
 
-    // // Minimisation
-    // ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
-    // ROOT::Minuit2::FunctionMinimum min = migrad();
+    // Minimisation
+    ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
+    ROOT::Minuit2::FunctionMinimum min = migrad();
 
-    // ROOT::Minuit2::MnAlgebraicSymMatrix MinCovarMatrix = min.Error().Matrix();
-    // ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
+    ROOT::Minuit2::MnAlgebraicSymMatrix MinCovarMatrix = min.Error().Matrix();
+    ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
 
-    // for (int j = 0; j < npars; j++){
-    //   fBestFitPars[j] = MinParams[j];
-    // }
+    for (int j = 0; j < npars; j++){
+      fBestFitPars[j] = MinParams[j];
+    }
 
-    // // end Minuit2
-    // Double_t istat = 0;
-    // if (min.HasPosDefCovar()) istat = 3;
+    // end Minuit2
+    Double_t istat = 0;
+    if (min.HasPosDefCovar()) istat = 3;
 
-    // fMinuitParams[0] = pocafit->DoEval(fBestFitPars);
-    // fMinuitParams[1] = min.Edm();
-    // fMinuitParams[2] = min.Up();
-    // fMinuitParams[3] = 7;
-    // fMinuitParams[4] = 7;
-    // fMinuitParams[5] = istat;
+    fMinuitParams[0] = pocafit->DoEval(fBestFitPars);
+    fMinuitParams[1] = min.Edm();
+    fMinuitParams[2] = min.Up();
+    fMinuitParams[3] = 7;
+    fMinuitParams[4] = 7;
+    fMinuitParams[5] = istat;
 
 
 
-    // for (Int_t i = 0; i < 7; ++i) {
-    //   for (Int_t j = 0; j < 7; ++j) {
-    //     Int_t pos = (i * 7) + j;
-    //     fCovarMatrix[pos] = MinCovarMatrix(i, j);
-    //   }
-    // }
+    for (Int_t i = 0; i < 7; ++i) {
+      for (Int_t j = 0; j < 7; ++j) {
+        Int_t pos = (i * 7) + j;
+        fCovarMatrix[pos] = MinCovarMatrix(i, j);
+      }
+    }
 
-    // pocafit->SetUseAll();
+    pocafit->SetUseAll();
 
 
 
     // Create Minimizer Object
-    ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-    min->SetPrintLevel(-1);
-    min->SetMaxIterations(int(1E15));
-    min->SetMaxFunctionCalls(int(1E20));
-    min->SetTolerance(0.001);
-    min->SetStrategy(2);
+    // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+    // min->SetPrintLevel(-1);
+    // min->SetMaxIterations(int(1E15));
+    // min->SetMaxFunctionCalls(int(1E20));
+    // min->SetTolerance(0.001);
+    // min->SetStrategy(2);
 
+    /*
     // Setup Functor for the fitter
     int npars = 7;
     BristolPoCAFitterFCN* fcn = new BristolPoCAFitterFCN(pocafit);
     ROOT::Math::Functor func(*fcn, npars);
     min->SetFunction(func);
-
+    */
     // Tell Minuit the variables
     // min->SetVariable(0, "rx",  pocafitparams[11],   10.0);
     // min->SetVariable(1, "ry",  pocafitparams[12],   10.0);
@@ -587,7 +588,7 @@ int main(int argc, char** argv) {
     // min->SetVariable(4, "px2", stf_below_px,        10.0);
     // min->SetVariable(5, "py1", stf_above_py,        10.0);
     // min->SetVariable(6, "py2", stf_below_py,        10.0);
-
+    /*
     // Tell Minuit the variables
     min->SetVariable(0, "rx",  225.0, 10.0);
     min->SetVariable(1, "ry",  225.0, 10.0);
@@ -618,7 +619,7 @@ int main(int argc, char** argv) {
 
     // Cut on Chi2
     min->GetCovMatrix(fCovarMatrix);
-
+    */
 
     double CombinedChi2Cut = 2000;
     // if (gInputMode != kUseAll) CombinedChi2Cut = 1000;
@@ -729,7 +730,7 @@ int main(int argc, char** argv) {
     savecount++;  
 
     // Clean up look sharp
-    delete min;
+    //delete min;
   }
 
   // Save outputs to TTree

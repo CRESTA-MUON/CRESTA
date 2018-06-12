@@ -34,7 +34,6 @@ endif()
 # Find ROOT variables if the variable G4ANALYSIS_USE_ROOT is set
 #
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-find_package(ROOT)
 find_package(ROOT REQUIRED COMPONENTS RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread Minuit Minuit2)
 if(EXISTS ${ROOT_USE_FILE})
   include(${ROOT_USE_FILE})
@@ -48,7 +47,7 @@ add_definitions(-DG4ANALYSIS_USE_ROOT)
 include(${Geant4_USE_FILE})
 include_directories(${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/geo/)
 
-SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lMinuit2)
 
 #----------------------------------------------------------------------------
 # USE CADMESH
