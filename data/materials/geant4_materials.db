@@ -7,9 +7,17 @@
 
 {
   name: "MATERIAL",
+  index: "G4_PLASTIC_SC_VINYLTOLUENE"
+  color: [0.1,1.0,0.1,0.6],
+  drawstyle: "solid"
+}
+
+{
+  name: "MATERIAL",
   index: "G4_AIR",
   color: [0.5,0.5,0.5,0.2],
 }
+
 {
   name: "MATERIAL",
   index: "G4_C",
