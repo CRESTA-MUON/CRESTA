@@ -49,6 +49,14 @@ include_directories(${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${PROJECT_SOURCE_D
 
 SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
+# Check for Minuit2
+string(FIND "${LINK_LIBRARIES}" "Minuit2" minuit2pos)
+message(STATUS "Looking for Minuit2 ${minuit2pos}")
+if("${minuit2pos}" EQUAL "-1")
+  message(STATUS "Adding Minuit2 libs as not enabled by default!")
+  SET(LINK_LIBRARIES "${LINK_LIBRARIES} -lMinuit2")
+endif()
+
 #----------------------------------------------------------------------------
 # USE CADMESH
 if(USE_CADMESH)
