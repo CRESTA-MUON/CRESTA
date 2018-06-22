@@ -47,7 +47,7 @@ add_definitions(-DG4ANALYSIS_USE_ROOT)
 include(${Geant4_USE_FILE})
 include_directories(${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/geo/)
 
-SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lMinuit2)
+SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # USE CADMESH
@@ -136,6 +136,8 @@ target_link_libraries(chance_g4sim ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 add_executable(chance_trackfit ${PROJECT_SOURCE_DIR}/app/chance/chance_trackfit.cc)
 target_link_libraries(chance_trackfit ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
+add_executable(chance_discr ${PROJECT_SOURCE_DIR}/app/chance/chance_discr.cc)
+target_link_libraries(chance_discr ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
 if(USE_PUMAS)
 add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)

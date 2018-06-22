@@ -74,12 +74,6 @@
 
 // --------------------------------
 // Main Detector geometry for placement
-// --> Place as true muon for acceptance
-{
- name: "DETECTOR",
- index: "truemuon",
- type: "truemuon",
-}
 // --> Main Box, just air
 {
   name: "GEO",
@@ -89,8 +83,37 @@
   size_units: "m"
   position: [0.0,0.0,0.0],
   material: "G4_AIR",
-  sensitive: "truemuon",
 }
+
+// --------------------------------
+// --> True Muon Detector
+{
+ name: "DETECTOR",
+ index: "truemuon",
+ type: "truemuon",
+}
+{
+  name: "GEO",
+  index: "trueentrance",
+  type: "box",
+  mother: "volume",
+  size: ["2.0*m","2.0*m","0.001*m"],
+  position: ["0.0","0.0","0.4995*m"],
+  material: "G4_AIR",	
+  sensitive: "truemuon"
+}
+
+{
+  name: "GEO",
+  index: "trueexit",
+  type: "box",
+  mother: "volume",
+  size: ["2.0*m","2.0*m","0.001*m"],
+  position: ["0.0","0.0","-0.4995*m"],
+  material: "G4_AIR",
+  sensitive: "truemuon"
+}
+
 // --------------------------------
 // --> Make Bristol RPCs (turn this into a templated function)
 {
@@ -131,7 +154,7 @@
   material: "AWE_SCINTMIX",
   //
   // Sensitive scintillator object
-  sensitive: "scint_true_save"
+  sensitive: "scint_true"
   //
   // Drawing options
   color: [0.,0.,1.,0.2],

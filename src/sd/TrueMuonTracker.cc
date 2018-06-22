@@ -65,10 +65,10 @@ void TrueMuonTracker::ResetState() {
 
 G4bool TrueMuonTracker::ProcessHits(G4Step* step, G4TouchableHistory* /*touch*/) {
 
-  // Don't save tracks if no energy left in the detector
-  G4double edep = step->GetTotalEnergyDeposit();
-  fTotEDep += edep;
-  if (edep <= 0.) return false;
+  // // Don't save tracks if no energy left in the detector
+  // G4double edep = step->GetTotalEnergyDeposit();
+  // fTotEDep += edep;
+  // if (edep <= 0.) return false;
 
   // Get only muons
   G4Track* track = step->GetTrack();
@@ -134,7 +134,7 @@ bool TrueMuonProcessor::BeginOfRunAction(const G4Run* /*run*/) {
 bool TrueMuonProcessor::ProcessEvent(const G4Event* /*event*/) {
 
   // Register Trigger State
-  fHasInfo = fTracker->GetTotEDep() > 0.0;
+  fHasInfo = fTracker->GetMuonPDG() != -999;
   fTime    = fTracker->GetMuonTime();
   fEnergy  = fTracker->GetTotEDep();
 

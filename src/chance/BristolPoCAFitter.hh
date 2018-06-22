@@ -46,12 +46,9 @@
 #include <cassert>
 #include "Minuit2/FCNBase.h"
 
-
+#include "chance/ChannelMapping.hh"
 
 namespace COSMIC {
-
-
-
 
 class BristolPoCAFitter : public ROOT::Minuit2::FCNBase {
 public:
@@ -59,320 +56,429 @@ public:
 	BristolPoCAFitter();
 	~BristolPoCAFitter();
 
-	int FitTracks();
-
-	void ReadInputTTree(TTree* t, std::string prefixa = "system", std::string prefixb = "system_above");
-	void AddToOutputTTree(TTree* t, std::string prefix = "system");
-	void FillOutputTree();
-
-	void DeleteContainers();
+	void ReadInputTTree(TTree* t, std::string prefixa = "det_above", std::string prefixb = "det_below");
 
 	double DoEval(const double* x) const;
 
+	bool IsValidHit(int hittype, int hitrequired, bool isbelow = false) const;
+	bool IsDriftHit(int hittype) const;
+	bool IsRPCHit(int hittype) const;
+
+	double EvaluateTrackResidual( double pointx, double gradient, double pointz, int hitreq ) const;
+
+	double GetAverageHit(int hitreq);
+	double GetAverageZ(int hitreq);
+
+
+	inline void SetUseRPC(bool f)   { fUseRPC = f; };
+	inline void SetUseDrift(bool f) { fUseDrift = f; };
+
+
+	void ApplyVectorOffset(std::vector<double>* vec);
+	void ApplyOffsets();
+
+
+
+	int GetNHits(int hitreq);
+
+	int GetNAboveRPCX() { return GetNHits(kRPCAboveX); };
+	int GetNAboveRPCY() { return GetNHits(kRPCAboveY); };
+	int GetNBelowRPCX() { return GetNHits(kRPCBelowX); };
+	int GetNBelowRPCY() { return GetNHits(kRPCBelowY); };
+
+	int GetNAboveDriftX() { return GetNHits(kDriftAboveX); };
+	int GetNAboveDriftY() { return GetNHits(kDriftAboveY); };
+	int GetNBelowDriftX() { return GetNHits(kDriftBelowX); };
+	int GetNBelowDriftY() { return GetNHits(kDriftBelowY); };
+
+	void PrintCombos();
+
+
 	virtual double operator()( const double* x ) const { return DoEval(x); };
-	virtual double operator()( const std::vector<double>& par ) const{
-		return DoEval( &par[0] );
-	};
+	virtual double operator()( const std::vector<double>& par ) const { return DoEval( &par[0] ); };
 	virtual double Up() const { return 1.0; };
 
 
-	int GetStatus() {return fStatus;};
+	void FillComboVect(std::vector<std::vector<bool> >& combomap, int hitreq );
+	double DoSingleEval(const double* x, int hitreq) const;
+	double DoSingleTrackFitWithX(int hitreq, double* x = NULL, double* px = NULL);
+	std::vector<bool> GetBestComboForDriftHits(int hitreq);
 
-	int GetNAboveRPCX()  { return above_rpc_xx->size();   };
-	int GetNAboveRPCY()  { return above_rpc_yy->size();   };
-	int GetNBelowRPCX()  { return below_rpc_xx->size();   };
-	int GetNBelowRPCY()  { return below_rpc_yy->size();   };
-
-	int GetNAboveDriftX() { return above_drift_xx->size(); };
-	int GetNAboveDriftY() { return above_drift_yy->size(); };
-	int GetNBelowDriftX() { return below_drift_xx->size(); };
-	int GetNBelowDriftY() { return below_drift_yy->size(); };
-
-	void SetAboveComboX(std::vector<bool>* co) { above_drift_xc = co; };
-	void SetAboveComboY(std::vector<bool>* co) { above_drift_yc = co; };
-	void SetBelowComboX(std::vector<bool>* co) { below_drift_xc = co; };
-	void SetBelowComboY(std::vector<bool>* co) { below_drift_yc = co; };
-
-	void SetAboveDriftXOnly();
-	void SetAboveDriftYOnly();
-	void SetBelowDriftXOnly();
-	void SetBelowDriftYOnly();
-
-	std::vector<double>* GetAXX() { return above_drift_xx; };
-	std::vector<double>* GetAXG() { return above_drift_xg; };
-	std::vector<double>* GetAXZ() { return above_drift_xz; };
-
-	std::vector<double>* GetAYY() { return above_drift_yy; };
-	std::vector<double>* GetAYG() { return above_drift_yg; };
-	std::vector<double>* GetAYZ() { return above_drift_yz; };
-
-	std::vector<double>* GetBXX() { return below_drift_xx; };
-	std::vector<double>* GetBXG() { return below_drift_xg; };
-	std::vector<double>* GetBXZ() { return below_drift_xz; };
-
-	std::vector<double>* GetBYY() { return below_drift_yy; };
-	std::vector<double>* GetBYG() { return below_drift_yg; };
-	std::vector<double>* GetBYZ() { return below_drift_yz; };
-
-	double GetChi2AboveRPCX( double pointx, double momx1, double pointz ) const ;
-	double GetChi2AboveRPCY( double pointy, double momy1, double pointz ) const ;
-
-	double GetChi2AboveDriftX( double pointx, double momx1, double pointz ) const ;
-	double GetChi2AboveDriftY( double pointy, double momy1, double pointz ) const ;
-
-	double GetChi2BelowRPCX( double pointx, double momx1, double pointz ) const ;
-	double GetChi2BelowRPCY( double pointy, double momy1, double pointz ) const ;
-
-	double GetChi2BelowDriftX( double pointx, double momx1, double pointz ) const ;
-	double GetChi2BelowDriftY( double pointy, double momy1, double pointz ) const ;
 
 	void PerformDoubleTrackPoCAFit(double* pocafitparams);
-	double GetLowestX();
-	double GetLowestZ();
-	double GetHighestX();
-	double GetHighestZ();
-void ApplyVectorOffset(std::vector<double>* vec);
-void ApplyOffsets();
 
-	void SetUseRPC(bool b = true){ fUseRPC = b;};
-	void SetUseDrift(bool b = true){ fUseDrift = b;};
+	double GetLowestZ(int hitreq);
+	double GetHighestZ(int hitreq);
+	double GetLowestHit(int hitreq);
+	double GetHighestHit(int hitreq);
 
-	double GetLowestXXAbove();
-	double GetLowestXZAbove();
-	double GetLowestYYAbove();
-	double GetLowestYZAbove();
+	void SetAboveComboX(std::vector<bool>* acombo);
+	void SetAboveComboY(std::vector<bool>* acombo);
+	void SetBelowComboX(std::vector<bool>* bcombo);
+	void SetBelowComboY(std::vector<bool>* bcombo);
 
-	double GetHighestXXBelow();
-	double GetHighestXZBelow();
-	double GetHighestYYBelow();
-	double GetHighestYZBelow();
-	void TwoTrackFit();
+	void PreProcessData();
 
-	std::vector<bool> GetBestComboForDriftHits(int combo);
+	std::vector<double>* fHits_Above_Reco;
+	std::vector<double>* fHits_Above_True;
+	std::vector<double>* fHits_Above_ZPos;
+	std::vector<double>* fHits_Above_Error;
+	std::vector<double>* fHits_Above_Ghost;
+	std::vector<int>*    fHits_Above_Type;
+	std::vector<bool>*   fHits_Above_Combo;
 
-	enum {
-		kFitDriftAboveX,
-		kFitDriftAboveY,
-		kFitDriftBelowX,
-		kFitDriftBelowY,
-		kFitAllAboveX,
-		kFitAllAboveY,
-		kFitAllBelowX,
-		kFitAllBelowY,
-		kFitAllX,
-		kFitAllY,
-		kFitAll
-	};
-
-	double DoSingleEvalWithX(const double *x) const;
-
-	double DoSingleTrackFitWithX(double* fitx = 0, double* fitpx = 0, double* fitz = 0);
-
-	void SetVectorC(std::vector<bool>*   c) { values_c = c; };
-
-	int GetN() { return values_x.size(); };
-
-	double PredictStartX();
-	double PredictStartZ();
-
-	double PredictStartPX();
-	void FillComboVect(std::vector<std::vector<bool> >& combomap, int n);
-
-
-	void SetHitUsage(int drifttype);
-	void FillSingleContainers(int drifttype);
-	void ClearSingleContainers();
-
-	double PredictStartAbovePX();
-	double PredictStartAbovePY();
-	double PredictStartBelowPX();
-	double PredictStartBelowPY();
-
-	double PredictStartPoCAX();
-	double PredictStartPoCAY();
-	double PredictStartPoCAZ();
-
-	void SetAboveAllXOnly();
-	void SetAboveAllYOnly();
-	void SetBelowAllXOnly();
-	void SetBelowAllYOnly();
-
-	void SetAllXOnly();
-	void SetAllYOnly();
-
-	void SetUseAll();
-
-	void ClearRPCVectors();
-	void ClearDriftVectors();
-
-	double GetTrueEnergy();
-    double GetTrueP();
-    double GetTruePX();
-    double GetTruePY();
-    double GetTruePZ();
-    double GetTrueV();
-    double GetScatterAngle();
-    double GetPassFlag();
-
-
-	std::vector<double> values_x;
-	std::vector<double> values_e;
-	std::vector<double> values_g;
-	std::vector<double> values_z;
-	std::vector<bool>*  values_c;
-
-	std::vector<double> values_rx;
-	std::vector<double> values_re;
-	std::vector<double> values_rz;
-
-
-
-	double xFitPrms[2];
-		double yFitPrms[2];
-		double xUFitPrms[2];
-		double xLFitPrms[2];
-		double yUFitPrms[2];
-		double yLFitPrms[2];
-
-		double trackUGradient[3], trackLGradient[3];
-		double trackGradient[3];
-
-		double distance;
-		double vertex[3];
-
-		// double *hitPosition;			//array contains reconstructed hit positions
-		// double *hitErrors;				//array contains estimated errors in hit position
-
-		// double *zPosition;				//array contains z positions of channels read from file header
-		// double *residuals;				//array stores hit residuals after linear fit
-		// double *residualsTwo;
-		// double *pulls;
-		double trackParams[40];
-		
-		double xScatterAngle;
-		double yScatterAngle;
-		double scatterAngle3d;
-
-		double xchi2;
-		double ychi2;
-		double xUchi2;
-		double xLchi2;
-		double yUchi2;
-		double yLchi2;
-		
-		double x_intersect;
-		double y_intersect;
-
-
-
-protected:
-
-	std::vector<double>* above_rpc_xx;
-	std::vector<double>* above_rpc_xt;
-	std::vector<double>* above_rpc_xz;
-	std::vector<double>* above_rpc_xe;
-	std::vector<double>* above_rpc_yy;
-	std::vector<double>* above_rpc_yt;
-	std::vector<double>* above_rpc_yz;
-	std::vector<double>* above_rpc_ye;
-
-	std::vector<double>* above_drift_xx;
-	std::vector<double>* above_drift_xg;
-	std::vector<double>* above_drift_xt;
-	std::vector<double>* above_drift_xz;
-	std::vector<double>* above_drift_xe;
-	std::vector<bool>*   above_drift_xc;
-
-	std::vector<double>* above_drift_yy;
-	std::vector<double>* above_drift_yg;
-	std::vector<double>* above_drift_yt;
-	std::vector<double>* above_drift_yz;
-	std::vector<double>* above_drift_ye;
-	std::vector<bool>*   above_drift_yc;
-
-	std::vector<double>* below_rpc_xx;
-	std::vector<double>* below_rpc_xt;
-	std::vector<double>* below_rpc_xz;
-	std::vector<double>* below_rpc_xe;
-	std::vector<double>* below_rpc_yy;
-	std::vector<double>* below_rpc_yt;
-	std::vector<double>* below_rpc_yz;
-	std::vector<double>* below_rpc_ye;
-
-	std::vector<double>* below_drift_xx;
-	std::vector<double>* below_drift_xg;
-	std::vector<double>* below_drift_xt;
-	std::vector<double>* below_drift_xz;
-	std::vector<double>* below_drift_xe;
-	std::vector<bool>*   below_drift_xc;
-
-	std::vector<double>* below_drift_yy;
-	std::vector<double>* below_drift_yg;
-	std::vector<double>* below_drift_yt;
-	std::vector<double>* below_drift_yz;
-	std::vector<double>* below_drift_ye;
-	std::vector<bool>*   below_drift_yc;
-
-	std::vector<double>* fTargetRegion_In_P;
-	std::vector<double>* fTargetRegion_Out_P;
-	double fTrueScatterAngle;
-    double fTruePX;
-    double fTruePY;
-    double fTruePZ;
-    double fTruePXIN;
-    double fTruePYIN;
-    double fTruePZIN;
+	std::vector<double>* fHits_Below_Reco;
+	std::vector<double>* fHits_Below_True;
+	std::vector<double>* fHits_Below_ZPos;
+	std::vector<double>* fHits_Below_Error;
+	std::vector<double>* fHits_Below_Ghost;
+	std::vector<int>*    fHits_Below_Type;
+	std::vector<bool>*   fHits_Below_Combo;
 
 	bool fUseRPC;
 	bool fUseDrift;
 
-	double fBestFitPars[7];
-	double fCovarMatrix[49];
-	double fMinuitParams[6];
-	double fErrorDef;
-
-	bool fUseARPCX;
-	bool fUseARPCY;
-	bool fUseBRPCX;
-	bool fUseBRPCY;
-	bool fUseADriftX;
-	bool fUseADriftY;
-	bool fUseBDriftX;
-	bool fUseBDriftY;
-
-	uint fMinARPCX;
-	uint fMinARPCY;
-	uint fMinBRPCX;
-	uint fMinBRPCY;
-	uint fMinADriftX;
-	uint fMinADriftY;
-	uint fMinBDriftX;
-	uint fMinBDriftY;
-
-	int fStatus;
-
-
-
-
 };
 
-class BristolPoCAFitterFCN {
+
+class CHANCESingleTrackFitterFCN : public ROOT::Minuit2::FCNBase {
 public:
-	inline BristolPoCAFitterFCN(BristolPoCAFitter* f) : fFitter(f) {};
+	inline CHANCESingleTrackFitterFCN(BristolPoCAFitter* f, int h) : fFitter(f), fHitReq(h) {};
 	inline double operator() (const double *x) const {
-		return fFitter->DoEval(x);
+		return DoEval(x);
+	}
+	inline double operator()(const std::vector<double>& x) const {
+		return DoEval(&x[0]);
+	}
+	inline double Up() const { return 1.0; };
+	inline double DoEval(const double *x) const {
+		return fFitter->DoSingleEval(x, fHitReq);
 	}
 	BristolPoCAFitter* fFitter;
+	int fHitReq;
 };
 
-class BristolTrackFitterFCN {
-public:
-	inline BristolTrackFitterFCN(BristolPoCAFitter* f) : fFitter(f) {};
-	inline double operator() (const double *x) const {
-		return fFitter->DoSingleEvalWithX(x);
-	}
-	BristolPoCAFitter* fFitter;
-};
+
+// class BristolPoCAFitter : public ROOT::Minuit2::FCNBase {
+// public:
+
+// 	BristolPoCAFitter();
+// 	~BristolPoCAFitter();
+
+// 	int FitTracks();
+
+// 	void ReadInputTTree(TTree* t, std::string prefixa = "system", std::string prefixb = "system_above");
+// 	void AddToOutputTTree(TTree* t, std::string prefix = "system");
+// 	void FillOutputTree();
+
+// 	void DeleteContainers();
+
+// 	double DoEval(const double* x) const;
+
+// 	virtual double operator()( const double* x ) const { return DoEval(x); };
+// 	virtual double operator()( const std::vector<double>& par ) const{
+// 		return DoEval( &par[0] );
+// 	};
+// 	virtual double Up() const { return 1.0; };
+
+
+// 	int GetStatus() {return fStatus;};
+
+// 	int GetNAboveRPCX()  { return above_rpc_xx->size();   };
+// 	int GetNAboveRPCY()  { return above_rpc_yy->size();   };
+// 	int GetNBelowRPCX()  { return below_rpc_xx->size();   };
+// 	int GetNBelowRPCY()  { return below_rpc_yy->size();   };
+
+// 	int GetNAboveDriftX() { return above_drift_xx->size(); };
+// 	int GetNAboveDriftY() { return above_drift_yy->size(); };
+// 	int GetNBelowDriftX() { return below_drift_xx->size(); };
+// 	int GetNBelowDriftY() { return below_drift_yy->size(); };
+
+// 	void SetAboveComboX(std::vector<bool>* co) { above_drift_xc = co; };
+// 	void SetAboveComboY(std::vector<bool>* co) { above_drift_yc = co; };
+// 	void SetBelowComboX(std::vector<bool>* co) { below_drift_xc = co; };
+// 	void SetBelowComboY(std::vector<bool>* co) { below_drift_yc = co; };
+
+// 	void SetAboveDriftXOnly();
+// 	void SetAboveDriftYOnly();
+// 	void SetBelowDriftXOnly();
+// 	void SetBelowDriftYOnly();
+
+// 	std::vector<double>* GetAXX() { return above_drift_xx; };
+// 	std::vector<double>* GetAXG() { return above_drift_xg; };
+// 	std::vector<double>* GetAXZ() { return above_drift_xz; };
+
+// 	std::vector<double>* GetAYY() { return above_drift_yy; };
+// 	std::vector<double>* GetAYG() { return above_drift_yg; };
+// 	std::vector<double>* GetAYZ() { return above_drift_yz; };
+
+// 	std::vector<double>* GetBXX() { return below_drift_xx; };
+// 	std::vector<double>* GetBXG() { return below_drift_xg; };
+// 	std::vector<double>* GetBXZ() { return below_drift_xz; };
+
+// 	std::vector<double>* GetBYY() { return below_drift_yy; };
+// 	std::vector<double>* GetBYG() { return below_drift_yg; };
+// 	std::vector<double>* GetBYZ() { return below_drift_yz; };
+
+// 	double GetChi2AboveRPCX( double pointx, double momx1, double pointz ) const ;
+// 	double GetChi2AboveRPCY( double pointy, double momy1, double pointz ) const ;
+
+// 	double GetChi2AboveDriftX( double pointx, double momx1, double pointz ) const ;
+// 	double GetChi2AboveDriftY( double pointy, double momy1, double pointz ) const ;
+
+// 	double GetChi2BelowRPCX( double pointx, double momx1, double pointz ) const ;
+// 	double GetChi2BelowRPCY( double pointy, double momy1, double pointz ) const ;
+
+// 	double GetChi2BelowDriftX( double pointx, double momx1, double pointz ) const ;
+// 	double GetChi2BelowDriftY( double pointy, double momy1, double pointz ) const ;
+
+// 	void PerformDoubleTrackPoCAFit(double* pocafitparams);
+// 	double GetLowestX();
+// 	double GetLowestZ();
+// 	double GetHighestX();
+// 	double GetHighestZ();
+// void ApplyVectorOffset(std::vector<double>* vec);
+// void ApplyOffsets();
+
+// 	void SetUseRPC(bool b = true){ fUseRPC = b;};
+// 	void SetUseDrift(bool b = true){ fUseDrift = b;};
+
+// 	double GetLowestXXAbove();
+// 	double GetLowestXZAbove();
+// 	double GetLowestYYAbove();
+// 	double GetLowestYZAbove();
+
+// 	double GetHighestXXBelow();
+// 	double GetHighestXZBelow();
+// 	double GetHighestYYBelow();
+// 	double GetHighestYZBelow();
+// 	void TwoTrackFit();
+
+// 	std::vector<bool> GetBestComboForDriftHits(int combo);
+
+// 	enum {
+// 		kFitDriftAboveX,
+// 		kFitDriftAboveY,
+// 		kFitDriftBelowX,
+// 		kFitDriftBelowY,
+// 		kFitAllAboveX,
+// 		kFitAllAboveY,
+// 		kFitAllBelowX,
+// 		kFitAllBelowY,
+// 		kFitAllX,
+// 		kFitAllY,
+// 		kFitAll
+// 	};
+
+// 	double DoSingleEvalWithX(const double *x) const;
+
+// 	double DoSingleTrackFitWithX(double* fitx = 0, double* fitpx = 0, double* fitz = 0);
+
+// 	void SetVectorC(std::vector<bool>*   c) { values_c = c; };
+
+// 	int GetN() { return values_x.size(); };
+
+// 	double PredictStartX();
+// 	double PredictStartZ();
+
+// 	double PredictStartPX();
+// 	void FillComboVect(std::vector<std::vector<bool> >& combomap, int n);
+
+
+// 	void SetHitUsage(int drifttype);
+// 	void FillSingleContainers(int drifttype);
+// 	void ClearSingleContainers();
+
+// 	double PredictStartAbovePX();
+// 	double PredictStartAbovePY();
+// 	double PredictStartBelowPX();
+// 	double PredictStartBelowPY();
+
+// 	double PredictStartPoCAX();
+// 	double PredictStartPoCAY();
+// 	double PredictStartPoCAZ();
+
+// 	void SetAboveAllXOnly();
+// 	void SetAboveAllYOnly();
+// 	void SetBelowAllXOnly();
+// 	void SetBelowAllYOnly();
+
+// 	void SetAllXOnly();
+// 	void SetAllYOnly();
+
+// 	void SetUseAll();
+
+// 	void ClearRPCVectors();
+// 	void ClearDriftVectors();
+
+// 	double GetTrueEnergy();
+//     double GetTrueP();
+//     double GetTruePX();
+//     double GetTruePY();
+//     double GetTruePZ();
+//     double GetTrueV();
+//     double GetScatterAngle();
+//     double GetPassFlag();
+
+
+// 	std::vector<double> values_x;
+// 	std::vector<double> values_e;
+// 	std::vector<double> values_g;
+// 	std::vector<double> values_z;
+// 	std::vector<bool>*  values_c;
+
+// 	std::vector<double> values_rx;
+// 	std::vector<double> values_re;
+// 	std::vector<double> values_rz;
+
+
+
+// 	double xFitPrms[2];
+// 		double yFitPrms[2];
+// 		double xUFitPrms[2];
+// 		double xLFitPrms[2];
+// 		double yUFitPrms[2];
+// 		double yLFitPrms[2];
+
+// 		double trackUGradient[3], trackLGradient[3];
+// 		double trackGradient[3];
+
+// 		double distance;
+// 		double vertex[3];
+
+// 		// double *hitPosition;			//array contains reconstructed hit positions
+// 		// double *hitErrors;				//array contains estimated errors in hit position
+
+// 		// double *zPosition;				//array contains z positions of channels read from file header
+// 		// double *residuals;				//array stores hit residuals after linear fit
+// 		// double *residualsTwo;
+// 		// double *pulls;
+// 		double trackParams[40];
+
+// 		double xScatterAngle;
+// 		double yScatterAngle;
+// 		double scatterAngle3d;
+
+// 		double xchi2;
+// 		double ychi2;
+// 		double xUchi2;
+// 		double xLchi2;
+// 		double yUchi2;
+// 		double yLchi2;
+
+// 		double x_intersect;
+// 		double y_intersect;
+
+
+
+// protected:
+
+// 	std::vector<double>* above_rpc_xx;
+// 	std::vector<double>* above_rpc_xt;
+// 	std::vector<double>* above_rpc_xz;
+// 	std::vector<double>* above_rpc_xe;
+// 	std::vector<double>* above_rpc_yy;
+// 	std::vector<double>* above_rpc_yt;
+// 	std::vector<double>* above_rpc_yz;
+// 	std::vector<double>* above_rpc_ye;
+
+// 	std::vector<double>* above_drift_xx;
+// 	std::vector<double>* above_drift_xg;
+// 	std::vector<double>* above_drift_xt;
+// 	std::vector<double>* above_drift_xz;
+// 	std::vector<double>* above_drift_xe;
+// 	std::vector<bool>*   above_drift_xc;
+
+// 	std::vector<double>* above_drift_yy;
+// 	std::vector<double>* above_drift_yg;
+// 	std::vector<double>* above_drift_yt;
+// 	std::vector<double>* above_drift_yz;
+// 	std::vector<double>* above_drift_ye;
+// 	std::vector<bool>*   above_drift_yc;
+
+// 	std::vector<double>* below_rpc_xx;
+// 	std::vector<double>* below_rpc_xt;
+// 	std::vector<double>* below_rpc_xz;
+// 	std::vector<double>* below_rpc_xe;
+// 	std::vector<double>* below_rpc_yy;
+// 	std::vector<double>* below_rpc_yt;
+// 	std::vector<double>* below_rpc_yz;
+// 	std::vector<double>* below_rpc_ye;
+
+// 	std::vector<double>* below_drift_xx;
+// 	std::vector<double>* below_drift_xg;
+// 	std::vector<double>* below_drift_xt;
+// 	std::vector<double>* below_drift_xz;
+// 	std::vector<double>* below_drift_xe;
+// 	std::vector<bool>*   below_drift_xc;
+
+// 	std::vector<double>* below_drift_yy;
+// 	std::vector<double>* below_drift_yg;
+// 	std::vector<double>* below_drift_yt;
+// 	std::vector<double>* below_drift_yz;
+// 	std::vector<double>* below_drift_ye;
+// 	std::vector<bool>*   below_drift_yc;
+
+// 	std::vector<double>* fTargetRegion_In_P;
+// 	std::vector<double>* fTargetRegion_Out_P;
+// 	double fTrueScatterAngle;
+//     double fTruePX;
+//     double fTruePY;
+//     double fTruePZ;
+//     double fTruePXIN;
+//     double fTruePYIN;
+//     double fTruePZIN;
+
+// 	bool fUseRPC;
+// 	bool fUseDrift;
+
+// 	double fBestFitPars[7];
+// 	double fCovarMatrix[49];
+// 	double fMinuitParams[6];
+// 	double fErrorDef;
+
+// 	bool fUseARPCX;
+// 	bool fUseARPCY;
+// 	bool fUseBRPCX;
+// 	bool fUseBRPCY;
+// 	bool fUseADriftX;
+// 	bool fUseADriftY;
+// 	bool fUseBDriftX;
+// 	bool fUseBDriftY;
+
+// 	uint fMinARPCX;
+// 	uint fMinARPCY;
+// 	uint fMinBRPCX;
+// 	uint fMinBRPCY;
+// 	uint fMinADriftX;
+// 	uint fMinADriftY;
+// 	uint fMinBDriftX;
+// 	uint fMinBDriftY;
+
+// 	int fStatus;
+
+
+
+
+// };
+
+// class BristolPoCAFitterFCN {
+// public:
+// 	inline BristolPoCAFitterFCN(BristolPoCAFitter* f) : fFitter(f) {};
+// 	inline double operator() (const double *x) const {
+// 		return fFitter->DoEval(x);
+// 	}
+// 	BristolPoCAFitter* fFitter;
+// };
+
+// class BristolTrackFitterFCN {
+// public:
+// 	inline BristolTrackFitterFCN(BristolPoCAFitter* f) : fFitter(f) {};
+// 	inline double operator() (const double *x) const {
+// 		return fFitter->DoSingleEvalWithX(x);
+// 	}
+// 	BristolPoCAFitter* fFitter;
+// };
 
 }
 #endif

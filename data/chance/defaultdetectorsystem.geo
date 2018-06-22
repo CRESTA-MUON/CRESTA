@@ -13,7 +13,7 @@
 // AWE Detector
 {
   name: "GEO",
-  index: "system",
+  index: "det_below",
   type: "hybrid_muontom",
   mother: "world",
   position: ["0.0","0.0","-1.0*m"],
@@ -21,12 +21,19 @@
 
 {
   name: "GEO",
-  index: "system_above",
+  index: "det_above",
   type: "hybrid_muontom",
   mother: "world",
   position: ["0.0","0.0","1.0*m"],
 }
 
+// Trigger requires both systems to have information
+{
+  name: "TRIGGER",
+  index: "dettrigger",
+  type: "simple",
+  processors: ["det_above","det_below"]
+}
 
 
 // ---------------------------------------------------
@@ -34,7 +41,7 @@
 {
   name: "FLUX",
   index: "source_box",
-  size: ["1.0*m", "1.*m", "0.05*m"],
+  size: ["3.0*m", "3.*m", "0.05*m"],
   position: ["0.0","0.0", "3.475*m"],
 }
 
