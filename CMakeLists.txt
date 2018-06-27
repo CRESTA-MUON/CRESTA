@@ -97,6 +97,27 @@ if(USE_CADMESH)
 
 endif()
 
+if(USE_GPERF)
+  
+  if(GPERF_DIR)
+    message(STATUS "Reading GPERF_DIR=${GPERF_DIR}")
+  else()
+    message(FATAL_ERROR "NO GPERF_DIR GIVEN")
+  endif()
+  
+  if (EXISTS ${GPERF_DIR})
+  else()
+    message(FATAL_ERROR "Invalid GPERF_DIR GIVEN")
+  endif()
+
+  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} {GPERF_DIR}/lib/")
+  include_directories(${GPERF_DIR}/include/)
+  set(LINK_LIBRARIES "${LINK_LIBRARIES};profiler")
+  set(LINK_DIRS "${LINK_DIRS} -L{GPERF_DIR}/lib/")
+
+endif()
+
+
 #----------------------------------------------------------------------------
 # USE PUMAS FLAG
 set(pumas_sources "")

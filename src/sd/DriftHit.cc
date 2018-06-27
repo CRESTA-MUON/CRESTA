@@ -43,6 +43,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4ios.hh"
 #include "G4Box.hh"
+#include "analysis/Analysis.hh"
 
 G4ThreadLocal G4Allocator<DriftChamberHit>* DriftChamberHitAllocator = 0;
 
@@ -120,7 +121,7 @@ std::vector<G4AttValue>* DriftChamberHit::CreateAttValues() const
 
 void DriftChamberHit::Draw()
 {
-    G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+    G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
     if (pVVisManager)
     {
         if (fDrawOption == 0) {

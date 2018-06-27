@@ -18,6 +18,7 @@
 #include "G4Box.hh"
 #include "db/ROOTHeaders.hh"
 #include "G4Polyline.hh"
+#include "analysis/Analysis.hh"
 
 
 namespace COSMIC {
@@ -170,7 +171,7 @@ bool TrueMuonProcessor::ProcessEvent(const G4Event* /*event*/) {
 
 void TrueMuonProcessor::DrawEvent(){
   // Draw Track if in interactive
-  G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+  G4VVisManager* pVVisManager = Analysis::Get()->GetVisManager();
   if (pVVisManager)
   {
     G4ThreeVector muonmom = fTracker->GetMuonMom();

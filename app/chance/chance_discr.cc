@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
   int ntracks = t->GetEntries();
   int printsi = ntracks/10;
 
-  VertexGrid scangrid = VertexGrid(10.0, -1000.0, 1000.0, -1000.0, 1000.0, -400.0, 400.0);
+  VertexGrid scangrid = VertexGrid(20.0, -1000.0, 1000.0, -1000.0, 1000.0, -400.0, 400.0);
   scangrid.SetOffsets(-250.0, 0.0, 0.0);
 
   for (int i = 0; i < t->GetEntries(); i++) {
