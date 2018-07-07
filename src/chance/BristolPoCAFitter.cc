@@ -3,27 +3,24 @@
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
-#include "sd/LongDriftSD.hh"
-#include "sd/SimpleScintillatorSD.hh"
-
 #include "Minuit2/FunctionMinimum.h"
 #include "Minuit2/MnPrint.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/MnUserParameters.h"
-
-
 
 namespace COSMIC {
 
 bool debugger = false;
 
 BristolPoCAFitter::BristolPoCAFitter() {
-
+	xahits = NULL;
+	xbhits = NULL;
+	yahits = NULL;
+	ybhits = NULL;
 }
 
 
 BristolPoCAFitter::~BristolPoCAFitter() {
-
 }
 
 void BristolPoCAFitter::ReadInputTTree(TTree* t, std::string prefixa, std::string prefixb) {
@@ -58,6 +55,102 @@ void BristolPoCAFitter::ReadInputTTree(TTree* t, std::string prefixa, std::strin
 	fHits_Below_Combo = NULL;
 }
 
+void BristolPoCAFitter::PreProcessData() {
+
+	ApplyOffsets();
+
+	std::vector<int>::iterator    type_iter  = fHits_Above_Type->begin();
+	std::vector<double>::iterator reco_iter  = fHits_Above_Reco->begin();
+	std::vector<double>::iterator true_iter  = fHits_Above_True->begin();
+	std::vector<double>::iterator zpos_iter  = fHits_Above_ZPos->begin();
+	std::vector<double>::iterator error_iter = fHits_Above_Error->begin();
+	std::vector<double>::iterator ghost_iter = fHits_Above_Ghost->begin();
+	fMuonHits_Above.clear();
+
+	// Loop over all vectors
+	while ( type_iter != fHits_Above_Type->end() ) {
+
+		// Add to list
+		fMuonHits_Above.push_back( new MuonHit( *reco_iter, *true_iter, *zpos_iter, *error_iter, *ghost_iter, *type_iter) );
+
+		// Iterate
+		type_iter++;
+		reco_iter++;
+		true_iter++;
+		zpos_iter++;
+		error_iter++;
+		ghost_iter++;
+	}
+
+	type_iter  = fHits_Below_Type->begin();
+	reco_iter  = fHits_Below_Reco->begin();
+	true_iter  = fHits_Below_True->begin();
+	zpos_iter  = fHits_Below_ZPos->begin();
+	error_iter = fHits_Below_Error->begin();
+	ghost_iter = fHits_Below_Ghost->begin();
+	fMuonHits_Below.clear();
+
+	// Loop over all vectors
+	while ( type_iter != fHits_Below_Type->end() ) {
+
+		// Add to list
+		fMuonHits_Below.push_back( new MuonHit( *reco_iter, *true_iter, *zpos_iter, *error_iter, *ghost_iter, *type_iter) );
+
+		// Iterate
+		type_iter++;
+		reco_iter++;
+		true_iter++;
+		zpos_iter++;
+		error_iter++;
+		ghost_iter++;
+	}
+
+	fMuonHits_Map.clear();
+
+	xahits = NULL;
+	xbhits = NULL;
+	yahits = NULL;
+	ybhits = NULL;
+
+}
+
+void BristolPoCAFitter::ApplyOffsets() {
+	ApplyVectorOffset(fHits_Above_Reco);
+	ApplyVectorOffset(fHits_Above_True);
+	ApplyVectorOffset(fHits_Below_Reco);
+	ApplyVectorOffset(fHits_Below_True);
+}
+
+void BristolPoCAFitter::ApplyVectorOffset(std::vector<double>* vec) {
+	if (!vec) return;
+	for (int i = 0; i < vec->size(); i++) {
+		(*vec)[i] = (*vec)[i] - 250.0 / 1.5 + 250.0;
+	}
+}
+
+std::vector<MuonHit*>* BristolPoCAFitter::GetHitCombination(int hitreq) const {
+
+	if (fMuonHits_Map.find(hitreq) != fMuonHits_Map.end()) {
+		return &fMuonHits_Map[hitreq];
+	}
+	std::vector<MuonHit*> temp;
+
+	for (int i = 0; i < fMuonHits_Above.size(); i++) {
+		MuonHit* val = (fMuonHits_Above[i]);
+		if (IsValidHit(val->type, hitreq, false)) temp.push_back(val);
+	}
+
+	for (int i = 0; i < fMuonHits_Below.size(); i++) {
+		MuonHit* val = (fMuonHits_Below[i]);
+		if (IsValidHit(val->type, hitreq, true)) temp.push_back(val);
+	}
+
+	fMuonHits_Map[hitreq] = temp;
+
+	return &fMuonHits_Map[hitreq];
+
+}
+
 double BristolPoCAFitter::DoEval(const double* x) const {
 
 	double chi2 = 0.0;
@@ -71,64 +164,17 @@ double BristolPoCAFitter::DoEval(const double* x) const {
 	double momy1  = x[5];
 	double momy2  = x[6];
 
-	// if (fHits_Above_Combo) std::cout << "EVAL " << fHits_Above_Reco->size() << " " << fHits_Above_Type->size() << " " << fHits_Above_Combo << " " << fHits_Above_Combo->size() <<  std::endl;
-	// if (fHits_Below_Combo) {
-	// std::cout << "EVAL2 " << fHits_Below_Reco->size() << " " << fHits_Below_Type->size() << " " << fHits_Below_Combo << std::endl; std::cout << " -> " << fHits_Below_Combo->size() << std::endl;
-	// }
+	if (!xahits) xahits = GetHitCombination(kAboveX);
+	chi2 += EvaluateTrackResidual(pointx, momx2, pointz, xahits);
 
-	// for (uint i = 0; i < fHits_Above_Reco->size(); i++) {
-	// 	int hittype = fHits_Above_Type->at(i);
+	if (!yahits) yahits = GetHitCombination(kAboveY);
+	chi2 += EvaluateTrackResidual(pointy, momy2, pointz, yahits);
 
-	// 	double point    = 0.0;
-	// 	double gradient = 0.0;
-	// 	if (IsValidHit(hittype, kAboveX, false)) { point = pointx; gradient = momx2; }
-	// 	else if (IsValidHit(hittype, kAboveY, false)) { point = pointy; gradient = momy2; }
-	// 	else continue;
+	if (!xbhits) xbhits = GetHitCombination(kBelowX);
+	chi2 += EvaluateTrackResidual(pointx, momx1, pointz, xbhits);
 
-	// 	double x = fHits_Above_Reco->at(i);
-	// 	double g = fHits_Above_Ghost->at(i);
-	// 	double z = fHits_Above_ZPos->at(i);
-	// 	double e = fHits_Above_Error->at(i);
-
-
-
-	// 	if (!fHits_Above_Combo->at(i)) chi2 += pow( ( x - (point + gradient * (pointz - z) ) ) / e, 2 );
-	// 	else chi2 += pow( ( g - (point + gradient * (pointz - z) ) ) / e, 2 );
-
-	// }
-
-	// for (uint i = 0; i < fHits_Below_Reco->size(); i++) {
-	// 	int hittype = fHits_Below_Type->at(i);
-
-	// 	double point    = 0.0;
-	// 	double gradient = 0.0;
-	// 	if (IsValidHit(hittype, kBelowX, true)) { point = pointx; gradient = momx1; }
-	// 	else if (IsValidHit(hittype, kBelowY, true)) { point = pointy; gradient = momy1; }
-	// 	else continue;
-
-	// 	double x = fHits_Below_Reco->at(i);
-	// 	double g = fHits_Below_Ghost->at(i);
-	// 	double z = fHits_Below_ZPos->at(i);
-	// 	double e = fHits_Below_Error->at(i);
-
-
-	// 	if (!fHits_Below_Combo->at(i)) chi2 += pow( ( x - (point + gradient * (pointz - z) ) ) / e, 2 );
-	// 	else chi2 += pow( ( g - (point + gradient * (pointz - z) ) ) / e, 2 );
-	// }
-
-
-	chi2 += EvaluateTrackResidual( pointx, momx2, pointz, kRPCAboveX);
-	chi2 += EvaluateTrackResidual( pointy, momy2, pointz, kRPCAboveY);
-	chi2 += EvaluateTrackResidual( pointx, momx1, pointz, kRPCBelowX);
-	chi2 += EvaluateTrackResidual( pointy, momy1, pointz, kRPCBelowY);
-
-	chi2 += EvaluateTrackResidual( pointx, momx2, pointz, kDriftAboveX);
-	chi2 += EvaluateTrackResidual( pointy, momy2, pointz, kDriftAboveY);
-	chi2 += EvaluateTrackResidual( pointx, momx1, pointz, kDriftBelowX);
-	chi2 += EvaluateTrackResidual( pointy, momy1, pointz, kDriftBelowY);
-
-	// std::cout << "Final chi2 : " << chi2 << std::endl;
-	// sleep(10);
+	if (!ybhits) ybhits = GetHitCombination(kBelowY);
+	chi2 += EvaluateTrackResidual(pointy, momy1, pointz, ybhits);
 
 	return chi2;
 }
@@ -141,8 +187,6 @@ bool BristolPoCAFitter::IsValidHit(int hittype, int hitrequired, bool isbelow) c
 
 	// Accept all if required == 0
 	if (hitrequired == 0) return true;
-
-
 
 	// First check forexact hits
 	if (hitrequired == kRPCAboveX   and !isbelow and hittype == kRPCX) return true;
@@ -190,46 +234,22 @@ bool BristolPoCAFitter::IsRPCHit(int hittype) const {
 	return (hittype == kRPCX || hittype == kRPCY);
 }
 
+
 double BristolPoCAFitter::EvaluateTrackResidual( double pointx, double gradient, double pointz, int hitreq ) const {
+	return EvaluateTrackResidual(pointx, gradient, pointz, GetHitCombination(hitreq) );
+}
+
+
+double BristolPoCAFitter::EvaluateTrackResidual( double pointx, double gradient, double pointz, std::vector<MuonHit*>* xahits ) const {
 
 	double chi2 = 0.0;
 
-	// if (fHits_Above_Combo) std::cout << "EVAL " << fHits_Above_Reco->size() << " " << fHits_Above_Type->size() << " " << fHits_Above_Combo << " " << fHits_Above_Combo->size() <<  std::endl;
-	// if (fHits_Below_Combo) {
-	// std::cout << "EVAL2 " << fHits_Below_Reco->size() << " " << fHits_Below_Type->size() << " " << fHits_Below_Combo << std::endl; std::cout << " -> " << fHits_Below_Combo->size() << std::endl;
-	// }
-
-	for (uint i = 0; i < fHits_Above_Reco->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-
-		double x = fHits_Above_Reco->at(i);
-		double g = fHits_Above_Ghost->at(i);
-		double z = fHits_Above_ZPos->at(i);
-		double e = fHits_Above_Error->at(i);
-
-		if (!fHits_Above_Combo->at(i)) chi2 += pow( ( x - (pointx + gradient * (pointz - z) ) ) / e, 2 );
-		else chi2 += pow( ( g - (pointx + gradient * (pointz - z) ) ) / e, 2 );
-
+	std::vector<MuonHit*>::const_iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		double single = ( hit->GetHit() - (pointx + gradient * (pointz - hit->zpos) ) ) / hit->error;
+		chi2 += single * single;
 	}
-
-	for (uint i = 0; i < fHits_Below_Reco->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-
-		double x = fHits_Below_Reco->at(i);
-		double g = fHits_Below_Ghost->at(i);
-		double z = fHits_Below_ZPos->at(i);
-		double e = fHits_Below_Error->at(i);
-
-		if (!fHits_Below_Combo->at(i)) chi2 += pow( ( x - (pointx + gradient * (pointz - z) ) ) / e, 2 );
-		else chi2 += pow( ( g - (pointx + gradient * (pointz - z) ) ) / e, 2 );
-	}
-
-	// std::cout << "Chi2 : " << chi2 << " " << hitreq << std::endl;
-	// if (pointx != 0.0) sleep(10);
 
 	return chi2;
 }
@@ -238,24 +258,12 @@ double BristolPoCAFitter::GetAverageHit(int hitreq) {
 
 	double average = 0.0;
 	int ncount = 0;
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
 
-	for (uint i = 0; i < fHits_Above_Reco->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-
-		if (fHits_Above_Combo->at(i)) average += fHits_Above_Ghost->at(i);
-		else  average += fHits_Above_Reco->at(i);
-		ncount++;
-	}
-
-	for (uint i = 0; i < fHits_Below_Reco->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-
-		if (fHits_Below_Combo->at(i)) average += fHits_Below_Ghost->at(i);
-		else average += fHits_Below_Reco->at(i);
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		average += hit->GetHit();
 		ncount++;
 	}
 
@@ -268,19 +276,12 @@ double BristolPoCAFitter::GetAverageZ(int hitreq) {
 	double average = 0.0;
 	int ncount = 0;
 
-	for (uint i = 0; i < fHits_Above_ZPos->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
 
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		average += fHits_Above_ZPos->at(i);
-		ncount++;
-	}
-
-	for (uint i = 0; i < fHits_Below_ZPos->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		average += fHits_Below_ZPos->at(i);
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		average += hit->zpos;
 		ncount++;
 	}
 
@@ -288,44 +289,75 @@ double BristolPoCAFitter::GetAverageZ(int hitreq) {
 	return average / double(ncount);
 }
 
-void BristolPoCAFitter::ApplyOffsets() {
-	ApplyVectorOffset(fHits_Above_Reco);
-	ApplyVectorOffset(fHits_Above_True);
-	ApplyVectorOffset(fHits_Below_Reco);
-	ApplyVectorOffset(fHits_Below_True);
+
+double BristolPoCAFitter::GetLowestZ(int hitreq) {
+	double minz = -999.;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (minz < hit->zpos || minz == -999.) minz = hit->zpos;
+	}
+
+	return minz;
 }
 
-void BristolPoCAFitter::ApplyVectorOffset(std::vector<double>* vec) {
-	if (!vec) return;
-	for (int i = 0; i < vec->size(); i++) {
-		(*vec)[i] = (*vec)[i] - 250.0 / 1.5 + 250.0;
+double BristolPoCAFitter::GetHighestZ(int hitreq) {
+	double maxz = -999.;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (maxz > hit->zpos || maxz == -999.) maxz = hit->zpos;
 	}
+
+	return maxz;
+}
+
+double BristolPoCAFitter::GetLowestHit(int hitreq) {
+	double minz = -999.;
+	double minhit = -999.;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (minz < hit->zpos || minz == -999.) {
+			minz = hit->zpos;
+			minhit = hit->GetHit();
+		}
+	}
+
+	return minhit;
+}
+
+double BristolPoCAFitter::GetHighestHit(int hitreq) {
+	double maxz = -999.;
+	double maxhit = -999.;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (maxz > hit->zpos || maxz == -999.) {
+			maxz = hit->zpos;
+			maxhit = hit->GetHit();
+		}
+	}
+
+	return maxhit;
 }
 
 int BristolPoCAFitter::GetNHits(int hitreq) {
-
-	int ncount = 0;
-	for (uint i = 0; i < fHits_Above_Type->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		ncount++;
-	}
-	for (uint i = 0; i < fHits_Below_Type->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		ncount++;
-	}
-
-	return ncount;
+	return GetHitCombination(hitreq)->size();
 }
 
 
 // ---------------------------------------
 
-void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap, int hitreq ) {
-
-	// Get Number of Drift Chambers
-	int ndrifthits = GetNHits(hitreq);
+void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap, int ndrifthits ) {
 
 	// Make drift only combinations
 	std::vector<std::vector<bool> > driftcombos;
@@ -339,150 +371,97 @@ void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap,
 
 }
 
-double BristolPoCAFitter::DoSingleEval(const double* x, int hitreq) const {
-
-	double chi2 = 0.0;
-
-	// Include all RPC and drift hits
-	double pointx = x[0];
-	double momx   = x[1];
-	double pointz = 0.0;
-
-	// Get individual Track Fit
-	chi2 += EvaluateTrackResidual(pointx, momx, pointz, hitreq);
-
-	return chi2;
+double BristolPoCAFitter::DoSingleEval(const double* x, std::vector<MuonHit*>* hits) const {
+	return EvaluateTrackResidual(x[0], x[1], 0.0, hits);
 }
 
 
 double BristolPoCAFitter::DoSingleTrackFitWithX(int hitreq, double* x, double* px) {
 
 	ROOT::Minuit2::MnUserParameters mn_param;
+
 	double startx = GetAverageHit(hitreq);
+	mn_param.Add("x", startx,  0.1);
+	mn_param.Add("px1", 0.0, 10.0);
 
-    mn_param.Add("x", startx,  0.1);
-    mn_param.Add("px1", 0.0, 10.0);
-
+	std::vector<MuonHit*>* hits = GetHitCombination(hitreq);
 
 	CHANCESingleTrackFitterFCN* singlefcn = new CHANCESingleTrackFitterFCN(this, hitreq);
-    ROOT::Minuit2::MnMigrad migrad( *singlefcn, mn_param, 2 ); //Strategy 2
-    ROOT::Minuit2::FunctionMinimum min = migrad();
-    ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
-    double xx[2];
-    xx[0] = MinParams[0];
-    xx[1] = MinParams[1];
-    double chi2 = DoSingleEval(xx, hitreq);
-    if (x) *x = xx[0];
+	ROOT::Minuit2::MnMigrad migrad( *singlefcn, mn_param, 2 ); //Strategy 2
+	ROOT::Minuit2::FunctionMinimum min = migrad();
+	ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
+	double xx[2];
+	xx[0] = MinParams[0];
+	xx[1] = MinParams[1];
+	double chi2 = DoSingleEval(xx, hits);
+	if (x) *x = xx[0];
 	if (px) *px = xx[1];
 	return chi2;
 
- //    // Minimisation
- //    ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
- //    ROOT::Minuit2::FunctionMinimum min = migrad();
-
- //    ROOT::Minuit2::MnAlgebraicSymMatrix MinCovarMatrix = min.Error().Matrix();
- //    ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
-
- //    for (int j = 0; j < npars; j++) {
- //      fBestFitPars[j] = MinParams[j];
- //    }
-
-
-
-
-
-	// // Create Minimizer Object
-	// ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	// min->SetPrintLevel(-1);
-
-	// // Setup Functor for the fitter
-	// int npars = 2;
-	// CHANCESingleTrackFitterFCN* singlefcn = new CHANCESingleTrackFitterFCN(this, hitreq);
-	// ROOT::Math::Functor func(*singlefcn, npars);
-	// min->SetFunction(func);
-
-	// double startx = GetAverageHit(hitreq);
-
-	// // Run the fit
-	// min->SetVariable(0, "x",   startx,  0.1);
-	// min->SetVariable(1, "px1", 0.0,  10.0);
-	// min->Minimize();
-
-	// // Get the results
-	// const double* xx = min->X();
-	// double chi2 = DoSingleEval(xx, hitreq);
-	// if (x) *x = xx[0];
-	// if (px) *px = xx[1];
-
-	// // Clean and return
-	// delete min;
-	// return chi2;
 }
 
+void SetHitCombo(std::vector<MuonHit*>* muonhits, std::vector<bool>* combo) {
+	for (int i = 0; i < muonhits->size(); i++) {
+		(*muonhits)[i]->useghost = (*combo)[i];
+	}
+}
 
 std::vector<bool> BristolPoCAFitter::GetBestComboForDriftHits(int hitreq) {
 
-	// Get Combo Map
+	std::vector<MuonHit*>* muonhits = GetHitCombination(hitreq);
+	int nhits = muonhits->size();
 	std::vector<std::vector<bool> > xcombomapa;
 	std::vector<bool> xcomboa;
-	FillComboVect( xcombomapa, hitreq );
+
+	FillComboVect(xcombomapa, nhits);
 
 	// Loop over all iterations, find best chi2
 	double bestchi2 = -1;
 	int n = xcombomapa.size();
 	int jointreq = 0;
 
+	int fullhitreq = hitreq;
+	if (hitreq == kDriftAboveX and fUseRPC) fullhitreq = kAboveX;
+	if (hitreq == kDriftAboveY and fUseRPC) fullhitreq = kAboveY;
+	if (hitreq == kDriftBelowX and fUseRPC) fullhitreq = kBelowX;
+	if (hitreq == kDriftBelowY and fUseRPC) fullhitreq = kBelowY;
+
 	// Iterate over all combinations
 	for (int j = 0; j < n; j++) {
 
-		// Update combination based on type
-		if (hitreq == kDriftAboveX) {
-			jointreq = kAboveX;
-			SetAboveComboX( &xcombomapa[j] );
-		}
-		if (hitreq == kDriftAboveY) {
-			jointreq = kAboveY;
-			SetAboveComboY( &xcombomapa[j] );
-		}
-		if (hitreq == kDriftBelowX) {
-			jointreq = kBelowX;
-			SetBelowComboX( &xcombomapa[j] );
-		}
-		if (hitreq == kDriftBelowY) {
-			jointreq = kBelowY;
-			SetBelowComboY( &xcombomapa[j] );
-		}
+		SetHitCombo( muonhits, &xcombomapa[j] );
 
 		// Get the results
-		double chi2 = DoSingleTrackFitWithX(jointreq);
+		double chi2 = DoSingleTrackFitWithX(fullhitreq);
 
-		// Somehow end results can sometimes give same chi2
-		// If better than current, update
-		// std::cout << j << " CHI2 " << chi2 << " : " << xcombomapa[j][0] << std::endl;
 		if (bestchi2 < 0 or chi2 <= bestchi2) {
-
-
-			if (chi2 == bestchi2) {
-				std::cout << "Chi2 Match somehow!" << std::endl;
-
-				for (int i = 0; i < xcomboa.size(); i++) {
-					std::cout << i << " C : " << xcomboa[i] << " vs " << xcombomapa[j][i] << std::endl;
-				}
-
-				sleep(10);
-			}
-
-
-
+			// if (j != 0){
+				// std::cout << "Adding  ghost combo " << j << " " << chi2 << " " << bestchi2 << std::endl;
+			// }
 			xcomboa = xcombomapa[j];
 			bestchi2 = chi2;
-			// std::cout << j << " Best CHI2 : " << bestchi2 << std::endl;
+			
 		}
 	}
 
+	// std::cout << " Best Chi2 From Drift : " << bestchi2 << std::endl;
+
+	SetHitCombo(muonhits, &xcomboa);
+	// muonhits = GetHitCombination(hitreq);
+	// for (int i = 0; i < muonhits->size(); i++){
+// std::cout << "SINGLE HIT " << muonhits->at(i)->type << " -> " << muonhits->at(i)->useghost << std::endl;
+	// }
 	return xcomboa;
 }
 
+void BristolPoCAFitter::PrintCombos(){
+	
+	std::vector<MuonHit*>* muonhits = GetHitCombination(0);
+	for (int i = 0; i < muonhits->size(); i++){
+		std::cout << "HIT " << muonhits->at(i)->type << " -> " << muonhits->at(i)->useghost << std::endl;
+	}
+
+}
 
 void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 
@@ -511,8 +490,8 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 
 
 	// Perform a dodgy joint ABOVE+BELOW X Fit
-	double xChi2 = 0.0; //DoSingleTrackFitWithX(kAllX);
-	double yChi2 = 0.0; //DoSingleTrackFitWithX(kAllY);
+	double xChi2 = DoSingleTrackFitWithX(kAllX);
+	double yChi2 = DoSingleTrackFitWithX(kAllY);
 
 
 	// Get vectors from the fits
@@ -575,356 +554,6 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 
 
 	return;
-}
-
-double BristolPoCAFitter::GetLowestZ(int hitreq) {
-	double minz = -999.;
-
-	for (uint i = 0; i < fHits_Above_ZPos->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		if (fHits_Above_ZPos->at(i) < minz || minz == -999.) {
-			minz = fHits_Above_ZPos->at(i);
-		}
-	}
-
-	for (uint i = 0; i < fHits_Below_ZPos->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		if (fHits_Below_ZPos->at(i) < minz || minz == -999.) {
-			minz = fHits_Below_ZPos->at(i);
-		}
-	}
-
-	return minz;
-}
-
-double BristolPoCAFitter::GetHighestZ(int hitreq) {
-	double maxz = -999.;
-
-	for (uint i = 0; i < fHits_Above_ZPos->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		if (fHits_Above_ZPos->at(i) > maxz || maxz == -999.) {
-			maxz = fHits_Above_ZPos->at(i);
-		}
-	}
-
-	for (uint i = 0; i < fHits_Below_ZPos->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		if (fHits_Below_ZPos->at(i) > maxz || maxz == -999.) {
-			maxz = fHits_Below_ZPos->at(i);
-		}
-	}
-
-	return maxz;
-}
-
-double BristolPoCAFitter::GetLowestHit(int hitreq) {
-	double minz = -999.;
-	double minhit = -999.;
-
-	for (uint i = 0; i < fHits_Above_ZPos->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		if (fHits_Above_ZPos->at(i) < minz || minz == -999.) {
-			minz = fHits_Above_ZPos->at(i);
-			if (!fHits_Above_Combo->at(i)) {
-				minhit = fHits_Above_Reco->at(i);
-			} else {
-				minhit = fHits_Above_Ghost->at(i);
-			}
-		}
-	}
-
-	for (uint i = 0; i < fHits_Below_ZPos->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		if (fHits_Below_ZPos->at(i) < minz || minz == -999.) {
-			minz = fHits_Below_ZPos->at(i);
-			if (!fHits_Below_Combo->at(i)) {
-				minhit = fHits_Below_Reco->at(i);
-			} else {
-				minhit = fHits_Below_Ghost->at(i);
-			}
-		}
-	}
-
-	return minhit;
-}
-
-double BristolPoCAFitter::GetHighestHit(int hitreq) {
-	double maxz = -999.;
-	double maxhit = -999.;
-
-	for (uint i = 0; i < fHits_Above_ZPos->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, false)) continue;
-		if (fHits_Above_ZPos->at(i) > maxz || maxz == -999.) {
-			maxz = fHits_Above_ZPos->at(i);
-			if (!fHits_Above_Combo->at(i)) {
-				maxhit = fHits_Above_Reco->at(i);
-			} else {
-				maxhit = fHits_Above_Ghost->at(i);
-			}
-		}
-	}
-
-	for (uint i = 0; i < fHits_Below_ZPos->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		if (!IsValidHit(hittype, hitreq, true)) continue;
-		if (fHits_Below_ZPos->at(i) > maxz || maxz == -999.) {
-			maxz = fHits_Below_ZPos->at(i);
-			if (!fHits_Below_Combo->at(i)) {
-				maxhit = fHits_Below_Reco->at(i);
-			} else {
-				maxhit = fHits_Below_Ghost->at(i);
-
-			}
-		}
-	}
-
-	return maxhit;
-}
-
-void BristolPoCAFitter::SetAboveComboX(std::vector<bool>* acombo) {
-
-	// Make if needed
-	if (!fHits_Above_Combo) {
-		fHits_Above_Combo = new std::vector<bool>(fHits_Above_Type->size(), false);
-		fHits_Above_Combo->resize( fHits_Above_Type->size() );
-	}
-
-	if (debugger) {
-		// Print Initial Combo
-		std::cout << "Setting Combo" << std::endl;
-		for (int i = 0; i < acombo->size(); i++) {
-			std::cout << "--> Drift " << i << " : " << acombo->at(i) << std::endl;
-		}
-	}
-
-	// Loop over all hits above
-	int driftcount = 0;
-	for (int i = 0; i < fHits_Above_Type->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-
-		if (!IsValidHit(hittype, kAboveX, false)) continue;
-		if (debugger) {
-			std::cout << "Above Hit Types " << hittype << std::endl;
-		}
-
-		if (IsRPCHit(hittype)) {
-			(*fHits_Above_Combo)[i] = false;
-		} else {
-			(*fHits_Above_Combo)[i] = (*acombo)[driftcount];
-			driftcount++;
-		}
-	}
-
-	if (debugger) {
-		// Print Combo
-		std::cout << "Full Combo" << std::endl;
-		for (int i = 0; i < fHits_Above_Type->size(); i++) {
-			int hittype = fHits_Above_Type->at(i);
-			if (IsRPCHit(hittype)) {
-				std::cout << "--> RPC " << i << " : " << hittype << " " << (*fHits_Above_Combo)[i] << std::endl;
-			} else {
-				std::cout << "--> Drift " << i << " : " << hittype << " " << (*fHits_Above_Combo)[i] << std::endl;
-			}
-			// if (hittype == 4 and (*fHits_Above_Combo)[i]) sleep(2);
-		}
-	}
-
-}
-
-void BristolPoCAFitter::SetAboveComboY(std::vector<bool>* acombo) {
-
-	// Make if needed
-	if (!fHits_Above_Combo) {
-		fHits_Above_Combo = new std::vector<bool>(fHits_Above_Type->size(), false);
-		fHits_Above_Combo->resize( fHits_Above_Type->size() );
-	}
-
-	if (debugger) {
-		std::cout << "Setting Combo Y" << std::endl;
-		for (int i = 0; i < acombo->size(); i++) {
-			std::cout << "--> Drift " << i << " : " << acombo->at(i) << std::endl;
-		}
-	}
-
-
-	// Loop over all hits above
-	int driftcount = 0;
-	for (int i = 0; i < fHits_Above_Type->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-
-		if (!IsValidHit(hittype, kAboveY, false)) continue;
-		if (IsRPCHit(hittype)) {
-			(*fHits_Above_Combo)[i] = false;
-		} else {
-			(*fHits_Above_Combo)[i] = (*acombo)[driftcount];
-			driftcount++;
-		}
-	}
-
-	if (debugger) {
-		// Print Combo
-		std::cout << "Full Combo Y" << std::endl;
-		for (int i = 0; i < fHits_Above_Type->size(); i++) {
-			int hittype = fHits_Above_Type->at(i);
-			if (IsRPCHit(hittype)) {
-				std::cout << "--> RPC " << i << " : " << hittype << " " << (*fHits_Above_Combo)[i] << std::endl;
-			} else {
-				std::cout << "--> Drift " << i << " : " << hittype << " " << (*fHits_Above_Combo)[i] << std::endl;
-			}
-			// if (hittype == 4 and (*fHits_Above_Combo)[i]) sleep(2);
-		}
-	}
-
-
-}
-
-void BristolPoCAFitter::SetBelowComboX(std::vector<bool>* bcombo) {
-
-	// Make if needed
-	if (!fHits_Below_Combo) {
-		fHits_Below_Combo = new std::vector<bool>(fHits_Below_Type->size(), false);
-		fHits_Below_Combo->resize( fHits_Below_Type->size() );
-	}
-
-	if (debugger) {
-		std::cout << "Below Setting Combo X " << std::endl;
-		for (int i = 0; i < bcombo->size(); i++) {
-			std::cout << "--> Drift " << i << " : " << bcombo->at(i) << std::endl;
-		}
-	}
-
-	// Loop over all hits Below
-	int driftcount = 0;
-	for (int i = 0; i < fHits_Below_Type->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-
-		if (!IsValidHit(hittype, kBelowX, true)) continue;
-
-		if (debugger) {
-			std::cout << "Below Hit Types X " << hittype << std::endl;
-		}
-		if (IsRPCHit(hittype)) {
-			(*fHits_Below_Combo)[i] = false;
-		} else {
-			(*fHits_Below_Combo)[i] = (*bcombo)[driftcount];
-			driftcount++;
-		}
-	}
-	if (debugger) {
-
-		std::cout << "Below Full Combo X" << std::endl;
-		for (int i = 0; i < fHits_Below_Type->size(); i++) {
-			int hittype = fHits_Below_Type->at(i);
-			if (IsRPCHit(hittype)) {
-				std::cout << "--> RPC " << i << " : " << hittype << " " << (*fHits_Below_Combo)[i] << std::endl;
-			} else {
-				std::cout << "--> Drift " << i << " : " << hittype << " " << (*fHits_Below_Combo)[i] << std::endl;
-			}
-			// if (hittype == 4 and (*fHits_Below_Combo)[i]) sleep(2);
-		}
-	}
-
-}
-
-void BristolPoCAFitter::SetBelowComboY(std::vector<bool>* bcombo) {
-
-	// Make if needed
-	if (!fHits_Below_Combo) {
-		fHits_Below_Combo = new std::vector<bool>(fHits_Below_Type->size(), false);
-		fHits_Below_Combo->resize( fHits_Below_Type->size() );
-	}
-
-	if (debugger) {
-
-		std::cout << "Below Setting Combo Y " << std::endl;
-		for (int i = 0; i < bcombo->size(); i++) {
-			std::cout << "--> Drift " << i << " : " << bcombo->at(i) << std::endl;
-		}
-	}
-
-	// Loop over all hits Below
-	int driftcount = 0;
-	for (int i = 0; i < fHits_Below_Type->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-
-		if (!IsValidHit(hittype, kBelowY, true)) continue;
-		if (debugger) {
-			std::cout << "Below Hit Types Y " << hittype << std::endl;
-		}
-
-		if (IsRPCHit(hittype)) {
-			(*fHits_Below_Combo)[i] = false;
-		} else {
-			(*fHits_Below_Combo)[i] = (*bcombo)[driftcount];
-			driftcount++;
-		}
-	}
-
-	if (debugger) {
-		std::cout << "Below Full Combo Y" << std::endl;
-		for (int i = 0; i < fHits_Below_Type->size(); i++) {
-			int hittype = fHits_Below_Type->at(i);
-			if (IsRPCHit(hittype)) {
-				std::cout << "--> RPC " << i << " : " << hittype << " " << (*fHits_Below_Combo)[i] << std::endl;
-			} else {
-				std::cout << "--> Drift " << i << " : " << hittype << " " << (*fHits_Below_Combo)[i] << std::endl;
-			}
-			// if (hittype == 4 and (*fHits_Below_Combo)[i]) sleep(2);
-		}
-	}
-
-}
-
-void BristolPoCAFitter::PreProcessData() {
-
-	if (fHits_Below_Combo) {
-		fHits_Below_Combo->clear();
-		delete fHits_Below_Combo;
-	}
-
-	if (fHits_Above_Combo) {
-		fHits_Above_Combo->clear();
-		delete fHits_Above_Combo;
-	}
-
-	fHits_Above_Combo = new std::vector<bool>();
-	fHits_Above_Combo->resize( fHits_Above_Type->size() );
-
-	fHits_Below_Combo = new std::vector<bool>();
-	fHits_Below_Combo->resize( fHits_Below_Type->size() );
-}
-
-
-void BristolPoCAFitter::PrintCombos() {
-
-	for (int i = 0; i < fHits_Above_Type->size(); i++) {
-		int hittype = fHits_Above_Type->at(i);
-		double reco = fHits_Above_Reco->at(i);
-		if ((*fHits_Above_Combo)[i]) reco = fHits_Above_Ghost->at(i);
-		if (IsRPCHit(hittype)) {
-			std::cout << "--> ARPC " << i << " : " << hittype << " " << reco << " " << (*fHits_Above_Combo)[i] << std::endl;
-		} else {
-			std::cout << "--> ADrift " << i << " : " << hittype << " " << reco << " " << (*fHits_Above_Combo)[i] << std::endl;
-		}
-	}
-
-	for (int i = 0; i < fHits_Below_Type->size(); i++) {
-		int hittype = fHits_Below_Type->at(i);
-		double reco = fHits_Below_Reco->at(i);
-		if ((*fHits_Below_Combo)[i]) reco = fHits_Below_Ghost->at(i);
-		if (IsRPCHit(hittype)) {
-			std::cout << "--> BRPC " << i << " : " << hittype << " " << reco << " " << (*fHits_Below_Combo)[i] << std::endl;
-		} else {
-			std::cout << "--> BDrift " << i << " : " << hittype << " " << reco << " " << (*fHits_Below_Combo)[i] << std::endl;
-		}
-	}
 }
 
 }

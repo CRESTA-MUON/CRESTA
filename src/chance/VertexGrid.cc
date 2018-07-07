@@ -107,21 +107,20 @@ void VertexGrid::Write() {
         histNS->SetBinContent(i + 1, j + 1, k + 1, disc.size());
 
 
-        // double bristoldisc = 0.0;
-        // disc.clear();
-        // for (int q = 0; q < vertices.size(); q++) {
-        //   for (int p = 0; p < vertices.size(); p++) {
-        //     if (p <= q) continue;
-        //     EventVertex v1 = vertices[q];
-        //     EventVertex v2 = vertices[p];
-        //     float distance = sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2) );
+        double bristoldisc = 0.0;
+        disc.clear();
+        for (int q = 0; q < vertices.size(); q++) {
+           for (int p = 0; p < vertices.size(); p++) {
+             if (p <= q) continue;
+             EventVertex v1 = vertices[q];
+             EventVertex v2 = vertices[p];
+             float distance = sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2) );
+             disc.push_back(distance / (v1.th * v1.mom) / (v2.th * v2.mom));
+           }
+         }
+         std::sort(disc.begin(), disc.end());
 
-        //     disc.push_back(distance / (v1.th * v1.mom) / (v2.th * v2.mom));
-        //   }
-        // }
-        // std::sort(disc.begin(), disc.end());
-
-        // histBS->SetBinContent(i + 1, j + 1, k + 1, disc[disc.size() / 2]);
+         histBS->SetBinContent(i + 1, j + 1, k + 1, disc[disc.size() / 2]);
         fVertices[voxelid].clear();
 
       }

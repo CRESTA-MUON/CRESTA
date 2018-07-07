@@ -77,9 +77,6 @@
 #include "geo/simple/GeoBox.hh"
 #include "geo/simple/GeoTubs.hh"
 #include "sd/DetectorManager.hh"
-#include "sd/LongDriftSD.hh"
-#include "chance/AWEDriftSD.hh"
-#include "chance/BristolRPCSD.hh"
 
 
 
@@ -147,6 +144,7 @@
 #include "Minuit2/MnPrint.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/MnUserParameters.h"
+#include "chance/TrueMCReader.hh"
 
 using namespace std;
 using namespace COSMIC;
@@ -205,17 +203,9 @@ void FillComboVect(std::vector<std::vector<bool> >& combomap, int n) {
 void PrintHelpScreen() {
 
   std::cout << "USAGE" << std::endl << std::endl;
-
-  std::cout << " -n nevents : Events to generate" << std::endl;
-  std::cout << " -j ntriggs : Triggers to generate" << std::endl;
-  std::cout << " -t exposur : Exposure to generate" << std::endl;
-  std::cout << " -c chunksz : Event chunk size for exposure/trigger mode" << std::endl;
-  std::cout << " -s seed    : Seed. Default is -1, meaning get from time+pid" << std::endl;
-  std::cout << " -o outtag  : Output File Tag. Will create file : outtag.run.subrun.root " << std::endl;
-  std::cout << " -i         : Flag. Run in interactive mode." << std::endl;
-  std::cout << " -g geofile : Load a geometry JSON file. Can use multiple times." << std::endl;
-  std::cout << " --run    r : Set Run ID Manually" << std::endl;
-  std::cout << " --subrun r : Set Sub Run ID Manually" << std::endl << std::endl;
+  std::cout << " chance_trackfit -i inputfile [-o outputtag]" << std::endl << std::endl;
+  std::cout << " -i inputfile : Input MC file to run trackfit over" << std::endl;
+  std::cout << " -o outputtag : Output tag. Output file becomes inputfile.outputtag.root. Default is 'trackfit'" << std::endl;
 
   exit(0);
 
@@ -260,7 +250,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Reading Configuration" << std::endl;
   // bool fUseRPC = true;
   // bool fUseDrift = true;
@@ -279,14 +269,13 @@ int main(int argc, char** argv) {
     fMinBRPCY = 3;
   }
 
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
 
   // Read in input Trees
   TFile* f = new TFile(gInputFile.c_str(), "READ");
   TTree* t = (TTree*)f->Get("detectorevents");
-
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Reading Event Inputs" << std::endl;
 
   std::string prefixa = "det_above";
@@ -294,7 +283,6 @@ int main(int argc, char** argv) {
 
   BristolPoCAFitter* pocafit = new BristolPoCAFitter();
   pocafit->ReadInputTTree(t, prefixa, prefixb);
-
 
   if (gInputMode == kUseRPC) {
     pocafit->SetUseRPC(true);
@@ -309,15 +297,23 @@ int main(int argc, char** argv) {
   }
 
   // Read Truth Trees
-  TBranch* truthbranch = NULL ; //(TBranch*) t->GetBranch(prefixa + "_volume_t".c_str());
-  if (truthbranch) {
-    std::cout << "========================================= " << std::endl;
-    std::cout << "APP: Reading Truth Inputs" << std::endl;
+  // TBranch* truthbranch = (TBranch*) t->GetBranch((prefixa + "_trueexit_t").c_str());
+  // if (truthbranch) {
+  //   // std::cout << "========================================= " << std::endl;
+  //   std::cout << "APP: Reading Truth Inputs" << std::endl;
+  // }
+  bool fIsMC = true;
+  TrueMCReader* truefit = NULL;
+  if (fIsMC){
+    truefit = new TrueMCReader();
+    truefit->ReadInputTTree(t, prefixa, prefixb);
   }
+
+  t->SetCacheSize(100000000);
 
 
   // Make output File
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Creating Output Tree" << std::endl;
 
   std::string strippedinput = gInputFile;
@@ -360,26 +356,8 @@ int main(int argc, char** argv) {
   otree->Branch("mctruth", fMCTruth, "energy/D:p:px:py:pz:v:scatterangle:passflag");
 
 
-
   std::cout << "========================================= " << std::endl;
-  std::cout << "APP: Creating Histograms" << std::endl;
-
-  // TH1F* cutHisto = new TH1F("cuthisto", "Number of events after each cut step", 13, 0, 13);
-  // TH1F* pAccHisto = new TH1F("p_acc_histo","Momentum accuracy",500, -2, 30);
-  // TH1F* pAccCorrHisto = new TH1F("p_acc_corr_histo","Momentum accuracy (corrected)",500, -2, 30);
-
-  // TH2F* estVsTrueHisto = new TH2F("P_true_P_est", "Estimated Pagainst true P; P estimate; P true",100,-100,15000,100,-100,12000);
-  // TH2F* sigmaVsTrueHisto = new TH2F("Sigma_P_true","Sigma against 1/P_true; 1/P_true; sigma",100,0,0.003,100,0,0.03);
-
-
-  // Read a channel mapping by getting the full vector of hits
-  // And then just setting bit flags to true/false with a switch statement.
-  //
-
-
-
-  std::cout << "========================================= " << std::endl;
-  std::cout << "APP: Creating Minimizer" << std::endl;
+  std::cout << "APP: Event Loop" << std::endl;
 
   // ROOT::Minuit2::MnPrint::SetLevel(-1);
   gErrorIgnoreLevel = 1001;
@@ -405,9 +383,8 @@ int main(int argc, char** argv) {
     pocafit->PreProcessData();
 
     if (i % 20000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
-    // std::cout << " NEW EVENT ---------------- " << std::endl;
+    // std::cout << " New Event " << std::endl;
 
-    // std::cout << "NRPC Hits : " << pocafit->GetNAboveRPCX() << " " << pocafit->GetNAboveRPCY() << " " << std::endl;
     // Apply NHit cuts
     if (gInputMode == kUseRPC || gInputMode == kUseAll) {
       if (pocafit->GetNAboveRPCX()   != fMinARPCX ||
@@ -421,7 +398,7 @@ int main(int argc, char** argv) {
     }
 
     if (gInputMode == kUseDrift || gInputMode == kUseAll) {
-      if (pocafit->GetNAboveDriftX() != fMinADriftX || 
+      if (pocafit->GetNAboveDriftX() != fMinADriftX ||
           pocafit->GetNAboveDriftY() != fMinADriftY ||
           pocafit->GetNBelowDriftX() != fMinBDriftX ||
           pocafit->GetNBelowDriftY() != fMinBDriftY) {
@@ -431,28 +408,21 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Apply Grid Offsets
-    pocafit->ApplyOffsets();
-
     // Get the best fit drift combinations for this event
     if (pocafit->GetNAboveDriftX()) {
-      comboax = pocafit->GetBestComboForDriftHits(kDriftAboveX);
-      pocafit->SetAboveComboX(&comboax);
+      pocafit->GetBestComboForDriftHits(kDriftAboveX);
     }
 
     if (pocafit->GetNBelowDriftX()) {
-      combobx = pocafit->GetBestComboForDriftHits(kDriftBelowX);
-      pocafit->SetBelowComboX(&combobx);
+      pocafit->GetBestComboForDriftHits(kDriftBelowX);
     }
 
     if (pocafit->GetNAboveDriftY()) {
-      comboay = pocafit->GetBestComboForDriftHits(kDriftAboveY);
-      pocafit->SetAboveComboY(&comboay);
+      pocafit->GetBestComboForDriftHits(kDriftAboveY);
     }
 
     if (pocafit->GetNBelowDriftY()) {
-      comboby = pocafit->GetBestComboForDriftHits(kDriftBelowY);
-      pocafit->SetBelowComboY(&comboby);
+      pocafit->GetBestComboForDriftHits(kDriftBelowY);
     }
 
     // Run an upper and lower single track fit here
@@ -511,6 +481,7 @@ int main(int argc, char** argv) {
 
       // std::cout << " Ind Chi2 : " << fScattering[18] << " " << fScattering[19] << " " << fScattering[20] << " " << fScattering[21] << std::endl;
       // pocafit->PrintCombos();
+      // sleep(2);
       continue;
     }
 
@@ -654,14 +625,16 @@ int main(int argc, char** argv) {
     fScattering[28] = LPoCA_Vy;
 
     // // Get Truth Information
-    // fMCTruth[0] = pocafit->GetTrueEnergy();
-    // fMCTruth[1] = pocafit->GetTrueP();
-    // fMCTruth[2] = pocafit->GetTruePX();
-    // fMCTruth[3] = pocafit->GetTruePY();
-    // fMCTruth[4] = pocafit->GetTruePZ();
-    // fMCTruth[5] = pocafit->GetTrueV();
-    // fMCTruth[6] = pocafit->GetScatterAngle();
-    // fMCTruth[7] = pocafit->GetPassFlag();
+    if (truefit) {
+      fMCTruth[0] = truefit->GetTrueEnergy();
+      fMCTruth[1] = truefit->GetTrueP();
+      fMCTruth[2] = truefit->GetTruePX();
+      fMCTruth[3] = truefit->GetTruePY();
+      fMCTruth[4] = truefit->GetTruePZ();
+      fMCTruth[5] = truefit->GetTrueV();
+      fMCTruth[6] = truefit->GetScatterAngle();
+      fMCTruth[7] = truefit->GetPassFlag();
+    }
 
     // Fill this event
     otree->Fill();
@@ -675,7 +648,7 @@ int main(int argc, char** argv) {
   std::cout << "N Bad Single : " << nbadsingle << std::endl;
   std::cout << "N Low RPCs : " << nlowrpcs << std::endl;
   std::cout << "N Drift RPCs : " << ndriftrpcs << std::endl;
-  
+
   // Save outputs to TTree
   o->cd();
   otree->Write();
