@@ -82,10 +82,10 @@ if(USE_CADMESH)
     endif()
 
     # Add libraries and headers if so.
-    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} {CADMESH_DIR}/lib/")
+    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${CADMESH_DIR}/lib/")
     include_directories(${CADMESH_DIR}/include/)
     set(cadmesh_LIBRARIES "assimp;cadmesh;tet")
-    set(LINK_DIRS "${LINK_DIRS} -L{CADMESH_DIR}/lib/")
+    set(LINK_DIRS "${LINK_DIRS} -L${CADMESH_DIR}/lib/")
 #    find_library(cadmesh_LIBRARIES 
 #                 NAMES assimp cadmesh tet
 #                 HINTS "{CADMESH_DIR}/lib/}")
