@@ -77,9 +77,6 @@
 #include "geo/simple/GeoBox.hh"
 #include "geo/simple/GeoTubs.hh"
 #include "sd/DetectorManager.hh"
-#include "sd/LongDriftSD.hh"
-#include "chance/AWEDriftSD.hh"
-#include "chance/BristolRPCSD.hh"
 
 
 
@@ -157,24 +154,14 @@ using namespace std;
 using namespace COSMIC;
 
 
-std::string gInputFile;
-std::string gOutputTag = "trackfit";
+std::vector<std::string> gInputFiles;
+std::string gOutputTag = "output";
 int gSmearingOption = 0;
 ///-------------------------------------------------------------------------------------------
 void PrintHelpScreen() {
 
   std::cout << "USAGE" << std::endl << std::endl;
 
-  std::cout << " -n nevents : Events to generate" << std::endl;
-  std::cout << " -j ntriggs : Triggers to generate" << std::endl;
-  std::cout << " -t exposur : Exposure to generate" << std::endl;
-  std::cout << " -c chunksz : Event chunk size for exposure/trigger mode" << std::endl;
-  std::cout << " -s seed    : Seed. Default is -1, meaning get from time+pid" << std::endl;
-  std::cout << " -o outtag  : Output File Tag. Will create file : outtag.run.subrun.root " << std::endl;
-  std::cout << " -i         : Flag. Run in interactive mode." << std::endl;
-  std::cout << " -g geofile : Load a geometry JSON file. Can use multiple times." << std::endl;
-  std::cout << " --run    r : Set Run ID Manually" << std::endl;
-  std::cout << " --subrun r : Set Sub Run ID Manually" << std::endl << std::endl;
 
   exit(0);
 
@@ -188,7 +175,7 @@ void PrintHelpScreen() {
 // RotationManager handles that in the list. Applies rotation to track parameters themselves.
 // Whole analysis runs over a for loop. Tells the VertexGrid, process voxels A->B, then B->C,
 // Update the corresponding grids accordingly.
-// Use Union if we want 
+// Use Union if we want
 
 
 
@@ -198,6 +185,8 @@ int main(int argc, char** argv) {
   // Print Splash Screen
   DB::PrintSplashScreen();
 
+  std::string defaultconfig = DB::GetDataPath() + "/chance/discriminator_config.geo";
+
   // Get User Inputs
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Getting User Inputs" << std::endl;
@@ -205,16 +194,14 @@ int main(int argc, char** argv) {
   // Loop over all arguments
   for (int i = 1; i < argc; ++i) {
 
-    // N Events input " -n nevents"
     if (std::strcmp(argv[i], "-i") == 0) {
-      gInputFile = std::string(argv[++i]);
+      gInputFiles.push_back(std::string(argv[++i]));
 
-      // N Triggers Input " -j ntriggers"
     } else if (std::strcmp(argv[i], "-o") == 0) {
       gOutputTag = std::string(argv[++i]);
 
-    } else if (std::strcmp(argv[i], "-s") == 0){
-      gSmearingOption = std::stoi(argv[++i]);
+    } else if (std::strcmp(argv[i], "-c" == 0)) {
+      defaultconfig = std::string(argv[++i]);
 
     } else if (std::strcmp(argv[i], "-h") == 0) {
       PrintHelpScreen();
@@ -227,14 +214,21 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "========================================= " << std::endl;
-  std::cout << "Initializing the grid" << std::endl;
+  std::cout << "APP: Reading Config" << std::endl;
+  DB *rdb = DB::Get();
+  rdb->LoadFile(defaultconfig);
+  rdb->Finalise();
+
+  DBTable configuration = rdb->GetTable("DISCRIMINATOR", "config");
 
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
 
   // Read in input Trees
-  TFile* f = new TFile(gInputFile.c_str(), "READ");
-  TTree* t = (TTree*)f->Get("T");
+  TChain* t = new TChain("T");
+  for (int i = 0; i < gInputFiles.size(); i++) {
+    t->AddFile(gInputFiles[i].c_str());
+  }
   t->SetCacheSize(100000000);
 
   Double_t fScattering[31] = {0.};
@@ -249,14 +243,30 @@ int main(int argc, char** argv) {
   int maxsize = 0;
 
   int ntracks = t->GetEntries();
-  int printsi = ntracks/10;
+  int printsi = ntracks / 10;
 
-  VertexGrid scangrid = VertexGrid(20.0, -1000.0, 1000.0, -1000.0, 1000.0, -400.0, 400.0);
-  scangrid.SetOffsets(-250.0, 0.0, 0.0);
+  VertexGrid scangrid = VertexGrid(configuration.GetD("grid_size"),
+                                   configuration.GetD("grid_minx"),
+                                   configuration.GetD("grid_maxx"),
+                                   configuration.GetD("grid_miny"),
+                                   configuration.GetD("grid_maxy"),
+                                   configuration.GetD("grid_minz"),
+                                   configuration.GetD("grid_maxz"));
 
-  for (int i = 0; i < t->GetEntries(); i++) {
+  scangrid.SetOffsets(configuration.GetD("grid_offsetx"),
+                      configuration.GetD("grid_offsety"),
+                      configuration.GetD("grid_offsetz"));
 
-    if (i % printsi == 0) std::cout << "Processed " << i << " / " << t->GetEntries() << std::endl;
+  double chosenmomentum = 0.0;
+  if (configuration.Has("force_momentum")) chosenmomentum = configuration.GetD("force_momentum");
+
+  gSmearingOption = 0;
+  if (configuration.Has("smearing")) gSmearingOption = configuration.GetI("smearing");
+
+
+  for (int i = 0; i < ntracks; i++) {
+
+    if (i % printsi == 0) std::cout << "Processed " << i << " / " << ntracks << std::endl;
 
     // Get the entry
     t->GetEntry(i);
@@ -305,15 +315,13 @@ int main(int argc, char** argv) {
       newtrack.thx = scatteranglex;
       newtrack.thy = scatterangley;
       newtrack.th  = scatterangle3d;
-      newtrack.mom = 1.0; //momentum;
+      if (chosenmomentum > 0.0) newtrack.mom = chosenmomentum;
+      else newtrack.mom = momentum;
 
       scangrid.AddVertexToVoxel(voxelid, newtrack);
 
     }
   }
-
-  f->Close();
-
 
   // // Now loop through our TH3D and set values
   // int nx = (gXMAX - gXMIN) / gGridSize;

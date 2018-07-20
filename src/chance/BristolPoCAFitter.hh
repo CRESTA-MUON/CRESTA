@@ -12,28 +12,34 @@ namespace COSMIC {
 
 class MuonHit {
 public:
-	MuonHit() {};
-	MuonHit(double r, double t, double z, double e, double g, int ts) {
-		recohit = r;
-		truehit = t;
-		zpos    = z;
-		error   = e;
-		ghost   = g;
-		type    = ts;
-		useghost = false;
-	}
-	~MuonHit() {};
-	double GetHit() { 
-		// std::cout << "Returning " << (useghost ? ghost : recohit) << std::endl; 
-		return useghost ? ghost : recohit; 
-	};
-	double recohit;
-	double truehit;
-	double zpos;
-	double error;
-	double ghost;
-	int type;
-	bool useghost;
+  MuonHit() {};
+
+  MuonHit(double r, double t, double z, double e, double g, int ts) {
+    recohit = r;
+    truehit = t;
+    zpos    = z;
+    error   = e;
+    ghost   = g;
+    type    = ts;
+    useghost = false;
+    usetrue = false;
+  }
+
+  ~MuonHit() {};
+
+  double GetHit() { 
+    if (usetrue) return truehit;
+    else { return useghost ? ghost : recohit; }
+  };
+  
+double recohit;
+  double truehit;
+  double zpos;
+  double error;
+  double ghost;
+  int type;
+  bool useghost;
+  bool usetrue;
 };
 
 
