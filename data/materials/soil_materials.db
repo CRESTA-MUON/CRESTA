@@ -1,0 +1,362 @@
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p01",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.463728,  0.535094,  0.000838,  0.000000,  0.000340]
+ density: 1.335590
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p02",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.460286,  0.537720,  0.001663,  0.000000,  0.000330]
+ density: 1.345578
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p05",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.450260,  0.545370,  0.004067,  0.000000,  0.000303]
+ density: 1.375542
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p1",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.434486,  0.557405,  0.007850,  0.000000,  0.000260]
+ density: 1.425482
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p2",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.406036,  0.579111,  0.014672,  0.000000,  0.000182]
+ density: 1.525361
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p3",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.381083,  0.598148,  0.020655,  0.000000,  0.000114]
+ density: 1.625241
+ density_units: "g/cm3"
+}
+
+
+{
+ name: "MATERIAL", 
+ index: "SiO2_Air_H20_0p4",
+ type: "compound",
+ element_names: [ "Si",  "O",  "H",  "C",  "N"]
+ element_counts: [ 0.359019,  0.614982,  0.025946,  0.000000,  0.000054]
+ density: 1.725120
+ density_units: "g/cm3"
+}
+
+
+
+
+// This is an average measurement of soil composition across the USA
+// by the USGS. There is a large variation and number of smaller elements
+//
+// https://pubs.usgs.gov/pp/1270/pdf/PP1270_508.pdf
+// in mg/g element_counts: [  72.0, 25.0, 24.0, 26.0, 15.0, 9.0, 12.0, 1.6, 310.0, 2.9],
+// - counts in parts per thousand (mg/g) and only retained those elements >1
+{
+  name: "MATERIAL",
+  index: "Soil_2p0",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 2.0,
+  density_units: "g/cm3"
+}
+{
+  name: "MATERIAL",
+  index: "Soil_1p4",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "Soil_1p4_1pc",
+  type: "compound",
+  element_names:  ["H","Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.01,0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "Soil_1p4_2pc",
+  type: "compound",
+  element_names:  ["H","Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.02,0.144,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "Soil_1p4_5pc",
+  type: "compound",
+  element_names:  ["H","Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.05,0.141,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "Soil_1p4_10pc",
+  type: "compound",
+  element_names:  ["H","Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.1,0.135,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "Soil_1p0",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 1.0,
+  density_units: "g/cm3"
+}
+{
+  name: "MATERIAL",
+  index: "Soil_0p5",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 0.5,
+  density_units: "g/cm3"
+}
+{
+  name: "MATERIAL",
+  index: "Soil_0p25",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 0.25,
+  density_units: "g/cm3"
+}
+{
+  name: "MATERIAL",
+  index: "Soil_0p1",
+  type: "compound",
+  element_names:  ["Al","C", "Ca", "Fe", "K","Mg", "Na", "S", "Si", "Ti"],
+  element_counts: [0.145,0.050,0.048,0.052,0.030,0.018,0.024,0.003,0.623,0.006],
+  density: 0.1,
+  density_units: "g/cm3"
+}
+
+
+
+
+
+
+// 50pc pore, and varying amounts of H20
+{
+  name: "MATERIAL",
+  index: "SiO2",
+  type: "compound",
+  element_names:  ["Si","O"],
+  // mass fraction
+  element_counts: [0.467585655778644, 0.532414344221357],
+  density: 1.325,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.46295609483034, 0.535943183646702, 0.001100721522958],
+  density: 1.33825,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p9_5pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.460329318072813, 0.53794541960105, 0.001725262326137],
+  density: 1.9,
+  density_units: "g/cm3"
+}
+
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p9_10pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.452526388152901, 0.543893129770992, 0.003580482076107],
+  density: 1.9,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p9_20pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.43501359127061, 0.557242094991752, 0.007744313737638],
+  density: 1.9,
+  density_units: "g/cm3"
+}
+
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p9_50pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.35981859178026, 0.614558778313006, 0.025622629906734],
+  density: 1.9,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p9_75pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.246290645059455, 0.70109439124487, 0.052614963695675],
+  density: 1.9,
+  density_units: "g/cm3"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// These are compounds within soil in the UK that are then mixed to find the final composition
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4",
+  type: "compound",
+  element_names:  ["Si","O"],
+  // mass fraction
+  element_counts: [0.467585655778643, 0.532414344221357],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_1pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.466175339390033, 0.533489344665224, 0.000335315944743],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_5pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.460329318072813, 0.53794541960105, 0.001725262326137],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_10pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.452526388152901, 0.543893129770992, 0.003580482076107],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_20pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.43501359127061, 0.557242094991752, 0.007744313737638],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_50pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.35981859178026, 0.614558778313006, 0.025622629906734],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+{
+  name: "MATERIAL",
+  index: "SiO2_1p4_75pc",
+  type: "compound",
+  element_names:  ["Si","O", "H"],
+  // mass fraction
+  element_counts: [0.246290645059455, 0.70109439124487, 0.052614963695675],
+  density: 1.4,
+  density_units: "g/cm3"
+}
+
+
+
+
+

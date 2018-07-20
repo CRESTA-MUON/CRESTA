@@ -4,7 +4,7 @@
 {
   name: "DETECTOR",
   index: "scint",
-  type: "scintillator",
+  type: "scintillator"
 }
 {
   name: "DETECTOR",
@@ -24,6 +24,8 @@
   size: ["11.630*m", "7.740*m", "world_box_width"],
   position: ["0.0","0.0","0.0"],
   rotation: [90.0,0.0,90.0],
+  color: [0.2,0.8,0.2,0.9],
+  drawstyle: "solid"
 }
 
 {
@@ -35,7 +37,7 @@
   size: ["sampling_target_box_size", "sampling_target_box_size", "sampling_target_box_size"],
   position: ["0.0","0.5*sampling_target_box_size","0.0"],
   rotation_mother: [0.0,-90.0,90.0],
-  sensitive: "truemuon"
+  // sensitive: "truemuon"
 }
 
 {
@@ -49,6 +51,7 @@
   position: ["0.0","0.0","0.0*det_system_spacing+det_system_offset -0.5*sampling_target_box_size"],
   sensitive: "scint",
   color: [0.0,0.0,1.0],
+  drawstyle: "solid"
 }
 
 
@@ -73,7 +76,8 @@
   type: "coincidence",
   energy_threshold: "0",
   require_n: "2",
-  processors: ["bar5_scint","bar6_scint"]
+  processors: ["bar5_scint","bar6_scint"],
+  efficiency: "0.7*0.9"
 }
 {  name:  "TRIGGER",  index: "trigger46",  clone: "trigger56",  processors: ["bar4_scint","bar6_scint"] }
 {  name:  "TRIGGER",  index: "trigger36",  clone: "trigger56",  processors: ["bar3_scint","bar6_scint"] }
