@@ -7,8 +7,8 @@
 // 1.00 JMV, LLNL, JAN-2007:  First version.
 //******************************************************************************
 //
-#ifndef __COSMIC_ShuklaPrimaryGenerator_HH__
-#define __COSMIC_ShuklaPrimaryGenerator_HH__
+#ifndef __COSMIC_PrimaryGeneratorROOT_HH__
+#define __COSMIC_PrimaryGeneratorROOT_HH__
 
 #include <vector>
 #include <cmath>
@@ -40,18 +40,18 @@
 namespace COSMIC {
 
 // Self Contained Mutex for locking threads and avoiding non threadsafe issues.
-namespace { G4Mutex myMutex = G4MUTEX_INITIALIZER; }
+namespace { G4Mutex thisMutex = G4MUTEX_INITIALIZER; }
 
 //---------------------------------------------------------------------------------
 /// Shukla Flux Generator, derived from CRESTA code written by Chris Steer.
-class ShuklaPrimaryGenerator : public G4VUserPrimaryGeneratorAction
+class PrimaryGeneratorROOT : public G4VUserPrimaryGeneratorAction
 {
 public:
 
     /// Constructor
-    ShuklaPrimaryGenerator();
+    PrimaryGeneratorROOT();
     /// Destructor
-    ~ShuklaPrimaryGenerator();
+    ~PrimaryGeneratorROOT();
 
     /// Pick a muon/antimuon based on random number
     void SampleParticleType();
@@ -83,18 +83,15 @@ private:
     G4double fMinEnergy; ///< Min Energy Range to integrate/throw
     G4double fMaxEnergy; ///< Max Energy Range to integrate/throw
 
-    TF1 *fEnergyPDF; ///< Energy Function from Shukla Paper
-    TF1 *fZenithPDF; ///< Zenith Function from Shukla Paper
+    G4double fExposureTime;
+
+    TFile *fHandle;
+    TH1F* fSpectrum;
+    G4double fPar_I0;
+
+    std::string fFilename, fHistName;
 
     G4double fFluxIntegrated; ///< Integral of flux for norm.
-
-    G4double fPar_I0;  ///< IO  Par from Shukla Paper
-    G4double fPar_n;   ///< n   Par from Shukla Paper
-    G4double fPar_E0;  ///< E0  Par from Shukla Paper
-    G4double fPar_eps; ///< eps Par from Shukla Paper
-
-    G4double fPar_rad; ///< radius Par from Shukla Paper
-    G4double fPar_dis; ///< distance Par from Shukla Paper
 
     /// Definitions for particle gun to avoid string comparisons
     std::vector<G4ParticleDefinition*> fParticleDefs;
@@ -107,20 +104,7 @@ private:
     G4ThreeVector fSourceBoxWidth; ///< Length/Width of box.
     G4ThreeVector fSourceBoxPosition; ///< Position of box in world volume
     G4int fSourceBoxRequireN; ///< Requires at least this number of hits in different target boxes
-
     G4double fArea; ///< Area of box. Used for normalisation.
-
-    // Target box also originally setup from GEO tables.
-    bool fCheckTargetBoxes; ///< FLAG : Whether target boxes okay.
-    std::vector<G4Box*> fTargetBoxes; ///< Geant4 Box Object for each target
-    std::vector<G4ThreeVector> fTargetBoxPositions; ///< Position in world volume for each target
-    G4int fTargetBoxesRequireN; ///< Requires at least this number of hits in different target boxes
-
-    // Throws are tracked regardless of acceptance, so integrated time always correct.
-    /// Current Integrated Exposure time. Derivide from NThrows and Integrated flux.
-    G4double fExposureTime;
-    int fNThrows; ///< Number of throws ran so far.
-
 
 
     G4double fMuonTime;     ///< MuonTime   Info for auto flux processor
@@ -139,13 +123,13 @@ private:
 //---------------------------------------------------------------------------------
 /// ShuklaFluxProcessor class : Automatically saves the true muon information
 /// for each event into the TTree
-class ShuklaPrimaryFluxProcessor : public VFluxProcessor {
+class ROOTPrimaryFluxProcessor : public VFluxProcessor {
 public:
     /// Processor can only be created with an associated
     /// shukla generator object.
-    ShuklaPrimaryFluxProcessor(ShuklaPrimaryGenerator* gen, bool autosave = true);
+    ROOTPrimaryFluxProcessor(PrimaryGeneratorROOT* gen, bool autosave = true);
     /// Destructor
-    ~ShuklaPrimaryFluxProcessor() {};
+    ~ROOTPrimaryFluxProcessor() {};
 
     /// Setup Ntuple entries
     bool BeginOfRunAction(const G4Run* run);
@@ -156,11 +140,13 @@ public:
     /// Return an integrated exposure time in s. Used for
     /// ending the run after so many seconds.
     G4double GetExposureTime();
-    void ResetExposureTime(){ fGenerator->SetExposureTime(0.0);};
+
+    void ResetExposureTime(){fGenerator->SetExposureTime(0.0);};
+
 
 protected:
 
-    ShuklaPrimaryGenerator* fGenerator; ///< Pointer to associated generator
+    PrimaryGeneratorROOT* fGenerator; ///< Pointer to associated generator
 
     bool fSave; ///< Flag to save event info automatically
 

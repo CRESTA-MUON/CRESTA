@@ -275,10 +275,11 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
     for (unsigned j = 0; j < vect->size(); j++) {
 
       // Apply offsets according to where the fSourceBox was placed.
-      G4ThreeVector boxposthrow = fSourceBox->GetPointOnSurface() + fSourceBoxPosition;
+      G4ThreeVector position;// = fSourceBox->GetPointOnSurface() + fSourceBoxPosition;                                                                                                                                                  
+      position[0] = fSourceBoxPosition[0] + 0.5*fLateralBoxSize * (-1.0 + 2.0 * G4UniformRand()) ;// in m                                                                                                                                
+      position[1] = fSourceBoxPosition[1] + 0.5*fLateralBoxSize * (-1.0 + 2.0 * G4UniformRand()) ;// in m                                                                                                                                
+      position[2] = fSourceBoxPosition[2];// in mm                  
 
-      // Setup new vector position
-      G4ThreeVector position  = G4ThreeVector((*vect)[j]->x() * m, (*vect)[j]->y() * m, boxposthrow[2]);
       (*vect)[j]->setPosition(position[0], position[1], position[2]);
 
       // Get Direction for trjacetory pre-selection

@@ -7,8 +7,8 @@
 // 1.00 JMV, LLNL, JAN-2007:  First version.
 //******************************************************************************
 //
-#ifndef __COSMIC_ShuklaPrimaryGenerator_HH__
-#define __COSMIC_ShuklaPrimaryGenerator_HH__
+#ifndef __COSMIC_LOSPrimaryGenerator_HH__
+#define __COSMIC_LOSPrimaryGenerator_HH__
 
 #include <vector>
 #include <cmath>
@@ -40,24 +40,19 @@
 namespace COSMIC {
 
 // Self Contained Mutex for locking threads and avoiding non threadsafe issues.
-namespace { G4Mutex myMutex = G4MUTEX_INITIALIZER; }
+namespace { G4Mutex myMutexLOS = G4MUTEX_INITIALIZER; }
 
 //---------------------------------------------------------------------------------
-/// Shukla Flux Generator, derived from CRESTA code written by Chris Steer.
-class ShuklaPrimaryGenerator : public G4VUserPrimaryGeneratorAction
+/// LOS Flux Generator, derived from CRESTA code written by Chris Steer.
+class LOSPrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
 public:
 
     /// Constructor
-    ShuklaPrimaryGenerator();
+    LOSPrimaryGenerator();
     /// Destructor
-    ~ShuklaPrimaryGenerator();
+    ~LOSPrimaryGenerator();
 
-    /// Pick a muon/antimuon based on random number
-    void SampleParticleType();
-
-    /// Randomly sample direction according to Zenith PDF.
-    G4ThreeVector SampleDirection();
 
     /// Generate the primary muon, and apply acceptance filter.
     void GeneratePrimaries(G4Event* anEvent);
@@ -70,31 +65,21 @@ public:
     std::vector<G4ThreeVector> GetTargetBoxPositions();
 
     // Get Functions
-    inline G4double GetMuonTime()     { return fMuonTime;     };
-    inline G4double GetMuonEnergy()   { return fMuonEnergy;   };
     inline G4ThreeVector GetMuonDir() { return fMuonDir;      };
     inline G4ThreeVector GetMuonPos() { return fMuonPos;      };
-    inline int GetMuonPDG()           { return fMuonPDG;      };
-    inline G4double GetExposureTime() { return fExposureTime; };
-    inline void SetExposureTime(G4double e) { fExposureTime = e; };
+
+    double GetMuonAnglePDF(){return fMuonAnglePDF;};
+    double GetMuonEnergyPDF(){return fMuonEnergyPDF;};
+    double GetMuonEnergy(){return fMuonEnergy;};
+
+    double GetVerticalRate(){return fPar_I0;};
+    // Half widths so multiply by 4
+    double GetIntegratedRate(){return fFluxIntegrated*4.0*(fSourceBoxWidth[0]/m)*(fSourceBoxWidth[1]/m);};
 
 private:
 
-    G4double fMinEnergy; ///< Min Energy Range to integrate/throw
-    G4double fMaxEnergy; ///< Max Energy Range to integrate/throw
-
-    TF1 *fEnergyPDF; ///< Energy Function from Shukla Paper
-    TF1 *fZenithPDF; ///< Zenith Function from Shukla Paper
-
-    G4double fFluxIntegrated; ///< Integral of flux for norm.
-
-    G4double fPar_I0;  ///< IO  Par from Shukla Paper
-    G4double fPar_n;   ///< n   Par from Shukla Paper
-    G4double fPar_E0;  ///< E0  Par from Shukla Paper
-    G4double fPar_eps; ///< eps Par from Shukla Paper
-
-    G4double fPar_rad; ///< radius Par from Shukla Paper
-    G4double fPar_dis; ///< distance Par from Shukla Paper
+    //
+    G4ThreeVector fEventSourcePosition;
 
     /// Definitions for particle gun to avoid string comparisons
     std::vector<G4ParticleDefinition*> fParticleDefs;
@@ -116,19 +101,39 @@ private:
     std::vector<G4ThreeVector> fTargetBoxPositions; ///< Position in world volume for each target
     G4int fTargetBoxesRequireN; ///< Requires at least this number of hits in different target boxes
 
-    // Throws are tracked regardless of acceptance, so integrated time always correct.
-    /// Current Integrated Exposure time. Derivide from NThrows and Integrated flux.
-    G4double fExposureTime;
-    int fNThrows; ///< Number of throws ran so far.
+    G4ThreeVector fMuonDir; ///< MuonDir    Info for auto flux processor
+    G4ThreeVector fMuonPos; ///< MuonPos    Info for auto flux processor
 
+    double fMinCosTheta,fMaxCosTheta;
+
+    double fMuonAnglePDF;
+    double fMuonEnergyPDF;
+
+    G4double fMinEnergy; ///< Min Energy Range to integrate/throw
+    G4double fMaxEnergy; ///< Max Energy Range to integrate/throw
+
+    TF1 *fEnergyPDF; ///< Energy Function from Shukla Paper
+    TF1 *fZenithPDF; ///< Zenith Function from Shukla Paper
+
+    G4double fFluxIntegrated; ///< Integral of flux for norm.
+
+    G4double fPar_I0;  ///< IO  Par from Shukla Paper
+    G4double fPar_n;   ///< n   Par from Shukla Paper
+    G4double fPar_E0;  ///< E0  Par from Shukla Paper
+    G4double fPar_eps; ///< eps Par from Shukla Paper
+
+    G4double fPar_rad; ///< radius Par from Shukla Paper
+    G4double fPar_dis; ///< distance Par from Shukla Paper
 
 
     G4double fMuonTime;     ///< MuonTime   Info for auto flux processor
     G4double fMuonEnergy;   ///< MuonEnergy Info for auto flux processor
-    G4ThreeVector fMuonDir; ///< MuonDir    Info for auto flux processor
-    G4ThreeVector fMuonPos; ///< MuonPos    Info for auto flux processor
     G4double fMuonPDG;      ///< MuonPDG    Info for auto flux processor
     G4double fSpeedUp;      ///< MuonPDG    Info for auto flux processor
+
+
+
+
 
 };
 //---------------------------------------------------------------------------------
@@ -137,30 +142,31 @@ private:
 
 
 //---------------------------------------------------------------------------------
-/// ShuklaFluxProcessor class : Automatically saves the true muon information
+/// LOSFluxProcessor class : Automatically saves the true muon information
 /// for each event into the TTree
-class ShuklaPrimaryFluxProcessor : public VFluxProcessor {
+class LOSPrimaryFluxProcessor : public VFluxProcessor {
 public:
     /// Processor can only be created with an associated
-    /// shukla generator object.
-    ShuklaPrimaryFluxProcessor(ShuklaPrimaryGenerator* gen, bool autosave = true);
+    /// LOS generator object.
+    LOSPrimaryFluxProcessor(LOSPrimaryGenerator* gen, bool autosave = true);
     /// Destructor
-    ~ShuklaPrimaryFluxProcessor() {};
+    ~LOSPrimaryFluxProcessor() {};
 
     /// Setup Ntuple entries
     bool BeginOfRunAction(const G4Run* run);
-
     /// Save the information from the generator for this event
     bool ProcessEvent(const G4Event* event);
 
     /// Return an integrated exposure time in s. Used for
     /// ending the run after so many seconds.
-    G4double GetExposureTime();
-    void ResetExposureTime(){ fGenerator->SetExposureTime(0.0);};
+    G4double GetExposureTime(){return 0.0;};
+
+    void ResetExposureTime(){};
+    
 
 protected:
 
-    ShuklaPrimaryGenerator* fGenerator; ///< Pointer to associated generator
+    LOSPrimaryGenerator* fGenerator; ///< Pointer to associated generator
 
     bool fSave; ///< Flag to save event info automatically
 
@@ -173,6 +179,15 @@ protected:
     int fMuonPosYIndex; ///< PosY Ntuple Index
     int fMuonPosZIndex; ///< PosZ Ntuple Index
     int fMuonPDGIndex;  ///< MPDG Ntuple Index
+
+    int fMuonThXZIndex;
+    int fMuonThYZIndex;
+
+    int fMuonIDIndex;
+
+    int fMuonAnglePDFIndex;
+    int fMuonEnergyPDFIndex;
+    int fMuonRatePDFIndex;
 
 };
 //---------------------------------------------------------------------------------

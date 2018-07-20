@@ -1,29 +1,31 @@
-#include "ShuklaPrimaryGenerator.hh"
+#include "LOSPrimaryGenerator.hh"
 #include "db/DB.hh"
+#include "G4EmCalculator.hh"
+#include "analysis/Analysis.hh"
+
 
 namespace COSMIC {
 
 //---------------------------------------------------------------------------------
-ShuklaPrimaryGenerator::ShuklaPrimaryGenerator()
+LOSPrimaryGenerator::LOSPrimaryGenerator()
     : G4VUserPrimaryGeneratorAction(),
-      fParticleGun(0),
-      fNThrows(0),
-      fMuonTime(0)
+      fParticleGun(0)
 {
-    G4AutoLock lock(&myMutex);
-    std::cout << "FLX: Building Shukla Generator" << std::endl;
+
+    std::cout << "FLX: Building LOS Generator" << std::endl;
+    fCheckTargetBoxes = false;
+    fMinCosTheta=0;
+    fMaxCosTheta=1;
 
     // Setup Table
-    DBTable table = DB::Get()->GetTable("SHUKLA", "config");
+    DBTable table = DB::Get()->GetTable("LOS", "config");
 
     // Get the particle table
     G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-    // Save particle definitions
-    fParticleDefs.push_back(particleTable->FindParticle("mu-"));
-    fParticleDefs.push_back(particleTable->FindParticle("mu+"));
-    fParticleDefs.push_back(particleTable->FindParticle("proton"));
-    fParticleDefs.push_back(particleTable->FindParticle("alpha"));
 
+    // Save particle definitions
+    // fParticleGun->SetParticleDefinition(particleTable->FindParticle("geantino"));
+    fParticleDefs.push_back(particleTable->FindParticle("geantino"));
 
     // Setup Defaults + Table Inputs
     fMinEnergy = 0.1;
@@ -162,48 +164,18 @@ ShuklaPrimaryGenerator::ShuklaPrimaryGenerator()
 
     std::cout << "FLX: --> Complete." << std::endl;
 
+
     // Make a new processor
-    Analysis::Get()->SetFluxProcessor(new ShuklaPrimaryFluxProcessor(this));
+    Analysis::Get()->SetFluxProcessor(new LOSPrimaryFluxProcessor(this));
+
 }
 
-ShuklaPrimaryGenerator::~ShuklaPrimaryGenerator()
+LOSPrimaryGenerator::~LOSPrimaryGenerator()
 {
     delete fParticleGun;
 }
 
-G4ThreeVector ShuklaPrimaryGenerator::SampleDirection() {
-    G4double cos_theta = fZenithPDF->GetRandom();
-    G4double phi = CLHEP::twopi * G4UniformRand(); //phi uniform in [-pi, pi];
-    G4double sin_theta = std::sqrt(1 - cos_theta * cos_theta);
-    G4double x = sin_theta * cos(phi);
-    G4double y = sin_theta * sin(phi);
-    G4double z = cos_theta;
-    return G4ThreeVector(x, y, -z);
-}
-
-void ShuklaPrimaryGenerator::SampleParticleType() {
-
-  if(fabs(fMuonPDG)==13) {
-    // From fig 24.5 in PDG Fmu+/Fmu- is 1.3, so Fmu-/(Fmu+Fmu-) = 0.43
-    // At a future date, an effect due to energy should be included.
-    G4double r = G4UniformRand();
-    if (r < 0.43) {
-        fParticleGun->SetParticleDefinition(fParticleDefs[0]);
-        fMuonPDG = 13;
-    } else {
-        fParticleGun->SetParticleDefinition(fParticleDefs[1]);
-        fMuonPDG = -13;
-    }
-  } else {
-    if(fMuonPDG==2212)    fParticleGun->SetParticleDefinition(fParticleDefs[2]);
-    if(fMuonPDG==47)    fParticleGun->SetParticleDefinition(fParticleDefs[3]);
-  }
-
-
-
-}
-
-void ShuklaPrimaryGenerator::GetSourceBox() {
+void LOSPrimaryGenerator::GetSourceBox() {
 
     // Already has good source_box
     if (fSourceBox) return;
@@ -240,7 +212,7 @@ void ShuklaPrimaryGenerator::GetSourceBox() {
     throw;
 }
 
-std::vector<G4Box*> ShuklaPrimaryGenerator::GetTargetBoxes() {
+std::vector<G4Box*> LOSPrimaryGenerator::GetTargetBoxes() {
 
     // If presences of target boxes already been set then just return
     if (fCheckTargetBoxes) {
@@ -273,166 +245,156 @@ std::vector<G4Box*> ShuklaPrimaryGenerator::GetTargetBoxes() {
         std::vector<G4double> size = tbl.GetVecG4D("size");
         std::vector<G4double> pos  = tbl.GetVecG4D("position");
 
+
         G4Box* box_sol = new G4Box(index, 0.5 * size[0], 0.5 * size[1], 0.5 * size[2]);
         G4ThreeVector box_pos = G4ThreeVector(pos[0], pos[1], pos[2]);
 
-        // Save Box
+        std::cout << "Box Pos: " << box_pos << std::endl;
+      // Save Box
         fTargetBoxes.push_back(box_sol);
         fTargetBoxPositions.push_back(box_pos);
 
     }
+
+
+    // Calculate the corners of a box
+    std::vector<G4ThreeVector> corners0,corners1;
+    for(int i=-1;i<2;i++){
+      for(int j=-1;j<2;j++){
+        for(int k=-1;k<2;k++){
+          G4ThreeVector corner0(fSourceBoxPosition[0] + i*fSourceBoxWidth[0],fSourceBoxPosition[1] + j*fSourceBoxWidth[1],fSourceBoxPosition[2] + k*fSourceBoxWidth[2]);
+          corners0.push_back(corner0);
+
+          G4ThreeVector corner1(fTargetBoxPositions.at(0)[0] + i*fTargetBoxes.at(0)->GetXHalfLength(),fTargetBoxPositions.at(0)[1] + j*fTargetBoxes.at(0)->GetYHalfLength(),fTargetBoxPositions.at(0)[2] + k*fTargetBoxes.at(0)->GetZHalfLength());
+          corners1.push_back(corner1);
+
+        }
+      }
+    }
+
+    // Find the range of zenith angles sampled
+    double min_cos_theta=10;
+    double max_cos_theta=-10;
+    for(int c0=0;c0<corners0.size();c0++){
+      for(int c1=0;c1<corners1.size();c1++){
+        // std::cout << "FLX: Corner0 : " << corners0.at(c0) << " Corner1 : " << corners1.at(c1) <<  std::endl;
+
+        G4ThreeVector corner2corner = corners1.at(c1) - corners0.at(c0);
+        double cos_theta = cos((corner2corner.unit()).theta());
+        if(cos_theta<min_cos_theta) min_cos_theta = cos_theta;
+        if(cos_theta>max_cos_theta) max_cos_theta = cos_theta;
+        if(min_cos_theta<0) min_cos_theta=0;
+
+        // std::cout << "Min Cos Theta: " << min_cos_theta << "Max Cos Theta: " << max_cos_theta << std::endl;
+      }
+    }
+
+    fMinCosTheta = min_cos_theta;
+    fMaxCosTheta = max_cos_theta;
+
+    std::cout << "FLX: Previous Flux Integrated: " << fFluxIntegrated << std::endl;
+    fFluxIntegrated = (fPar_I0 * CLHEP::twopi * fZenithPDF->Integral(min_cos_theta, max_cos_theta) * fEnergyPDF->Integral(fMinEnergy * GeV, fMaxEnergy * GeV));
+    std::cout << "FLX: Min Cos Theta: " << min_cos_theta << " Max Cos Theta: " << max_cos_theta << std::endl;
+    std::cout << "FLX: Angle-Limited Flux Integrated: " << fFluxIntegrated << std::endl;
+
+
 
     // Set flag and return
     fCheckTargetBoxes = true;
     return fTargetBoxes;
 }
 
-std::vector<G4ThreeVector> ShuklaPrimaryGenerator::GetTargetBoxPositions() {
+std::vector<G4ThreeVector> LOSPrimaryGenerator::GetTargetBoxPositions() {
     // If matching sizes its probs okay to return positions
     if (fTargetBoxes.size() == fTargetBoxPositions.size()) return fTargetBoxPositions;
     std::cout << "TargetBox Positions incorrect" << std::endl;
     throw;
 }
 
-void ShuklaPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
+void LOSPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
 
     // Run Initial Setup Incase we are in a seperate thread
     if (!fSourceBox) {
-        G4AutoLock lock(&myMutex);
+        G4AutoLock lock(&myMutexLOS);
         GetSourceBox();
         lock.unlock();
     }
 
     if (!fCheckTargetBoxes) {
-        G4AutoLock lock(&myMutex);
+        G4AutoLock lock(&myMutexLOS);
         GetTargetBoxes();
         lock.unlock();
     }
 
-    // Create a mutex lock for the ROOT sampling functions (not thread-safe)
-    // G4AutoLock lock(&myMutex);
+    // Generate a point on the first target box
+    // fEventSourcePosition[0] = fTargetBoxPositions.at(0)[0] + (fTargetBoxes.at(0))->GetXHalfLength() * (-1.0 + 2.0 * G4UniformRand()) ;
+    // fEventSourcePosition[1] = fTargetBoxPositions.at(0)[1] + (fTargetBoxes.at(0))->GetYHalfLength() * (-1.0 + 2.0 * G4UniformRand()) ;
+    // fEventSourcePosition[2] = fTargetBoxPositions.at(0)[2];
+    fEventSourcePosition[0] = fSourceBoxPosition[0] + fSourceBoxWidth[0] * (-1.0 + 2.0 * G4UniformRand()) ;
+    fEventSourcePosition[1] = fSourceBoxPosition[1] + fSourceBoxWidth[1] * (-1.0 + 2.0 * G4UniformRand()) ;
+    fEventSourcePosition[2] = fSourceBoxPosition[2] + fSourceBoxWidth[2];
 
-    // By setting a fMinEnergy it is possible to remove a portion
-    // of the muon energy spectra which you're sure will not contribute
-    // to the detector counts
-    // i.e. for a geometry involving a thick layer of rock, you could ignore
-    // the energies that will definitely range out before the detector.
-    // These muons with energy<fMinEnergy will be generated but rejected here.
+    // Generate a point on the second target box
+    // - Sample equal cos_theta bins
+    // fEventTargetPosition[0] = fTargetBoxPositions.at(1)[0] + (fTargetBoxes.at(1))->GetXHalfLength() * (-1.0 + 2.0 * G4UniformRand()) ;
+    // fEventTargetPosition[1] = fTargetBoxPositions.at(1)[1] + (fTargetBoxes.at(1))->GetYHalfLength() * (-1.0 + 2.0 * G4UniformRand()) ;
+    // fEventTargetPosition[2] = fTargetBoxPositions.at(1)[2];
+    // fMuonDir = fEventTargetPosition - fEventSourcePosition;
 
-    // G4double global_time = 0;//< Not needed as we have fMuonTime?
+    G4double cos_theta = (fMaxCosTheta - fMinCosTheta)*G4UniformRand() + fMinCosTheta;// cos_theta in [min_cos_theta,max_cos_theta]
+    G4double phi = CLHEP::twopi * G4UniformRand(); //phi uniform in [-pi, pi];
+    G4double sin_theta = std::sqrt(1 - cos_theta * cos_theta);
+    G4double x = sin_theta * cos(phi);
+    G4double y = sin_theta * sin(phi);
+    G4double z = cos_theta;
 
-    // Sample the energy and particle type
-    G4double E = 0.0;
-    E = fEnergyPDF->GetRandom();
+    fMuonEnergy = fEnergyPDF->GetRandom();
 
-    // Only want to sample the particle if we want muons
-    SampleParticleType();
+    fMuonDir = G4ThreeVector(x, y, z);
+    fParticleGun->SetParticleMomentumDirection(fMuonDir.unit());
 
-    // Start of the rejection sampling of muon tracks
-    bool good_event = false;
-    uint throws = 0;
-    G4ThreeVector direction = G4ThreeVector();
-    G4ThreeVector position = G4ThreeVector();
-
-    G4int num_target_boxes_hit=0;
-    // The muon rate
-    //  - fArea is in mm (internal G4 units) so need to convert to m
-    G4double adjusted_rate = fFluxIntegrated*fArea/fSpeedUp;//< Adjust this rate if we are only sampling a smaller portion of the energy-angle PDF
-    // G4cout << "Adj. Rate : " << adjusted_rate << G4endl;
-
-    do {
-        throws++;
-        // Sample point and direction
-        direction = SampleDirection();
-
-        position[0] = fSourceBoxPosition[0] + fSourceBoxWidth[0] * (-1.0 + 2.0 * G4UniformRand()) ;
-        position[1] = fSourceBoxPosition[1] + fSourceBoxWidth[1] * (-1.0 + 2.0 * G4UniformRand()) ;
-        position[2] = fSourceBoxPosition[2] + fSourceBoxWidth[2] ;
-
-        // Keep track of global throws for integral
-        fNThrows++;
-
-        // If no target boxes defined all events are good
-        if (fTargetBoxes.empty()) break;
-
-            // If target boxes defined only save trajectories that hit at least one
-            for (uint i = 0; i < fTargetBoxes.size(); i++) {
-
-            G4double d = (fTargetBoxes.at(i))->DistanceToIn(
-                             position - fTargetBoxPositions.at(i), direction);
-
-
-            if (d != kInfinity){
-              // Increment the counter for the number of target boxes hit
-              num_target_boxes_hit++;
-
-              // Check whether we have the required number of hits
-              if (num_target_boxes_hit>=fSourceBoxRequireN ) {
-                good_event = true;
-                break;
-              }
-            }
-
-            // Regardless of whether the event is accepted increment the time
-            fMuonTime -= std::log(1 - G4UniformRand())*(1.0/adjusted_rate);
-
-
-        }// End for
-
-
-
-        if (throws >= 1E8) {
-            std::cout << "Failed to find any good events in 1E6 tries!" << std::endl;
-            throw;
-        }
-
-    } while (!good_event and throws < 1E8);
-
-    // Get exposure time
-    // std::cout << "Exposure Time = " << fNThrows << "," << fArea << " : " << fNThrows / fFluxIntegrated << " m^{2} s" << std::endl;
-    // std::cout << "Exposure Time : " << fNThrows / fFluxIntegrated / fArea << " s" << std::endl;
-
-    // Generate Primary
-    // std::cout << "EventID " << anEvent->GetEventID() << G4endl;
-    // std::cout << " --> Position " << position << G4endl;
-    // std::cout << " --> Direction " << direction << G4endl;
-    // std::cout << " --> Energy " << E*1000 << G4endl;
-    // std::cout << " --> Global Time " << fMuonTime << G4endl;
-
-
-    /// This is incorrect. Need to incremenent the muon exposure time each throw using random stuff from Chris's code.
-    // fMuonTime = fNThrows / fFluxIntegrated / fArea;
-    fMuonDir = direction;
-    fMuonPos = position;
-    fMuonEnergy = E;
-
+    fParticleGun->SetParticleDefinition(fParticleDefs[0]);
     fParticleGun->SetParticleEnergy(fMuonEnergy);
-    fParticleGun->SetParticleTime(fMuonTime);
-    fParticleGun->SetParticleMomentumDirection(fMuonDir);
-    fParticleGun->SetParticlePosition(fMuonPos);
+    fParticleGun->SetParticleTime(0.0);
+
+    // Get the PDF value at this direction
+    fMuonAnglePDF = fZenithPDF->Eval(cos_theta);
+    fMuonEnergyPDF = fEnergyPDF->Eval(fMuonEnergy);
+
+    fMuonPos = fEventSourcePosition;
+    fParticleGun->SetParticlePosition(fEventSourcePosition);
     fParticleGun->GeneratePrimaryVertex(anEvent);
+
+    if(anEvent->GetEventID()%10000==0){
+      // Write out the estimated time and overall raate
+      // std::cout << "FLX: Integrated Rate = " << fFluxIntegrated << " m-2 s-1" << std::endl;
+      std::cout << "FLX: Open-Sky Exposure = " << (((double) Analysis::Get()->GetNSavedEvents())/GetIntegratedRate())/(60.0*60.0*24.0) << " Days" << std::endl;
+    }
 
     return;
 }
 //---------------------------------------------------------------------------------
 
 
+
+
 //------------------------------------------------------------------
-ShuklaPrimaryFluxProcessor::ShuklaPrimaryFluxProcessor(ShuklaPrimaryGenerator* gen, bool autosave) :
-    VFluxProcessor("shukla"), fSave(autosave)
+LOSPrimaryFluxProcessor::LOSPrimaryFluxProcessor(LOSPrimaryGenerator* gen, bool autosave) :
+    VFluxProcessor("LOS"), fSave(autosave)
 {
     fGenerator = gen;
 }
 
-bool ShuklaPrimaryFluxProcessor::BeginOfRunAction(const G4Run* /*run*/) {
 
-    std::string tableindex = "shukla";
-    std::cout << "FLX: Registering ShuklaPrimaryFluxProcessor NTuples " << tableindex << std::endl;
+bool LOSPrimaryFluxProcessor::BeginOfRunAction(const G4Run* /*run*/) {
+
+    std::string tableindex = "LOS";
+    std::cout << "FLX: Registering LOSPrimaryFluxProcessor NTuples " << tableindex << std::endl;
 
     G4AnalysisManager* man = G4AnalysisManager::Instance();
 
     // Fill index energy
-    fMuonTimeIndex   = man ->CreateNtupleDColumn(tableindex + "_t");
+    fMuonIDIndex = man ->CreateNtupleIColumn(tableindex + "_id");
     fMuonEnergyIndex = man ->CreateNtupleDColumn(tableindex + "_E");
     fMuonDirXIndex   = man ->CreateNtupleDColumn(tableindex + "_dx");
     fMuonDirYIndex   = man ->CreateNtupleDColumn(tableindex + "_dy");
@@ -440,51 +402,72 @@ bool ShuklaPrimaryFluxProcessor::BeginOfRunAction(const G4Run* /*run*/) {
     fMuonPosXIndex   = man ->CreateNtupleDColumn(tableindex + "_x");
     fMuonPosYIndex   = man ->CreateNtupleDColumn(tableindex + "_y");
     fMuonPosZIndex   = man ->CreateNtupleDColumn(tableindex + "_z");
-    fMuonPDGIndex    = man ->CreateNtupleIColumn(tableindex + "_pdg");
-
+    fMuonThXZIndex   = man ->CreateNtupleDColumn(tableindex + "_thxz");
+    fMuonThYZIndex   = man ->CreateNtupleDColumn(tableindex + "_thyz");
+    fMuonAnglePDFIndex = man ->CreateNtupleDColumn(tableindex + "_thweight");
+    fMuonEnergyPDFIndex = man ->CreateNtupleDColumn(tableindex + "_Eweight");
+    fMuonRatePDFIndex = man ->CreateNtupleDColumn(tableindex + "_rate");
+    std::cout << "FLX: Finished registration of LOSPrimaryFluxProcessor " << tableindex << std::endl;
     return true;
 }
 
-bool ShuklaPrimaryFluxProcessor::ProcessEvent(const G4Event* /*event*/) {
+bool LOSPrimaryFluxProcessor::ProcessEvent(const G4Event* event) {
 
     // Register Trigger State
     fHasInfo = true;
-    fTime    = fGenerator->GetMuonTime();
-    fEnergy  = fGenerator->GetMuonEnergy();
 
     // Set Ntuple to defaults
-
     if (fHasInfo) {
+
         G4AnalysisManager* man = G4AnalysisManager::Instance();
-        man->FillNtupleDColumn(fMuonTimeIndex,   fGenerator->GetMuonTime());
+
+        man->FillNtupleIColumn(fMuonIDIndex, (int) event->GetEventID());
         man->FillNtupleDColumn(fMuonEnergyIndex, fGenerator->GetMuonEnergy());
-        man->FillNtupleDColumn(fMuonDirXIndex,   fGenerator->GetMuonDir().x() / MeV);
-        man->FillNtupleDColumn(fMuonDirYIndex,   fGenerator->GetMuonDir().y() / MeV);
-        man->FillNtupleDColumn(fMuonDirZIndex,   fGenerator->GetMuonDir().z() / MeV);
-        man->FillNtupleDColumn(fMuonPosXIndex,   fGenerator->GetMuonPos().x() / m);
-        man->FillNtupleDColumn(fMuonPosYIndex,   fGenerator->GetMuonPos().y() / m);
-        man->FillNtupleDColumn(fMuonPosZIndex,   fGenerator->GetMuonPos().z() / m);
-        man->FillNtupleIColumn(fMuonPDGIndex ,   fGenerator->GetMuonPDG());
+
+        man->FillNtupleDColumn(fMuonDirXIndex,   fGenerator->GetMuonDir().x()/cm );
+        man->FillNtupleDColumn(fMuonDirYIndex,   fGenerator->GetMuonDir().y()/cm );
+        man->FillNtupleDColumn(fMuonDirZIndex,   fGenerator->GetMuonDir().z()/cm );
+
+        man->FillNtupleDColumn(fMuonPosXIndex,   fGenerator->GetMuonPos().x() / cm);
+        man->FillNtupleDColumn(fMuonPosYIndex,   fGenerator->GetMuonPos().y() / cm);
+        man->FillNtupleDColumn(fMuonPosZIndex,   fGenerator->GetMuonPos().z() / cm);
+
+        G4ThreeVector dir = (fGenerator->GetMuonDir()).unit();
+        double fThetaXZ = std::atan2(dir.getZ(),dir.getX());
+        double fThetaYZ = std::atan2(dir.getZ(),dir.getY());
+        man->FillNtupleDColumn(fMuonThXZIndex,   fThetaXZ);
+        man->FillNtupleDColumn(fMuonThYZIndex,   fThetaYZ);
+
+        man->FillNtupleDColumn(fMuonAnglePDFIndex,   fGenerator->GetMuonAnglePDF() );
+        man->FillNtupleDColumn(fMuonEnergyPDFIndex,  fGenerator->GetMuonEnergyPDF() );
+
+        // Integrate this over the region to find the rate through the detector in m-2 s-1
+        man->FillNtupleDColumn(fMuonRatePDFIndex,  fGenerator->GetIntegratedRate() );
+
         return true;
+
     } else {
+
         G4AnalysisManager* man = G4AnalysisManager::Instance();
-        man->FillNtupleDColumn(fMuonTimeIndex, -999.);
-        man->FillNtupleDColumn(fMuonEnergyIndex, -999.);
+        man->FillNtupleIColumn(fMuonIDIndex, (int) event->GetEventID());
+        man->FillNtupleDColumn(fMuonEnergyIndex, -999);
+        man->FillNtupleDColumn(fMuonEnergyPDFIndex,-999);
         man->FillNtupleDColumn(fMuonDirXIndex, -999.);
         man->FillNtupleDColumn(fMuonDirYIndex, -999.);
         man->FillNtupleDColumn(fMuonDirZIndex, -999.);
         man->FillNtupleDColumn(fMuonPosXIndex, -999.);
         man->FillNtupleDColumn(fMuonPosYIndex, -999.);
         man->FillNtupleDColumn(fMuonPosZIndex, -999.);
-        man->FillNtupleIColumn(fMuonPDGIndex,  -999 );
+        man->FillNtupleDColumn(fMuonThXZIndex,   -999);
+        man->FillNtupleDColumn(fMuonThYZIndex,   -999);
+        man->FillNtupleDColumn(fMuonAnglePDFIndex,   -999);
+        man->FillNtupleDColumn(fMuonRatePDFIndex,   -999);
         return false;
+
     }
     return true;
 }
 
-G4double ShuklaPrimaryFluxProcessor::GetExposureTime() {
-    return fGenerator->GetMuonTime();
-}
 //---------------------------------------------------------------------------------
 
 } // - namespace COSMIC
