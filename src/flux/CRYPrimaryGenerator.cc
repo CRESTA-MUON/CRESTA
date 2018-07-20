@@ -7,6 +7,39 @@
 #include "CRYPrimaryGenerator.hh"
 #include "db/DB.hh"
 
+#include "G4VVisManager.hh"
+#include "G4VisAttributes.hh"
+#include "G4Circle.hh"
+#include "G4Square.hh"
+#include "G4Colour.hh"
+#include "G4AttDefStore.hh"
+#include "G4AttDef.hh"
+#include "G4AttValue.hh"
+#include "G4UIcommand.hh"
+#include "G4UnitsTable.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4VVisManager.hh"
+#include "G4VisAttributes.hh"
+#include "G4Circle.hh"
+#include "G4Colour.hh"
+#include "G4Square.hh"
+#include "G4AttDefStore.hh"
+#include "G4AttDef.hh"
+#include "G4AttValue.hh"
+#include "G4UIcommand.hh"
+#include "G4UnitsTable.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ios.hh"
+#include "G4Box.hh"
+#include "G4VHit.hh"
+#include "G4THitsCollection.hh"
+#include "G4Allocator.hh"
+#include "G4ThreeVector.hh"
+#include "G4LogicalVolume.hh"
+#include "G4Transform3D.hh"
+#include "G4RotationMatrix.hh"
+#include "G4ParticleDefinition.hh"
+
 namespace COSMIC {
 
 //----------------------------------------------------------------------------//
@@ -140,7 +173,7 @@ G4Box* CRYPrimaryGenerator::GetSourceBox() {
 
   // Already has good source_box
   if (fSourceBox) return fSourceBox;
-  std::cout << "FLX: --> Creating Source box" << std::endl;
+  std::cout << "FLX: --> Creating Source box NEW FELLA" << std::endl;
 
   std::vector<DBTable> targetlinks = DB::Get()->GetTableGroup("FLUX");
   for (uint i = 0; i < targetlinks.size(); i++) {
@@ -149,6 +182,8 @@ G4Box* CRYPrimaryGenerator::GetSourceBox() {
     // Select tables with target box names
     std::string index = tbl.GetIndexName();
     if (index.compare("source_box") != 0) continue;
+
+    std::cout << "Building CRY SOURCE " << std::endl;
 
     // Get size and provide some checks
     std::vector<G4double> size = tbl.GetVecG4D("size");
@@ -174,9 +209,13 @@ G4Box* CRYPrimaryGenerator::GetSourceBox() {
     fSourceBoxPosition = G4ThreeVector(pos[0], pos[1], pos[2]);
 
     // Check if user wants to keep only tracks hitting a target box
-    if (tbl.Has("aggressive")){
+    if (tbl.Has("aggressive")) {
       fAggressiveSelection = tbl.GetB("aggressive");
     }
+
+
+
+
 
     break;
   }
@@ -186,6 +225,27 @@ G4Box* CRYPrimaryGenerator::GetSourceBox() {
   std::cout << "Cannot find source box table!" << std::endl;
   throw;
 }
+
+void CRYPrimaryGenerator::Draw() {
+  G4VVisManager* vis = Analysis::Get()->GetVisManager();
+  if (vis) {
+
+    G4Box drawbox = G4Box("source_box",  0.5 * fLateralBoxSize * m, 0.5 * fLateralBoxSize * m, 1*mm);
+    G4Transform3D tr = G4Transform3D(G4RotationMatrix(), fSourceBoxPosition);
+    G4Colour colour(0., 1., 0.);
+    G4VisAttributes attribs(colour);
+    vis->Draw(drawbox, attribs, tr);
+
+    for (int i = 0; i < fTargetBoxes.size(); i++) {
+      G4Box drawbox2 = G4Box("target_box", fTargetBoxes[i]->GetXHalfLength(), fTargetBoxes[i]->GetYHalfLength(), fTargetBoxes[i]->GetZHalfLength());
+      G4Transform3D tr2 = G4Transform3D(G4RotationMatrix(), fTargetBoxPositions[i]);
+      G4Colour colour2(1., 0., 0.);
+      G4VisAttributes attribs2(colour2);
+      vis->Draw(drawbox2, attribs2, tr2);
+    }
+  }
+}
+
 
 std::vector<G4Box*> CRYPrimaryGenerator::GetTargetBoxes() {
 
@@ -226,6 +286,7 @@ std::vector<G4Box*> CRYPrimaryGenerator::GetTargetBoxes() {
     // Save Box
     fTargetBoxes.push_back(box_sol);
     fTargetBoxPositions.push_back(box_pos);
+
   }
 
   // Set flag and return
@@ -233,7 +294,8 @@ std::vector<G4Box*> CRYPrimaryGenerator::GetTargetBoxes() {
   return fTargetBoxes;
 }
 
-void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
+
+void CRYPrimaryGenerator::GeneratePrimaries(G4Event * anEvent)
 {
   if (InputState != 0) {
     G4String* str = new G4String("CRY library was not successfully initialized");
@@ -275,12 +337,12 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
     for (unsigned j = 0; j < vect->size(); j++) {
 
       // TODO : Add a check to ensure the throws are created inside the world volume
-      
+
       // Apply offsets according to where the fSourceBox was placed.
-      G4ThreeVector position;// = fSourceBox->GetPointOnSurface() + fSourceBoxPosition;                                                                                                                                                  
-      position[0] = fSourceBoxPosition[0] + 0.5*fLateralBoxSize * (-1.0 + 2.0 * G4UniformRand()) ;// in m                                                                                                                                
-      position[1] = fSourceBoxPosition[1] + 0.5*fLateralBoxSize * (-1.0 + 2.0 * G4UniformRand()) ;// in m                                                                                                                                
-      position[2] = fSourceBoxPosition[2];// in mm                  
+      G4ThreeVector position;// = fSourceBox->GetPointOnSurface() + fSourceBoxPosition;
+      position[0] = fSourceBoxPosition[0] + 0.5 * fLateralBoxSize * m * (-1.0 + 2.0 * G4UniformRand()) ; // in m
+      position[1] = fSourceBoxPosition[1] + 0.5 * fLateralBoxSize * m * (-1.0 + 2.0 * G4UniformRand()) ; // in m
+      position[2] = fSourceBoxPosition[2] + 1 * mm * (-1.0 + 2.0 * G4UniformRand()) ;;// in m
 
       (*vect)[j]->setPosition(position[0], position[1], position[2]);
 
@@ -338,8 +400,8 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
 
   fParticleMult = (G4double) vect->size();
   fParticlePDG = 0;
-  fParticlePos = G4ThreeVector(0,0,0);
-  fParticleDir = G4ThreeVector(0,0,0);
+  fParticlePos = G4ThreeVector(0, 0, 0);
+  fParticleDir = G4ThreeVector(0, 0, 0);
   fParticleEnergy = 0;
 
   for ( unsigned j = 0; j < vect->size(); j++) {
@@ -375,7 +437,7 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
     fParticlePDG += (G4double) (*vect)[j]->PDGid();
     fParticlePos += G4ThreeVector((*vect)[j]->x(), (*vect)[j]->y(), (*vect)[j]->z());
     fParticleDir += G4ThreeVector((*vect)[j]->u(), (*vect)[j]->v(), (*vect)[j]->w());
-    fParticleEnergy += (G4double) (*vect)[j]->ke()*MeV;
+    fParticleEnergy += (G4double) (*vect)[j]->ke() * MeV;
 
     // Remove this particle
     delete (*vect)[j];
@@ -386,12 +448,14 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
   fParticleDir /= (G4double) vect->size();
   fParticleEnergy /= (G4double) vect->size();
 
+  Draw();
+
 }
 //------------------------------------------------------------------
 
 
 //------------------------------------------------------------------
-CRYPrimaryFluxProcessor::CRYPrimaryFluxProcessor(CRYPrimaryGenerator* gen, bool autosave) :
+CRYPrimaryFluxProcessor::CRYPrimaryFluxProcessor(CRYPrimaryGenerator * gen, bool autosave) :
   VFluxProcessor("cry"), fSave(autosave)
 {
   fGenerator = gen;
@@ -465,12 +529,12 @@ G4double CRYPrimaryFluxProcessor::GetExposureTime() {
   return fGenerator->GetTime();
 }
 
-void CRYPrimaryFluxProcessor::ResetExposureTime(){
+void CRYPrimaryFluxProcessor::ResetExposureTime() {
   fGenerator->UpdateCRY();
 }
 
-double CRYPrimaryFluxProcessor::GetEventRate(){
-  for (int i = 0; i < 1000; i++){
+double CRYPrimaryFluxProcessor::GetEventRate() {
+  for (int i = 0; i < 1000; i++) {
     G4Event* g = new G4Event();
     fGenerator->GeneratePrimaries(g);
     delete g;

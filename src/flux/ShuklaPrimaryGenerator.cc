@@ -287,6 +287,28 @@ std::vector<G4Box*> ShuklaPrimaryGenerator::GetTargetBoxes() {
     return fTargetBoxes;
 }
 
+
+void ShuklaPrimaryGenerator::Draw() {
+  G4VVisManager* vis = Analysis::Get()->GetVisManager();
+  if (vis) {
+
+    G4Box drawbox = G4Box("source_box",  0.5 * fSourceBoxWidth[0], 0.5 * fSourceBoxWidth[1], 0.5 * fSourceBoxWidth[2]);
+    G4Transform3D tr = G4Transform3D(G4RotationMatrix(), fSourceBoxPosition);
+    G4Colour colour(0., 1., 0.);
+    G4VisAttributes attribs(colour);
+    vis->Draw(drawbox, attribs, tr);
+
+    for (int i = 0; i < fTargetBoxes.size(); i++) {
+      G4Box drawbox2 = G4Box("target_box", fTargetBoxes[i]->GetXHalfLength(), fTargetBoxes[i]->GetYHalfLength(), fTargetBoxes[i]->GetZHalfLength());
+      G4Transform3D tr2 = G4Transform3D(G4RotationMatrix(), fTargetBoxPositions[i]);
+      G4Colour colour2(1., 0., 0.);
+      G4VisAttributes attribs2(colour2);
+      vis->Draw(drawbox2, attribs2, tr2);
+    }
+  }
+}
+
+
 std::vector<G4ThreeVector> ShuklaPrimaryGenerator::GetTargetBoxPositions() {
     // If matching sizes its probs okay to return positions
     if (fTargetBoxes.size() == fTargetBoxPositions.size()) return fTargetBoxPositions;
@@ -411,6 +433,8 @@ void ShuklaPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
     fParticleGun->SetParticleMomentumDirection(fMuonDir);
     fParticleGun->SetParticlePosition(fMuonPos);
     fParticleGun->GeneratePrimaryVertex(anEvent);
+
+    Draw();
 
     return;
 }

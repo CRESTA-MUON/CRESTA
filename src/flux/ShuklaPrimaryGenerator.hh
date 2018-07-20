@@ -77,7 +77,8 @@ public:
     inline int GetMuonPDG()           { return fMuonPDG;      };
     inline G4double GetExposureTime() { return fExposureTime; };
     inline void SetExposureTime(G4double e) { fExposureTime = e; };
-
+    void Draw();
+    
 private:
 
     G4double fMinEnergy; ///< Min Energy Range to integrate/throw
