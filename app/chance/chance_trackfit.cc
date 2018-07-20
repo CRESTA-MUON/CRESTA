@@ -217,6 +217,8 @@ int main(int argc, char** argv) {
 
   // Print Splash Screen
   DB::PrintSplashScreen();
+  std::string defaultconfig = DB::GetDataPath() + "/chance/trackfit_config.geo";
+
 
   // Get User Inputs
   std::cout << "========================================= " << std::endl;
@@ -232,6 +234,9 @@ int main(int argc, char** argv) {
       // N Triggers Input " -j ntriggers"
     } else if (std::strcmp(argv[i], "-o") == 0) {
       gOutputTag = std::string(argv[++i]);
+
+    } else if (std::strcmp(argv[i], "-c" == 0)) {
+      defaultconfig = std::string(argv[++i]);
 
     } else if (std::strcmp(argv[i], "--rpc-only") == 0) {
       gInputMode = kUseRPC;
@@ -270,6 +275,15 @@ int main(int argc, char** argv) {
   }
 
   // std::cout << "========================================= " << std::endl;
+  std::cout << "APP: Loading CONFIG : " << defaultconfig << std::endl;
+
+  DB *rdb = DB::Get();
+  rdb->LoadFile(defaultconfig);
+  rdb->Finalise();
+
+  DBTable configuration = rdb->GetTable("TRACKFIT", "config");
+
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
 
   // Read in input Trees
@@ -283,6 +297,21 @@ int main(int argc, char** argv) {
 
   BristolPoCAFitter* pocafit = new BristolPoCAFitter();
   pocafit->ReadInputTTree(t, prefixa, prefixb);
+
+
+  // List of configs we care about
+  // - Resolution
+  // - Use RPC or Use Drift
+
+
+
+
+
+
+
+
+
+
 
   if (gInputMode == kUseRPC) {
     pocafit->SetUseRPC(true);
@@ -304,7 +333,7 @@ int main(int argc, char** argv) {
   // }
   bool fIsMC = true;
   TrueMCReader* truefit = NULL;
-  if (fIsMC){
+  if (fIsMC) {
     truefit = new TrueMCReader();
     truefit->ReadInputTTree(t, prefixa, prefixb);
   }
