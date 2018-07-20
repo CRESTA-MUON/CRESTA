@@ -274,6 +274,8 @@ void CRYPrimaryGenerator::GeneratePrimaries(G4Event* anEvent)
     // Loop over all vectors and change their y values to match our box position
     for (unsigned j = 0; j < vect->size(); j++) {
 
+      // TODO : Add a check to ensure the throws are created inside the world volume
+      
       // Apply offsets according to where the fSourceBox was placed.
       G4ThreeVector position;// = fSourceBox->GetPointOnSurface() + fSourceBoxPosition;                                                                                                                                                  
       position[0] = fSourceBoxPosition[0] + 0.5*fLateralBoxSize * (-1.0 + 2.0 * G4UniformRand()) ;// in m                                                                                                                                
