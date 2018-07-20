@@ -167,6 +167,7 @@ public:
   G4double GetExposureTime();
 
   void ResetExposureTime();
+  
   double GetEventRate();
 
 protected:

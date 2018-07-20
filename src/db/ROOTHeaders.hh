@@ -12,6 +12,7 @@
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TH1.h"
 #include "TF1.h"
 #include "TRandom3.h"

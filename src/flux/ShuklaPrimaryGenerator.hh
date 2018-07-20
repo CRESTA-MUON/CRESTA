@@ -14,6 +14,9 @@
 #include <cmath>
 #include <iomanip>
 
+#include "TF1.h"
+#include "TMath.h"
+
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
 #include "globals.hh"
@@ -30,7 +33,6 @@
 #include "G4Types.hh"
 
 #include "db/DB.hh"
-#include "db/ROOTHeaders.hh"
 #include "analysis/Analysis.hh"
 #include "analysis/VFluxProcessor.hh"
 #include "geo/simple/GeoBox.hh"
@@ -74,7 +76,7 @@ public:
     inline G4ThreeVector GetMuonPos() { return fMuonPos;      };
     inline int GetMuonPDG()           { return fMuonPDG;      };
     inline G4double GetExposureTime() { return fExposureTime; };
-    inline void SetExposureTime(double d){ fMuonTime = d; };
+    inline void SetExposureTime(G4double e) { fExposureTime = e; };
 
 private:
 
@@ -112,12 +114,13 @@ private:
     bool fCheckTargetBoxes; ///< FLAG : Whether target boxes okay.
     std::vector<G4Box*> fTargetBoxes; ///< Geant4 Box Object for each target
     std::vector<G4ThreeVector> fTargetBoxPositions; ///< Position in world volume for each target
-    // G4int fTargetBoxesRequireN; ///< Requires at least this number of hits in different target boxes
+    G4int fTargetBoxesRequireN; ///< Requires at least this number of hits in different target boxes
 
     // Throws are tracked regardless of acceptance, so integrated time always correct.
     /// Current Integrated Exposure time. Derivide from NThrows and Integrated flux.
     G4double fExposureTime;
     int fNThrows; ///< Number of throws ran so far.
+
 
 
     G4double fMuonTime;     ///< MuonTime   Info for auto flux processor
@@ -153,10 +156,8 @@ public:
     /// Return an integrated exposure time in s. Used for
     /// ending the run after so many seconds.
     G4double GetExposureTime();
+    void ResetExposureTime(){ fGenerator->SetExposureTime(0.0);};
 
-    /// Reset time counter back to 0
-    void ResetExposureTime(){ fGenerator->SetExposureTime(0.0); };
-double GetEventRate();
 protected:
 
     ShuklaPrimaryGenerator* fGenerator; ///< Pointer to associated generator

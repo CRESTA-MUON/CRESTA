@@ -8,6 +8,8 @@
 #include "G4RunManager.hh"
 #include "G4Event.hh"
 #include "globals.hh"
+#include "G4VVisManager.hh"
+
 // COSMIC Headers
 #include "VFluxProcessor.hh"
 
@@ -123,11 +125,11 @@ public:
   void ResetCounters();
   double GetEventRate();
 
-  void SetRequiredExposure(double d){ fRequiredExposure = d; };
-  void SetRequiredTriggers(int i){ fRequiredTriggers = i; };
+  void SetRequiredExposure(double d) { fRequiredExposure = d; };
+  void SetRequiredTriggers(int i) { fRequiredTriggers = i; };
 
-  double GetRequiredExposure(){ return fRequiredExposure; };
-  double GetRequiredTriggers(){ return fRequiredTriggers; };
+  double GetRequiredExposure() { return fRequiredExposure; };
+  double GetRequiredTriggers() { return fRequiredTriggers; };
 
   void CheckAbortState();
 
@@ -137,12 +139,19 @@ public:
     kTriggerMode
   };
 
-  void SetMode(int i){ fRunMode = i;};
+  void SetMode(int i) { fRunMode = i;};
 
   void PrintProgress(int curcount, int totalcount);
 
 
-  void StartTheClock(){ fStartTime = time(0); };
+  void StartTheClock() { fStartTime = time(0); };
+
+  void SetInteractive(bool b = true){ fInteractive = b; };
+  G4VVisManager* GetVisManager();
+
+
+  void SetIntegratedRate(double r){ fIntegratedRate = r; };
+
 protected:
 
   static Analysis *fPrimary; ///< Singleton Object
@@ -173,9 +182,13 @@ protected:
 
   long int fStartTime;
   double fLastCount;
-  
+
   G4double fRequiredExposure;
   G4int fRequiredTriggers;
+
+  bool fInteractive;
+
+  double fIntegratedRate;
 
 };
 

@@ -5,6 +5,7 @@
   name: "GEO",
   index: "world",
   material: "Standard_Rock",
-  size: ["world_box_length", "world_box_width", "2*det_tunnel_depth"],
-  type: "box"
+  size: ["world_box_length", "world_box_width", "det_tunnel_depth+5*m"],
+  type: "box",
+  sensitive: "los"
 }

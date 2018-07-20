@@ -81,6 +81,18 @@ void HybridMuonTomographyDetector::Construct(DBTable table) {
 
 
   // -----------------------------------------------------------------
+  // Make true muon panels
+  DBTable muontable = DB::Get()->GetTable("GEO", "trueentrance");
+  muontable.SetIndexName(fName + "_trueentrance");
+  muontable.Prefix("mother", fName + "_");
+  fSubObjects.push_back(new GeoBox(muontable));
+
+  muontable = DB::Get()->GetTable("GEO", "trueexit");
+  muontable.SetIndexName(fName + "_trueexit");
+  muontable.Prefix("mother", fName + "_");
+  fSubObjects.push_back(new GeoBox(muontable));
+
+  // -----------------------------------------------------------------
   // Make the scintillator array
   std::cout << "GEO: --> Making scintillator" << std::endl;
 
@@ -106,6 +118,7 @@ void HybridMuonTomographyDetector::Construct(DBTable table) {
     chtemplate.Set("position", position);
     chtemplate.Set("rotation", rotation);
 
+    // Update these so additional placements are made without creating new logical volumes.
     GeoBox* obj = new GeoBox(chtemplate);
     fSubObjects.push_back(obj);
     fScintObjects.push_back(obj);
@@ -261,27 +274,12 @@ bool HybridMuonTomographyProcessor::BeginOfRunAction(const G4Run* /*run*/) {
   man ->CreateNtupleDColumn(tableindex + "_sct_e", fScintE);
   man ->CreateNtupleDColumn(tableindex + "_sct_t", fScintT);
 
-  man ->CreateNtupleDColumn(tableindex + "_rpc_xx", fRPCHits_XX);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_xt", fRPCHits_XT);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_xz", fRPCHits_XZ);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_xe", fRPCHits_XE);
-
-  man ->CreateNtupleDColumn(tableindex + "_rpc_yy", fRPCHits_YY);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_yt", fRPCHits_YT);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_yz", fRPCHits_YZ);
-  man ->CreateNtupleDColumn(tableindex + "_rpc_ye", fRPCHits_YE);
-
-  man ->CreateNtupleDColumn(tableindex + "_drift_xx", fDriftHits_XX);
-  man ->CreateNtupleDColumn(tableindex + "_drift_xg", fDriftHits_XG);
-  man ->CreateNtupleDColumn(tableindex + "_drift_xt", fDriftHits_XT);
-  man ->CreateNtupleDColumn(tableindex + "_drift_xz", fDriftHits_XZ);
-  man ->CreateNtupleDColumn(tableindex + "_drift_xe", fDriftHits_XE);
-
-  man ->CreateNtupleDColumn(tableindex + "_drift_yy", fDriftHits_YY);
-  man ->CreateNtupleDColumn(tableindex + "_drift_yg", fDriftHits_YG);
-  man ->CreateNtupleDColumn(tableindex + "_drift_yt", fDriftHits_YT);
-  man ->CreateNtupleDColumn(tableindex + "_drift_yz", fDriftHits_YZ);
-  man ->CreateNtupleDColumn(tableindex + "_drift_ye", fDriftHits_YE);
+  man ->CreateNtupleIColumn(tableindex + "_hit_type", fHits_Type);
+  man ->CreateNtupleDColumn(tableindex + "_hit_reco", fHits_Reco);
+  man ->CreateNtupleDColumn(tableindex + "_hit_true", fHits_True);
+  man ->CreateNtupleDColumn(tableindex + "_hit_zpos", fHits_ZPos);
+  man ->CreateNtupleDColumn(tableindex + "_hit_error", fHits_Error);
+  man ->CreateNtupleDColumn(tableindex + "_hit_ghost", fHits_Ghost);
 
   return true;
 }
@@ -340,9 +338,6 @@ bool HybridMuonTomographyProcessor::ProcessEvent(const G4Event* event) {
   fHasInfo = true;
 
   // Saving
-  // G4AnalysisManager* man = G4AnalysisManager::Instance();
-
-  
 
   // Loop over Scintillators and save info
   for (uint i = 0; i < fScintProcs.size(); i++) {
@@ -355,21 +350,23 @@ bool HybridMuonTomographyProcessor::ProcessEvent(const G4Event* event) {
   for (uint i = 0; i < fRPCProcs.size(); i++) {
 
     // Skip unhit RPCs
-    // std::cout << i << " : " << fRPCProcs[i]->HasInfo() << " " << fRPCHitInfo[i] << std::endl;
     if (!fRPCProcs[i]->HasInfo()) continue;
 
     // Save relevant info
     if (fRPCHitInfo[i] == kHitInfoY) {
-      fRPCHits_XX.push_back((fRPCProcs[i]->GetWorldPosY() + 250*mm/1.5)/(mm));
-      fRPCHits_XT.push_back((fRPCProcs[i]->GetWorldPosTrueY() + 250*mm/1.5)/(mm));
-      fRPCHits_XZ.push_back((fRPCProcs[i]->GetWorldPosZ())/(mm));
-      fRPCHits_XE.push_back((fRPCProcs[i]->GetErrY())/(mm));
-
+      fHits_Reco.push_back((fRPCProcs[i]->GetWorldPosY() + 250*mm/1.5)/(mm));
+      fHits_True.push_back((fRPCProcs[i]->GetWorldPosTrueY() + 250*mm/1.5)/(mm));
+      fHits_Ghost.push_back(-1.0);
+      fHits_ZPos.push_back((fRPCProcs[i]->GetWorldPosZ())/(mm));
+      fHits_Error.push_back((fRPCProcs[i]->GetErrY())/(mm));
+      fHits_Type.push_back(kRPCX);
     } else if (fRPCHitInfo[i] == kHitInfoX){
-      fRPCHits_YY.push_back((fRPCProcs[i]->GetWorldPosX() + 250*mm/1.5)/(mm));
-      fRPCHits_YT.push_back((fRPCProcs[i]->GetWorldPosTrueX() + 250*mm/1.5)/(mm));
-      fRPCHits_YZ.push_back((fRPCProcs[i]->GetWorldPosZ())/(mm));
-      fRPCHits_YE.push_back((fRPCProcs[i]->GetErrY())/(mm));
+      fHits_Reco.push_back((fRPCProcs[i]->GetWorldPosX() + 250*mm/1.5)/(mm));
+      fHits_True.push_back((fRPCProcs[i]->GetWorldPosTrueX() + 250*mm/1.5)/(mm));
+      fHits_Ghost.push_back(-1.0);
+      fHits_ZPos.push_back((fRPCProcs[i]->GetWorldPosZ())/(mm));
+      fHits_Error.push_back((fRPCProcs[i]->GetErrY())/(mm));
+      fHits_Type.push_back(kRPCY);
     }
   }
 
@@ -382,22 +379,23 @@ bool HybridMuonTomographyProcessor::ProcessEvent(const G4Event* event) {
 
     // Save relevent info
     if (fDriftHitInfo[i] == kHitInfoY) {
-      fDriftHits_XX.push_back((fDriftChamberProcs[i]->GetWorldPosY() + 250*mm/1.5)/(mm));
-      fDriftHits_XG.push_back((fDriftChamberProcs[i]->GetGhostWorldPosY() + 250*mm/1.5)/(mm));
-      fDriftHits_XT.push_back((fDriftChamberProcs[i]->GetWorldPosTrueY() + 250*mm/1.5)/(mm));
-      fDriftHits_XZ.push_back((fDriftChamberProcs[i]->GetWorldPosZ())/(mm));
-      fDriftHits_XE.push_back((fDriftChamberProcs[i]->GetErrY())/(mm));
+      
+      fHits_Reco.push_back((fDriftChamberProcs[i]->GetWorldPosY() + 250*mm/1.5)/(mm));
+      fHits_Ghost.push_back((fDriftChamberProcs[i]->GetGhostWorldPosY() + 250*mm/1.5)/(mm));
+      fHits_True.push_back((fDriftChamberProcs[i]->GetWorldPosTrueY() + 250*mm/1.5)/(mm));
+      fHits_ZPos.push_back((fDriftChamberProcs[i]->GetWorldPosZ())/(mm));
+      fHits_Error.push_back((fDriftChamberProcs[i]->GetErrY())/(mm));
+      fHits_Type.push_back(kDriftX);
 
     } else if (fDriftHitInfo[i] == kHitInfoX) {
-      fDriftHits_YY.push_back((fDriftChamberProcs[i]->GetWorldPosX() + 250*mm/1.5)/(mm));
-      fDriftHits_YG.push_back((fDriftChamberProcs[i]->GetGhostWorldPosX() + 250*mm/1.5)/(mm));
-      fDriftHits_YT.push_back((fDriftChamberProcs[i]->GetWorldPosTrueX() + 250*mm/1.5)/(mm));
-      fDriftHits_YZ.push_back((fDriftChamberProcs[i]->GetWorldPosZ())/(mm));
-      fDriftHits_YE.push_back((fDriftChamberProcs[i]->GetErrY())/(mm));
+      fHits_Reco.push_back((fDriftChamberProcs[i]->GetWorldPosX() + 250*mm/1.5)/(mm));
+      fHits_Ghost.push_back((fDriftChamberProcs[i]->GetGhostWorldPosX() + 250*mm/1.5)/(mm));
+      fHits_True.push_back((fDriftChamberProcs[i]->GetWorldPosTrueX() + 250*mm/1.5)/(mm));
+      fHits_ZPos.push_back((fDriftChamberProcs[i]->GetWorldPosZ())/(mm));
+      fHits_Error.push_back((fDriftChamberProcs[i]->GetErrY())/(mm));
+      fHits_Type.push_back(kDriftY);
     }
   }
-
-  // std::cout << "N RPC Hits : " << fRPCHits_XX.size() << " " << fRPCHits_YY.size() << std::endl;
 
   return true;
 }
@@ -406,28 +404,12 @@ void HybridMuonTomographyProcessor::ResetVariables() {
 
   fScintE.clear();
   fScintT.clear();
-
-  fRPCHits_XX.clear();
-  fRPCHits_XT.clear();
-  fRPCHits_XZ.clear();
-  fRPCHits_XE.clear();
-
-  fRPCHits_YY.clear();
-  fRPCHits_YT.clear();
-  fRPCHits_YZ.clear();
-  fRPCHits_YE.clear();
-
-  fDriftHits_XX.clear();
-  fDriftHits_XT.clear();
-  fDriftHits_XG.clear();
-  fDriftHits_XZ.clear();
-  fDriftHits_XE.clear();
-
-  fDriftHits_YY.clear();
-  fDriftHits_YT.clear();
-  fDriftHits_YG.clear();
-  fDriftHits_YZ.clear();
-  fDriftHits_YE.clear();
+  fHits_Reco.clear();
+  fHits_Ghost.clear();
+  fHits_True.clear();
+  fHits_ZPos.clear();
+  fHits_Error.clear();
+  fHits_Type.clear();
 
 }
 

@@ -70,7 +70,7 @@ void SmallSteelDrum::Construct(DBTable table)
     G4ThreeVector base_pos = G4ThreeVector(0.0, 0.0, -0.5*(shell_size_z+base_size_z));
 
     // Combined Drum Volume
-    std::string drum_name = "drum";
+    std::string drum_name = fName + "_drum";
 	G4VSolid* drum_sol        = new G4UnionSolid(drum_name, shell_sol, cap_sol,  0, cap_pos);
 	drum_sol                  = new G4UnionSolid(drum_name, drum_sol,  base_sol, 0, base_pos);
     G4LogicalVolume* drum_log = new G4LogicalVolume(drum_sol, shell_mat, drum_name);

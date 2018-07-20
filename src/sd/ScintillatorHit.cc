@@ -42,6 +42,7 @@
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ios.hh"
+#include "analysis/Analysis.hh"
 
 G4ThreadLocal G4Allocator<ScintillatorHit>* ScintillatorHitAllocator = 0;
 
@@ -86,7 +87,7 @@ int ScintillatorHit::operator==(const ScintillatorHit &/*right*/) const
 
 void ScintillatorHit::Draw()
 {
-    G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+    G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
     if (pVVisManager)
     {
         G4Square square(fPos);

@@ -85,6 +85,7 @@ public:
 
     // Get all the values
     inline G4int GetID() const { return fId; }
+    inline G4int SetID(int inID) { fId = inID; }
     inline G4int GetType() const { return fType; }
     inline G4double GetTime() const { return fTime; }
     inline G4double GetEdep() const { return fEdep; }

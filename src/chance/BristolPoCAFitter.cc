@@ -3,305 +3,122 @@
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 #include "Math/Functor.h"
-#include "sd/LongDriftSD.hh"
-#include "sd/SimpleScintillatorSD.hh"
+#include "Minuit2/FunctionMinimum.h"
+#include "Minuit2/MnPrint.h"
+#include "Minuit2/MnMigrad.h"
+#include "Minuit2/MnUserParameters.h"
 
 namespace COSMIC {
 
-// ------------------------------------------------------------------------
-// Constructor/ IO
-// ------------------------------------------------------------------------
+bool debugger = false;
 
-BristolPoCAFitter::BristolPoCAFitter() :
-	fUseRPC(1),
-	fUseDrift(1),
-	fMinARPCX(2),
-	fMinARPCY(2),
-	fMinBRPCX(2),
-	fMinBRPCY(2),
-	fMinADriftX(3),
-	fMinADriftY(3),
-	fMinBDriftX(3),
-	fMinBDriftY(3) {
-		above_drift_xc = 0;
-		above_drift_yc = 0;
-		below_drift_xc = 0;
-		below_drift_yc = 0;
+BristolPoCAFitter::BristolPoCAFitter() {
+	xahits = NULL;
+	xbhits = NULL;
+	yahits = NULL;
+	ybhits = NULL;
 }
+
 
 BristolPoCAFitter::~BristolPoCAFitter() {
 }
 
 void BristolPoCAFitter::ReadInputTTree(TTree* t, std::string prefixa, std::string prefixb) {
 
-	std::cout << "Creating new vectors" << std::endl;
-	above_rpc_xx = new std::vector<double>(1, 0.0);
-	above_rpc_xt = new std::vector<double>(1, 0.0);
-	above_rpc_xz = new std::vector<double>(1, 0.0);
-	above_rpc_xe = new std::vector<double>(1, 0.0);
-	above_rpc_yy = new std::vector<double>(1, 0.0);
-	above_rpc_yt = new std::vector<double>(1, 0.0);
-	above_rpc_yz = new std::vector<double>(1, 0.0);
-	above_rpc_ye = new std::vector<double>(1, 0.0);
-	std::cout << "Registering vectors" << std::endl;
-	t->SetBranchAddress( (prefixa + "_rpc_xx").c_str(), &above_rpc_xx);
-	t->SetBranchAddress( (prefixa + "_rpc_xt").c_str(), &above_rpc_xt);
-	t->SetBranchAddress( (prefixa + "_rpc_xz").c_str(), &above_rpc_xz);
-	t->SetBranchAddress( (prefixa + "_rpc_xe").c_str(), &above_rpc_xe);
-	t->SetBranchAddress( (prefixa + "_rpc_yy").c_str(), &above_rpc_yy);
-	t->SetBranchAddress( (prefixa + "_rpc_yt").c_str(), &above_rpc_yt);
-	t->SetBranchAddress( (prefixa + "_rpc_yz").c_str(), &above_rpc_yz);
-	t->SetBranchAddress( (prefixa + "_rpc_ye").c_str(), &above_rpc_ye);
+	fHits_Above_Type = new std::vector<int>(0, 0.0);
+	fHits_Above_Reco = new std::vector<double>(0, 0.0);
+	fHits_Above_True = new std::vector<double>(0, 0.0);
+	fHits_Above_ZPos = new std::vector<double>(0, 0.0);
+	fHits_Above_Error = new std::vector<double>(0, 0.0);
+	fHits_Above_Ghost = new std::vector<double>(0, 0.0);
+	t->SetBranchAddress( (prefixa + "_hit_type").c_str(),  &fHits_Above_Type);
+	t->SetBranchAddress( (prefixa + "_hit_reco").c_str(),  &fHits_Above_Reco);
+	t->SetBranchAddress( (prefixa + "_hit_true").c_str(),  &fHits_Above_True);
+	t->SetBranchAddress( (prefixa + "_hit_zpos").c_str(),  &fHits_Above_ZPos);
+	t->SetBranchAddress( (prefixa + "_hit_error").c_str(), &fHits_Above_Error);
+	t->SetBranchAddress( (prefixa + "_hit_ghost").c_str(), &fHits_Above_Ghost);
 
-	above_drift_xx = new std::vector<double>(1, 0.0);
-	above_drift_xg = new std::vector<double>(1, 0.0);
-	above_drift_xt = new std::vector<double>(1, 0.0);
-	above_drift_xz = new std::vector<double>(1, 0.0);
-	above_drift_xe = new std::vector<double>(1, 0.0);
-	above_drift_yy = new std::vector<double>(1, 0.0);
-	above_drift_yg = new std::vector<double>(1, 0.0);
-	above_drift_yt = new std::vector<double>(1, 0.0);
-	above_drift_yz = new std::vector<double>(1, 0.0);
-	above_drift_ye = new std::vector<double>(1, 0.0);
-	t->SetBranchAddress( (prefixa + "_drift_xx").c_str(), &above_drift_xx);
-	t->SetBranchAddress( (prefixa + "_drift_xg").c_str(), &above_drift_xg);
-	t->SetBranchAddress( (prefixa + "_drift_xt").c_str(), &above_drift_xt);
-	t->SetBranchAddress( (prefixa + "_drift_xz").c_str(), &above_drift_xz);
-	t->SetBranchAddress( (prefixa + "_drift_xe").c_str(), &above_drift_xe);
-	t->SetBranchAddress( (prefixa + "_drift_yy").c_str(), &above_drift_yy);
-	t->SetBranchAddress( (prefixa + "_drift_yg").c_str(), &above_drift_yg);
-	t->SetBranchAddress( (prefixa + "_drift_yt").c_str(), &above_drift_yt);
-	t->SetBranchAddress( (prefixa + "_drift_yz").c_str(), &above_drift_yz);
-	t->SetBranchAddress( (prefixa + "_drift_ye").c_str(), &above_drift_ye);
+	fHits_Below_Type = new std::vector<int>(0, 0.0);
+	fHits_Below_Reco = new std::vector<double>(0, 0.0);
+	fHits_Below_True = new std::vector<double>(0, 0.0);
+	fHits_Below_ZPos = new std::vector<double>(0, 0.0);
+	fHits_Below_Error = new std::vector<double>(0, 0.0);
+	fHits_Below_Ghost = new std::vector<double>(0, 0.0);
+	t->SetBranchAddress( (prefixb + "_hit_type").c_str(),  &fHits_Below_Type);
+	t->SetBranchAddress( (prefixb + "_hit_reco").c_str(),  &fHits_Below_Reco);
+	t->SetBranchAddress( (prefixb + "_hit_true").c_str(),  &fHits_Below_True);
+	t->SetBranchAddress( (prefixb + "_hit_zpos").c_str(),  &fHits_Below_ZPos);
+	t->SetBranchAddress( (prefixb + "_hit_error").c_str(), &fHits_Below_Error);
+	t->SetBranchAddress( (prefixb + "_hit_ghost").c_str(), &fHits_Below_Ghost);
 
-	below_rpc_xx = new std::vector<double>(1, 0.0);
-	below_rpc_xt = new std::vector<double>(1, 0.0);
-	below_rpc_xz = new std::vector<double>(1, 0.0);
-	below_rpc_xe = new std::vector<double>(1, 0.0);
-	below_rpc_yy = new std::vector<double>(1, 0.0);
-	below_rpc_yt = new std::vector<double>(1, 0.0);
-	below_rpc_yz = new std::vector<double>(1, 0.0);
-	below_rpc_ye = new std::vector<double>(1, 0.0);
-	t->SetBranchAddress( (prefixb + "_rpc_xx").c_str(), &below_rpc_xx);
-	t->SetBranchAddress( (prefixb + "_rpc_xt").c_str(), &below_rpc_xt);
-	t->SetBranchAddress( (prefixb + "_rpc_xz").c_str(), &below_rpc_xz);
-	t->SetBranchAddress( (prefixb + "_rpc_xe").c_str(), &below_rpc_xe);
-	t->SetBranchAddress( (prefixb + "_rpc_yy").c_str(), &below_rpc_yy);
-	t->SetBranchAddress( (prefixb + "_rpc_yt").c_str(), &below_rpc_yt);
-	t->SetBranchAddress( (prefixb + "_rpc_yz").c_str(), &below_rpc_yz);
-	t->SetBranchAddress( (prefixb + "_rpc_ye").c_str(), &below_rpc_ye);
+	fHits_Above_Combo = NULL;
+	fHits_Below_Combo = NULL;
+}
 
-	below_drift_xx = new std::vector<double>(1, 0.0);
-	below_drift_xg = new std::vector<double>(1, 0.0);
-	below_drift_xt = new std::vector<double>(1, 0.0);
-	below_drift_xz = new std::vector<double>(1, 0.0);
-	below_drift_xe = new std::vector<double>(1, 0.0);
-	below_drift_yy = new std::vector<double>(1, 0.0);
-	below_drift_yg = new std::vector<double>(1, 0.0);
-	below_drift_yt = new std::vector<double>(1, 0.0);
-	below_drift_yz = new std::vector<double>(1, 0.0);
-	below_drift_ye = new std::vector<double>(1, 0.0);
-	t->SetBranchAddress( (prefixb + "_drift_xx").c_str(), &below_drift_xx);
-	t->SetBranchAddress( (prefixb + "_drift_xg").c_str(), &below_drift_xg);
-	t->SetBranchAddress( (prefixb + "_drift_xt").c_str(), &below_drift_xt);
-	t->SetBranchAddress( (prefixb + "_drift_xz").c_str(), &below_drift_xz);
-	t->SetBranchAddress( (prefixb + "_drift_xe").c_str(), &below_drift_xe);
-	t->SetBranchAddress( (prefixb + "_drift_yy").c_str(), &below_drift_yy);
-	t->SetBranchAddress( (prefixb + "_drift_yg").c_str(), &below_drift_yg);
-	t->SetBranchAddress( (prefixb + "_drift_yt").c_str(), &below_drift_yt);
-	t->SetBranchAddress( (prefixb + "_drift_yz").c_str(), &below_drift_yz);
-	t->SetBranchAddress( (prefixb + "_drift_ye").c_str(), &below_drift_ye);
+void BristolPoCAFitter::PreProcessData() {
 
+	ApplyOffsets();
 
-	// above_rpc_xx = new std::vector<double>(1, 0.0);
-	// above_rpc_xt = new std::vector<double>(1, 0.0);
-	// above_rpc_xz = new std::vector<double>(1, 0.0);
-	// above_rpc_xe = new std::vector<double>(1, 0.0);
-	// above_rpc_yy = new std::vector<double>(1, 0.0);
-	// above_rpc_yt = new std::vector<double>(1, 0.0);
-	// above_rpc_yz = new std::vector<double>(1, 0.0);
-	// above_rpc_ye = new std::vector<double>(1, 0.0);
-	// t->SetBranchAddress( (prefixa + "_rpc_yy").c_str(), &above_rpc_xx);
-	// t->SetBranchAddress( (prefixa + "_rpc_yt").c_str(), &above_rpc_xt);
-	// t->SetBranchAddress( (prefixa + "_rpc_yz").c_str(), &above_rpc_xz);
-	// t->SetBranchAddress( (prefixa + "_rpc_ye").c_str(), &above_rpc_xe);
-	// t->SetBranchAddress( (prefixa + "_rpc_xx").c_str(), &above_rpc_yy);
-	// t->SetBranchAddress( (prefixa + "_rpc_xt").c_str(), &above_rpc_yt);
-	// t->SetBranchAddress( (prefixa + "_rpc_xz").c_str(), &above_rpc_yz);
-	// t->SetBranchAddress( (prefixa + "_rpc_xe").c_str(), &above_rpc_ye);
+	std::vector<int>::iterator    type_iter  = fHits_Above_Type->begin();
+	std::vector<double>::iterator reco_iter  = fHits_Above_Reco->begin();
+	std::vector<double>::iterator true_iter  = fHits_Above_True->begin();
+	std::vector<double>::iterator zpos_iter  = fHits_Above_ZPos->begin();
+	std::vector<double>::iterator error_iter = fHits_Above_Error->begin();
+	std::vector<double>::iterator ghost_iter = fHits_Above_Ghost->begin();
+	fMuonHits_Above.clear();
 
-	// above_drift_xx = new std::vector<double>(1, 0.0);
-	// above_drift_xg = new std::vector<double>(1, 0.0);
-	// above_drift_xt = new std::vector<double>(1, 0.0);
-	// above_drift_xz = new std::vector<double>(1, 0.0);
-	// above_drift_xe = new std::vector<double>(1, 0.0);
-	// above_drift_yy = new std::vector<double>(1, 0.0);
-	// above_drift_yg = new std::vector<double>(1, 0.0);
-	// above_drift_yt = new std::vector<double>(1, 0.0);
-	// above_drift_yz = new std::vector<double>(1, 0.0);
-	// above_drift_ye = new std::vector<double>(1, 0.0);
-	// t->SetBranchAddress( (prefixa + "_drift_yy").c_str(), &above_drift_xx);
-	// t->SetBranchAddress( (prefixa + "_drift_yg").c_str(), &above_drift_xg);
-	// t->SetBranchAddress( (prefixa + "_drift_yt").c_str(), &above_drift_xt);
-	// t->SetBranchAddress( (prefixa + "_drift_yz").c_str(), &above_drift_xz);
-	// t->SetBranchAddress( (prefixa + "_drift_ye").c_str(), &above_drift_xe);
-	// t->SetBranchAddress( (prefixa + "_drift_xx").c_str(), &above_drift_yy);
-	// t->SetBranchAddress( (prefixa + "_drift_xg").c_str(), &above_drift_yg);
-	// t->SetBranchAddress( (prefixa + "_drift_xt").c_str(), &above_drift_yt);
-	// t->SetBranchAddress( (prefixa + "_drift_xz").c_str(), &above_drift_yz);
-	// t->SetBranchAddress( (prefixa + "_drift_xe").c_str(), &above_drift_ye);
+	// Loop over all vectors
+	while ( type_iter != fHits_Above_Type->end() ) {
 
-	// below_rpc_xx = new std::vector<double>(1, 0.0);
-	// below_rpc_xt = new std::vector<double>(1, 0.0);
-	// below_rpc_xz = new std::vector<double>(1, 0.0);
-	// below_rpc_xe = new std::vector<double>(1, 0.0);
-	// below_rpc_yy = new std::vector<double>(1, 0.0);
-	// below_rpc_yt = new std::vector<double>(1, 0.0);
-	// below_rpc_yz = new std::vector<double>(1, 0.0);
-	// below_rpc_ye = new std::vector<double>(1, 0.0);
-	// t->SetBranchAddress( (prefixb + "_rpc_yy").c_str(), &below_rpc_xx);
-	// t->SetBranchAddress( (prefixb + "_rpc_yt").c_str(), &below_rpc_xt);
-	// t->SetBranchAddress( (prefixb + "_rpc_yz").c_str(), &below_rpc_xz);
-	// t->SetBranchAddress( (prefixb + "_rpc_ye").c_str(), &below_rpc_xe);
-	// t->SetBranchAddress( (prefixb + "_rpc_xx").c_str(), &below_rpc_yy);
-	// t->SetBranchAddress( (prefixb + "_rpc_xt").c_str(), &below_rpc_yt);
-	// t->SetBranchAddress( (prefixb + "_rpc_xz").c_str(), &below_rpc_yz);
-	// t->SetBranchAddress( (prefixb + "_rpc_xe").c_str(), &below_rpc_ye);
+		// Add to list
+		fMuonHits_Above.push_back( new MuonHit( *reco_iter, *true_iter, *zpos_iter, *error_iter, *ghost_iter, *type_iter) );
 
-	// below_drift_xx = new std::vector<double>(1, 0.0);
-	// below_drift_xg = new std::vector<double>(1, 0.0);
-	// below_drift_xt = new std::vector<double>(1, 0.0);
-	// below_drift_xz = new std::vector<double>(1, 0.0);
-	// below_drift_xe = new std::vector<double>(1, 0.0);
-	// below_drift_yy = new std::vector<double>(1, 0.0);
-	// below_drift_yg = new std::vector<double>(1, 0.0);
-	// below_drift_yt = new std::vector<double>(1, 0.0);
-	// below_drift_yz = new std::vector<double>(1, 0.0);
-	// below_drift_ye = new std::vector<double>(1, 0.0);
-	// t->SetBranchAddress( (prefixb + "_drift_yy").c_str(), &below_drift_xx);
-	// t->SetBranchAddress( (prefixb + "_drift_yg").c_str(), &below_drift_xg);
-	// t->SetBranchAddress( (prefixb + "_drift_yt").c_str(), &below_drift_xt);
-	// t->SetBranchAddress( (prefixb + "_drift_yz").c_str(), &below_drift_xz);
-	// t->SetBranchAddress( (prefixb + "_drift_ye").c_str(), &below_drift_xe);
-	// t->SetBranchAddress( (prefixb + "_drift_xx").c_str(), &below_drift_yy);
-	// t->SetBranchAddress( (prefixb + "_drift_xg").c_str(), &below_drift_yg);
-	// t->SetBranchAddress( (prefixb + "_drift_xt").c_str(), &below_drift_yt);
-	// t->SetBranchAddress( (prefixb + "_drift_xz").c_str(), &below_drift_yz);
-	// t->SetBranchAddress( (prefixb + "_drift_xe").c_str(), &below_drift_ye);
+		// Iterate
+		type_iter++;
+		reco_iter++;
+		true_iter++;
+		zpos_iter++;
+		error_iter++;
+		ghost_iter++;
+	}
 
+	type_iter  = fHits_Below_Type->begin();
+	reco_iter  = fHits_Below_Reco->begin();
+	true_iter  = fHits_Below_True->begin();
+	zpos_iter  = fHits_Below_ZPos->begin();
+	error_iter = fHits_Below_Error->begin();
+	ghost_iter = fHits_Below_Ghost->begin();
+	fMuonHits_Below.clear();
 
+	// Loop over all vectors
+	while ( type_iter != fHits_Below_Type->end() ) {
 
-	ClearRPCVectors();
-	ClearDriftVectors();
+		// Add to list
+		fMuonHits_Below.push_back( new MuonHit( *reco_iter, *true_iter, *zpos_iter, *error_iter, *ghost_iter, *type_iter) );
 
-	// Set true information if available
-	t->SetBranchAddress( (prefixb + "_volume_px").c_str(), &fTruePX);
-	t->SetBranchAddress( (prefixb + "_volume_py").c_str(), &fTruePY);
-	t->SetBranchAddress( (prefixb + "_volume_pz").c_str(), &fTruePZ);
-	t->SetBranchAddress( (prefixa + "_volume_px").c_str(), &fTruePXIN);
-	t->SetBranchAddress( (prefixa + "_volume_py").c_str(), &fTruePYIN);
-	t->SetBranchAddress( (prefixa + "_volume_pz").c_str(), &fTruePZIN);
+		// Iterate
+		type_iter++;
+		reco_iter++;
+		true_iter++;
+		zpos_iter++;
+		error_iter++;
+		ghost_iter++;
+	}
 
+	fMuonHits_Map.clear();
 
-	fTargetRegion_In_P  = new std::vector<double>(1, 0.0);
-	fTargetRegion_Out_P = new std::vector<double>(1, 0.0);
-	t->SetBranchAddress( "targetregion_in_p",  &fTargetRegion_In_P);
-	t->SetBranchAddress( "targetregion_out_p", &fTargetRegion_Out_P);
+	xahits = NULL;
+	xbhits = NULL;
+	yahits = NULL;
+	ybhits = NULL;
 
 }
 
-
-double BristolPoCAFitter::GetTrueEnergy() {
-	return GetTrueP() - 105.6583745;
-}
-
-double BristolPoCAFitter::GetTrueP() {
-	return sqrt(fTruePX * fTruePX + fTruePY * fTruePY + fTruePZ * fTruePZ);
-}
-
-double BristolPoCAFitter::GetTruePX() {
-	return fTruePX;
-}
-
-double BristolPoCAFitter::GetTruePY() {
-	return fTruePY;
-}
-
-double BristolPoCAFitter::GetTruePZ() {
-	return fTruePZ;
-}
-
-double BristolPoCAFitter::GetTrueV() {
-	return 0.0;
-}
-
-double BristolPoCAFitter::GetScatterAngle() {
-	TVector3 inv = TVector3(fTruePXIN, fTruePYIN, fTruePZIN);
-	TVector3 ouv = TVector3(fTruePX, fTruePY, fTruePZ);
-	return inv.Angle(ouv);
-}
-
-double BristolPoCAFitter::GetPassFlag() {
-	double TargetRegion_In_P = sqrt(fTargetRegion_In_P->at(0) * fTargetRegion_In_P->at(0) +
-	                                fTargetRegion_In_P->at(1) * fTargetRegion_In_P->at(1) +
-	                                fTargetRegion_In_P->at(2) * fTargetRegion_In_P->at(2));
-
-	double TargetRegion_Out_P = sqrt(fTargetRegion_Out_P->at(0) * fTargetRegion_Out_P->at(0) +
-	                                 fTargetRegion_Out_P->at(1) * fTargetRegion_Out_P->at(1) +
-	                                 fTargetRegion_Out_P->at(2) * fTargetRegion_Out_P->at(2));
-
-	if (TargetRegion_In_P > 0 && TargetRegion_Out_P > 0) return true;
-}
-
-
-
-
-void BristolPoCAFitter::DeleteContainers() {
-
-	if (above_rpc_xx) delete above_rpc_xx;
-	if (above_rpc_xt) delete above_rpc_xt;
-	if (above_rpc_xz) delete above_rpc_xz;
-	if (above_rpc_xe) delete above_rpc_xe;
-
-	if (above_rpc_yy) delete above_rpc_yy;
-	if (above_rpc_yt) delete above_rpc_yt;
-	if (above_rpc_yz) delete above_rpc_yz;
-	if (above_rpc_ye) delete above_rpc_ye;
-
-	if (above_drift_xx) delete above_drift_xx;
-	if (above_drift_xg) delete above_drift_xg;
-	if (above_drift_xt) delete above_drift_xt;
-	if (above_drift_xz) delete above_drift_xz;
-	if (above_drift_xe) delete above_drift_xe;
-
-	if (above_drift_yy) delete above_drift_yy;
-	if (above_drift_yg) delete above_drift_yg;
-	if (above_drift_yt) delete above_drift_yt;
-	if (above_drift_yz) delete above_drift_yz;
-	if (above_drift_ye) delete above_drift_ye;
-
-	if (below_rpc_xx) delete below_rpc_xx;
-	if (below_rpc_xt) delete below_rpc_xt;
-	if (below_rpc_xz) delete below_rpc_xz;
-	if (below_rpc_xe) delete below_rpc_xe;
-
-	if (below_rpc_yy) delete below_rpc_yy;
-	if (below_rpc_yt) delete below_rpc_yt;
-	if (below_rpc_yz) delete below_rpc_yz;
-	if (below_rpc_ye) delete below_rpc_ye;
-
-	if (below_drift_xx) delete below_drift_xx;
-	if (below_drift_xg) delete below_drift_xg;
-	if (below_drift_xt) delete below_drift_xt;
-	if (below_drift_xz) delete below_drift_xz;
-	if (below_drift_xe) delete below_drift_xe;
-
-	if (below_drift_yy) delete below_drift_yy;
-	if (below_drift_yg) delete below_drift_yg;
-	if (below_drift_yt) delete below_drift_yt;
-	if (below_drift_yz) delete below_drift_yz;
-	if (below_drift_ye) delete below_drift_ye;
-
+void BristolPoCAFitter::ApplyOffsets() {
+	ApplyVectorOffset(fHits_Above_Reco);
+	ApplyVectorOffset(fHits_Above_True);
+	ApplyVectorOffset(fHits_Below_Reco);
+	ApplyVectorOffset(fHits_Below_True);
 }
 
 void BristolPoCAFitter::ApplyVectorOffset(std::vector<double>* vec) {
@@ -311,55 +128,32 @@ void BristolPoCAFitter::ApplyVectorOffset(std::vector<double>* vec) {
 	}
 }
 
-void BristolPoCAFitter::ApplyOffsets() {
+std::vector<MuonHit*>* BristolPoCAFitter::GetHitCombination(int hitreq) const {
 
-	if (above_rpc_xx) ApplyVectorOffset(above_rpc_xx);
-	if (above_rpc_xt) ApplyVectorOffset(above_rpc_xt);
+	if (fMuonHits_Map.find(hitreq) != fMuonHits_Map.end()) {
+		return &fMuonHits_Map[hitreq];
+	}
+	std::vector<MuonHit*> temp;
 
-	if (above_rpc_yy) ApplyVectorOffset(above_rpc_yy);
-	if (above_rpc_yt) ApplyVectorOffset(above_rpc_yt);
+	for (int i = 0; i < fMuonHits_Above.size(); i++) {
+		MuonHit* val = (fMuonHits_Above[i]);
+		if (IsValidHit(val->type, hitreq, false)) temp.push_back(val);
+	}
 
-	if (above_drift_xx) ApplyVectorOffset(above_drift_xx);
-	if (above_drift_xg) ApplyVectorOffset(above_drift_xg);
-	if (above_drift_xt) ApplyVectorOffset(above_drift_xt);
+	for (int i = 0; i < fMuonHits_Below.size(); i++) {
+		MuonHit* val = (fMuonHits_Below[i]);
+		if (IsValidHit(val->type, hitreq, true)) temp.push_back(val);
+	}
 
-	if (above_drift_yy) ApplyVectorOffset(above_drift_yy);
-	if (above_drift_yg) ApplyVectorOffset(above_drift_yg);
-	if (above_drift_yt) ApplyVectorOffset(above_drift_yt);
+	fMuonHits_Map[hitreq] = temp;
 
-	if (below_rpc_xx) ApplyVectorOffset(below_rpc_xx);
-	if (below_rpc_xt) ApplyVectorOffset(below_rpc_xt);
-
-	if (below_rpc_yy) ApplyVectorOffset(below_rpc_yy);
-	if (below_rpc_yt) ApplyVectorOffset(below_rpc_yt);
-
-	if (below_drift_xx) ApplyVectorOffset(below_drift_xx);
-	if (below_drift_xg) ApplyVectorOffset(below_drift_xg);
-	if (below_drift_xt) ApplyVectorOffset(below_drift_xt);
-
-	if (below_drift_yy) ApplyVectorOffset(below_drift_yy);
-	if (below_drift_yg) ApplyVectorOffset(below_drift_yg);
-	if (below_drift_yt) ApplyVectorOffset(below_drift_yt);
+	return &fMuonHits_Map[hitreq];
 
 }
-
-
-// ------------------------------------------------------------------------
-// Main Fit Evaluator
-// ------------------------------------------------------------------------
 
 double BristolPoCAFitter::DoEval(const double* x) const {
 
 	double chi2 = 0.0;
-
-	// std::cout << "Doing Eval "
-	//           << x[0] << " "
-	//           << x[1] << " "
-	//           << x[2] << " "
-	//           << x[3] << " "
-	//           << x[4] << " "
-	//           << x[5] << " "
-	//           << x[6] << " " << std::endl;
 
 	// Include all RPC and drift hits
 	double pointx = x[0];
@@ -370,759 +164,206 @@ double BristolPoCAFitter::DoEval(const double* x) const {
 	double momy1  = x[5];
 	double momy2  = x[6];
 
-	chi2 += GetChi2AboveRPCX( pointx, momx2, pointz );
-	chi2 += GetChi2AboveRPCY( pointy, momy2, pointz );
-	chi2 += GetChi2BelowRPCX( pointx, momx1, pointz );
-	chi2 += GetChi2BelowRPCY( pointy, momy1, pointz );
+	if (!xahits) xahits = GetHitCombination(kAboveX);
+	chi2 += EvaluateTrackResidual(pointx, momx2, pointz, xahits);
 
-	chi2 += GetChi2AboveDriftX( pointx, momx2, pointz );
-	chi2 += GetChi2AboveDriftY( pointy, momy2, pointz );
-	chi2 += GetChi2BelowDriftX( pointx, momx1, pointz );
-	chi2 += GetChi2BelowDriftY( pointy, momy1, pointz );
+	if (!yahits) yahits = GetHitCombination(kAboveY);
+	chi2 += EvaluateTrackResidual(pointy, momy2, pointz, yahits);
 
-	return chi2;
+	if (!xbhits) xbhits = GetHitCombination(kBelowX);
+	chi2 += EvaluateTrackResidual(pointx, momx1, pointz, xbhits);
 
-}
-
-double BristolPoCAFitter::GetChi2AboveRPCX( double pointx, double momx1, double pointz ) const {
-
-	if (!fUseRPC)   return 0.0;
-	if (!fUseARPCX) return 0.0;
-
-	double chi2 = 0.0;
-	for (uint i = 0; i < above_rpc_xx->size(); i++) {
-		chi2 += pow( ( above_rpc_xx->at(i) - (pointx + momx1 * (pointz - above_rpc_xz->at(i))) ) / above_rpc_xe->at(i), 2 );
-	}
+	if (!ybhits) ybhits = GetHitCombination(kBelowY);
+	chi2 += EvaluateTrackResidual(pointy, momy1, pointz, ybhits);
 
 	return chi2;
 }
 
-double BristolPoCAFitter::GetChi2AboveRPCY( double pointy, double momy1, double pointz ) const {
+bool BristolPoCAFitter::IsValidHit(int hittype, int hitrequired, bool isbelow) const {
 
-	if (!fUseRPC)   return 0.0;
-	if (!fUseARPCY) return 0.0;
+	// If its a drift or RPC hit and we are ignoring it return false
+	if (!fUseRPC   and (hittype == kRPCX || hittype == kRPCY) )     return false;
+	if (!fUseDrift and (hittype == kDriftX || hittype == kDriftY) ) return false;
 
-	double chi2 = 0.0;
-	for (uint i = 0; i < above_rpc_yy->size(); i++) {
-		chi2 += pow( ( above_rpc_yy->at(i) - (pointy + momy1 * (pointz - above_rpc_yz->at(i))) ) / above_rpc_ye->at(i), 2 );
-	}
+	// Accept all if required == 0
+	if (hitrequired == 0) return true;
 
-	return chi2;
+	// First check forexact hits
+	if (hitrequired == kRPCAboveX   and !isbelow and hittype == kRPCX) return true;
+	if (hitrequired == kRPCAboveY   and !isbelow and hittype == kRPCY) return true;
+	if (hitrequired == kDriftAboveX and !isbelow and hittype == kDriftX) return true;
+	if (hitrequired == kDriftAboveY and !isbelow and hittype == kDriftY) return true;
+
+	if (hitrequired == kRPCBelowX and isbelow and hittype == kRPCX) return true;
+	if (hitrequired == kRPCBelowY and isbelow  and hittype == kRPCY) return true;
+	if (hitrequired == kDriftBelowX and isbelow and hittype == kDriftX) return true;
+	if (hitrequired == kDriftBelowY and isbelow and hittype == kDriftY) return true;
+
+
+	if (hitrequired == kAboveX and !isbelow and (hittype == kRPCX || hittype == kDriftX)) return true;
+	if (hitrequired == kAboveY and !isbelow and (hittype == kRPCY || hittype == kDriftY)) return true;
+
+	if (hitrequired == kBelowX and isbelow and (hittype == kRPCX || hittype == kDriftX)) return true;
+	if (hitrequired == kBelowY and isbelow and (hittype == kRPCY || hittype == kDriftY)) return true;
+
+
+	if (hitrequired == hittype) return true;
+	// Now check for all Drifts
+	// if (hitrequired == kRPCX and hittype == kRPCX) return true;
+	// if (hitrequired == kRPCY and hittype == kRPCY) return true;
+	// if (hitrequired == kDriftX and hittype == kDriftX) return true;
+	// if (hitrequired == kDriftY and hittype == kDriftY) return true;
+
+	if (hitrequired == kBelow and isbelow) return true;
+	if (hitrequired == kAbove and !isbelow) return true;
+
+	// Now check for all X or all Y
+	if (hitrequired == kAllX and (hittype == kRPCX || hittype == kDriftX)) return true;
+	if (hitrequired == kAllY and (hittype == kRPCY || hittype == kDriftY)) return true;
+
+	// If none of the above
+	return false;
+
+}
+
+bool BristolPoCAFitter::IsDriftHit(int hittype) const {
+	return (hittype == kDriftX || hittype == kDriftY);
+}
+
+bool BristolPoCAFitter::IsRPCHit(int hittype) const {
+	return (hittype == kRPCX || hittype == kRPCY);
 }
 
 
-double BristolPoCAFitter::GetChi2AboveDriftX( double pointx, double momx1, double pointz ) const {
-
-	if (!fUseDrift) return 0.0;
-	if (!fUseADriftX) return 0.0;
-
-	double chi2 = 0.0;
-
-	for (uint i = 0; i < above_drift_xx->size(); i++) {
-		if (above_drift_xc->at(i)) {
-			chi2 += pow( ( above_drift_xg->at(i) - (pointx + momx1 * (pointz - above_drift_xz->at(i))) ) / above_drift_xe->at(i), 2 );
-		} else {
-			chi2 += pow( ( above_drift_xx->at(i) - (pointx + momx1 * (pointz - above_drift_xz->at(i))) ) / above_drift_xe->at(i), 2 );
-		}
-	}
-
-	return chi2;
+double BristolPoCAFitter::EvaluateTrackResidual( double pointx, double gradient, double pointz, int hitreq ) const {
+	return EvaluateTrackResidual(pointx, gradient, pointz, GetHitCombination(hitreq) );
 }
 
 
-double BristolPoCAFitter::GetChi2AboveDriftY( double pointy, double momy1, double pointz ) const {
-
-	if (!fUseDrift) return 0.0;
-	if (!fUseADriftY) return 0.0;
-
-	double chi2 = 0.0;
-
-	for (uint i = 0; i < above_drift_yy->size(); i++) {
-		if (above_drift_yc->at(i)) {
-			chi2 += pow( ( above_drift_yg->at(i) - (pointy + momy1 * (pointz - above_drift_yz->at(i))) ) / above_drift_ye->at(i), 2 );
-		} else {
-			chi2 += pow( ( above_drift_yy->at(i) - (pointy + momy1 * (pointz - above_drift_yz->at(i))) ) / above_drift_ye->at(i), 2 );
-		}
-	}
-
-	return chi2;
-}
-
-double BristolPoCAFitter::GetChi2BelowRPCX( double pointx, double momx2, double pointz ) const {
-
-	if (!fUseRPC)   return 0.0;
-	if (!fUseBRPCX) return 0.0;
-
-	double chi2 = 0.0;
-	for (uint i = 0; i < below_rpc_xx->size(); i++) {
-		chi2 += pow( ( below_rpc_xx->at(i) - (pointx + momx2 * (pointz - below_rpc_xz->at(i))) ) / below_rpc_xe->at(i), 2 );
-	}
-
-	return chi2;
-}
-
-double BristolPoCAFitter::GetChi2BelowRPCY( double pointy, double momy2, double pointz ) const {
-
-	if (!fUseRPC)   return 0.0;
-	if (!fUseBRPCY) return 0.0;
-
-	double chi2 = 0.0;
-	for (uint i = 0; i < below_rpc_yy->size(); i++) {
-		chi2 += pow( ( below_rpc_yy->at(i) - (pointy + momy2 * (pointz - below_rpc_yz->at(i))) ) / below_rpc_ye->at(i), 2 );
-	}
-
-	return chi2;
-}
-
-
-double BristolPoCAFitter::GetChi2BelowDriftX( double pointx, double momx2, double pointz ) const {
-
-	if (!fUseDrift) return 0.0;
-	if (!fUseBDriftX) return 0.0;
+double BristolPoCAFitter::EvaluateTrackResidual( double pointx, double gradient, double pointz, std::vector<MuonHit*>* xahits ) const {
 
 	double chi2 = 0.0;
 
-	for (uint i = 0; i < below_drift_xx->size(); i++) {
-		if (below_drift_xc->at(i)) {
-			chi2 += pow( ( below_drift_xg->at(i) - (pointx + momx2 * (pointz - below_drift_xz->at(i))) ) / below_drift_xe->at(i), 2 );
-		} else {
-			chi2 += pow( ( below_drift_xx->at(i) - (pointx + momx2 * (pointz - below_drift_xz->at(i))) ) / below_drift_xe->at(i), 2 );
-		}
+	std::vector<MuonHit*>::const_iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		double single = ( hit->GetHit() - (pointx + gradient * (pointz - hit->zpos) ) ) / hit->error;
+		chi2 += single * single;
 	}
 
 	return chi2;
 }
 
+double BristolPoCAFitter::GetAverageHit(int hitreq) {
 
-double BristolPoCAFitter::GetChi2BelowDriftY( double pointy, double momy2, double pointz ) const {
+	double average = 0.0;
+	int ncount = 0;
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
 
-	if (!fUseDrift) return 0.0;
-	if (!fUseBDriftY) return 0.0;
-
-	double chi2 = 0.0;
-	for (uint i = 0; i < below_drift_yy->size(); i++) {
-		if (below_drift_yc->at(i)) {
-			chi2 += pow( ( below_drift_yg->at(i) - (pointy + momy2 * (pointz - below_drift_yz->at(i))) ) / below_drift_ye->at(i), 2 );
-		} else {
-			chi2 += pow( ( below_drift_yy->at(i) - (pointy + momy2 * (pointz - below_drift_yz->at(i))) ) / below_drift_ye->at(i), 2 );
-		}
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		average += hit->GetHit();
+		ncount++;
 	}
 
-	return chi2;
+	if (ncount == 0) return 0.0;
+	return average / double(ncount);
+}
+
+double BristolPoCAFitter::GetAverageZ(int hitreq) {
+
+	double average = 0.0;
+	int ncount = 0;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		average += hit->zpos;
+		ncount++;
+	}
+
+	if (ncount == 0) return 0.0;
+	return average / double(ncount);
 }
 
 
-// ------------------------------------------------------------------------
-// Single Container Handling (fit single fits and drift evaluation)
-// ------------------------------------------------------------------------
-void BristolPoCAFitter::ClearSingleContainers() {
-
-	values_x.clear();
-	values_e.clear();
-	values_g.clear();
-	values_z.clear();
-
-	values_rx.clear();
-	values_re.clear();
-	values_rz.clear();
-
-}
-
-void BristolPoCAFitter::FillSingleContainers(int drifttype) {
-
-	// Clear the containers first
-	ClearSingleContainers();
-
-	// Now fill according to the bools
-	SetHitUsage(drifttype);
-
-	// RPC Hits First
-	if (fUseARPCX and fUseRPC) {
-		for (uint j = 0; j < above_rpc_xx->size(); j++) {
-			values_rx.push_back(above_rpc_xx->at(j));
-			values_re.push_back(above_rpc_xe->at(j));
-			values_rz.push_back(above_rpc_xz->at(j));
-		}
-	}
-
-	if (fUseARPCY and fUseRPC) {
-		for (uint j = 0; j < above_rpc_yy->size(); j++) {
-			values_rx.push_back(above_rpc_yy->at(j));
-			values_re.push_back(above_rpc_ye->at(j));
-			values_rz.push_back(above_rpc_yz->at(j));
-		}
-	}
-
-	if (fUseBRPCX and fUseRPC) {
-		for (uint j = 0; j < below_rpc_xx->size(); j++) {
-			values_rx.push_back(below_rpc_xx->at(j));
-			values_re.push_back(below_rpc_xe->at(j));
-			values_rz.push_back(below_rpc_xz->at(j));
-		}
-	}
-
-	if (fUseBRPCY and fUseRPC) {
-		for (uint j = 0; j < below_rpc_yy->size(); j++) {
-			values_rx.push_back(below_rpc_yy->at(j));
-			values_re.push_back(below_rpc_ye->at(j));
-			values_rz.push_back(below_rpc_yz->at(j));
-		}
-	}
-
-	// Now Drift Hits
-	if (fUseADriftX and fUseDrift) {
-		for (uint j = 0; j < above_drift_xx->size(); j++) {
-			values_x.push_back(above_drift_xx->at(j));
-			values_e.push_back(above_drift_xe->at(j));
-			values_g.push_back(above_drift_xg->at(j));
-			values_z.push_back(above_drift_xz->at(j));
-		}
-	}
-
-	if (fUseADriftY and fUseDrift) {
-		for (uint j = 0; j < above_drift_yy->size(); j++) {
-			values_x.push_back(above_drift_yy->at(j));
-			values_e.push_back(above_drift_ye->at(j));
-			values_g.push_back(above_drift_yg->at(j));
-			values_z.push_back(above_drift_yz->at(j));
-		}
-	}
-
-	if (fUseBDriftX and fUseDrift) {
-		for (uint j = 0; j < below_drift_xx->size(); j++) {
-			values_x.push_back(below_drift_xx->at(j));
-			values_e.push_back(below_drift_xe->at(j));
-			values_g.push_back(below_drift_xg->at(j));
-			values_z.push_back(below_drift_xz->at(j));
-		}
-	}
-
-	if (fUseBDriftY and fUseDrift) {
-		for (uint j = 0; j < below_drift_yy->size(); j++) {
-			values_x.push_back(below_drift_yy->at(j));
-			values_e.push_back(below_drift_ye->at(j));
-			values_g.push_back(below_drift_yg->at(j));
-			values_z.push_back(below_drift_yz->at(j));
-		}
-	}
-}
-
-
-double BristolPoCAFitter::PredictStartX() {
-
-	double avg = 0.0;
-	int n = 0;
-
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) x = values_g.at(i);
-
-		avg += x;
-		n++;
-	}
-
-	for (uint i = 0; i < values_rx.size(); i++) {
-		avg += values_rx.at(i);
-		n++;
-	}
-
-	return avg / double(n);
-}
-
-
-double BristolPoCAFitter::PredictStartZ() {
-
-	double avg = 0.0;
-	int n = 0;
-
-	for (uint i = 0; i < values_z.size(); i++) {
-		avg += values_z.at(i);
-		n++;
-	}
-
-	for (uint i = 0; i < values_rz.size(); i++) {
-		avg += values_rz.at(i);
-		n++;
-	}
-
-	return avg / double(n);
-}
-
-double BristolPoCAFitter::PredictStartPX() {
-
-	double minx = -999.;
-	double maxx = -999.;
-	double minz = -999.;
-	double maxz = -999.;
-
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) {
-			x = values_g.at(i);
-		}
-
-		double z = values_z.at(i);
-
-		if ( minx == -999. || x < minx ) minx = x;
-		if ( maxx == -999. || x > minx ) maxx = x;
-		if ( minz == -999. || z < minz ) minz = z;
-		if ( maxz == -999. || z > minz ) maxz = z;
-	}
-
-	for (uint i = 0; i < values_rx.size(); i++) {
-
-		double x = values_rx.at(i);
-		double z = values_rz.at(i);
-
-		if ( minx == -999. || x < minx ) minx = x;
-		if ( maxx == -999. || x > minx ) maxx = x;
-		if ( minz == -999. || z < minz ) minz = z;
-		if ( maxz == -999. || z > minz ) maxz = z;
-	}
-
-	if (maxx - minx == 0.0) return 1.0;
-
-	return (maxz - minz) / (maxx - minx);
-}
-
-
-double BristolPoCAFitter::GetLowestX() {
-
-	double minx = -999.;
+double BristolPoCAFitter::GetLowestZ(int hitreq) {
 	double minz = -999.;
 
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) {
-			x = values_g.at(i);
-		}
-		double z = values_z.at(i);
-
-		if ( minz == -999. || z < minz ) {
-			minx = x;
-			minz = z;
-		}
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (minz < hit->zpos || minz == -999.) minz = hit->zpos;
 	}
 
-	for (uint i = 0; i < values_rx.size(); i++) {
-
-		double x = values_rx.at(i);
-		double z = values_rz.at(i);
-
-		if ( minz == -999. || z < minz ) {
-			minx = x;
-			minz = z;
-		}
-	}
-
-	return minx;
-}
-
-
-double BristolPoCAFitter::GetLowestZ() {
-
-	double minx = -999.;
-	double minz = -999.;
-
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) {
-			x = values_g.at(i);
-		}
-		double z = values_z.at(i);
-
-		if ( minz == -999. || z < minz ) {
-			minx = x;
-			minz = z;
-		}
-	}
-
-	for (uint i = 0; i < values_rx.size(); i++) {
-
-		double x = values_rx.at(i);
-		double z = values_rz.at(i);
-
-		if ( minz == -999. || z < minz ) {
-			minx = x;
-			minz = z;
-			// std::cout << " New Lowest RPC Z " << minz << std::endl;
-
-		}
-	}
-
-	// std::cout << "Returning Lowest Z : " << minz << std::endl;
 	return minz;
 }
 
-
-double BristolPoCAFitter::GetHighestX() {
-
-	double maxx = -999.;
+double BristolPoCAFitter::GetHighestZ(int hitreq) {
 	double maxz = -999.;
 
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) {
-			x = values_g.at(i);
-		}
-		double z = values_z.at(i);
-
-		if ( maxz == -999. || z > maxz ) {
-			maxx = x;
-			maxz = z;
-		}
-	}
-
-	for (uint i = 0; i < values_rx.size(); i++) {
-
-		double x = values_rx.at(i);
-		double z = values_rz.at(i);
-
-		if ( maxz == -999. || z > maxz ) {
-			maxx = x;
-			maxz = z;
-		}
-	}
-
-	return maxx;
-}
-
-
-double BristolPoCAFitter::GetHighestZ() {
-
-	double maxx = -999.;
-	double maxz = -999.;
-
-	for (uint i = 0; i < values_x.size(); i++) {
-
-		double x = values_x.at(i);
-		if (values_c->at(i)) {
-			x = values_g.at(i);
-		}
-		double z = values_z.at(i);
-
-		if ( maxz == -999. || z > maxz ) {
-			maxx = x;
-			maxz = z;
-		}
-	}
-
-	for (uint i = 0; i < values_rx.size(); i++) {
-
-		double x = values_rx.at(i);
-		double z = values_rz.at(i);
-
-		if ( maxz == -999. || z > maxz ) {
-			maxx = x;
-			maxz = z;
-		}
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (maxz > hit->zpos || maxz == -999.) maxz = hit->zpos;
 	}
 
 	return maxz;
 }
 
+double BristolPoCAFitter::GetLowestHit(int hitreq) {
+	double minz = -999.;
+	double minhit = -999.;
 
-double BristolPoCAFitter::PredictStartAbovePX() {
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	return PredictStartPX();
-}
-
-double BristolPoCAFitter::PredictStartAbovePY() {
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	return PredictStartPX();
-}
-
-double BristolPoCAFitter::PredictStartBelowPX() {
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-
-	return PredictStartPX();
-}
-
-double BristolPoCAFitter::PredictStartBelowPY() {
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	return PredictStartPX();
-}
-
-double BristolPoCAFitter::PredictStartPoCAX() {
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	double xa = PredictStartX();
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	double xb = PredictStartX();
-	return (xa + xb) / 2;
-}
-
-double BristolPoCAFitter::PredictStartPoCAY() {
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	double ya = PredictStartX();
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	double yb = PredictStartX();
-	return (ya + yb) / 2;
-}
-
-double BristolPoCAFitter::PredictStartPoCAZ() {
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	double zxa = PredictStartZ();
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	double zxb = PredictStartZ();
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	double zya = PredictStartZ();
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	double zyb = PredictStartZ();
-	return (zxa + zxb + zya + zyb) / 4;
-}
-
-
-// ------------------------------------------------------------------------
-// Evaluation Flags
-// ------------------------------------------------------------------------
-void BristolPoCAFitter::SetHitUsage(int drifttype) {
-
-	switch (drifttype) {
-
-	case kFitDriftAboveX: SetAboveDriftXOnly(); break;
-	case kFitDriftAboveY: SetAboveDriftYOnly(); break;
-	case kFitDriftBelowX: SetBelowDriftXOnly(); break;
-	case kFitDriftBelowY: SetBelowDriftYOnly(); break;
-
-	case kFitAllAboveX: SetAboveAllXOnly(); break;
-	case kFitAllAboveY: SetAboveAllYOnly(); break;
-	case kFitAllBelowX: SetBelowAllXOnly(); break;
-	case kFitAllBelowY: SetBelowAllYOnly(); break;
-
-	case kFitAllX: SetAllXOnly(); break;
-	case kFitAllY: SetAllYOnly(); break;
-
-	case kFitAll: SetUseAll(); break;
-
-	default: break;
-	}
-
-}
-
-void BristolPoCAFitter::SetUseAll() {
-	fUseARPCX = true;
-	fUseARPCY = true;
-	fUseBRPCX = true;
-	fUseBRPCY = true;
-	fUseADriftX = true;
-	fUseADriftY = true;
-	fUseBDriftX = true;
-	fUseBDriftY = true;
-}
-
-
-void BristolPoCAFitter::SetAboveAllXOnly() {
-	fUseARPCX = true;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = true;
-	fUseADriftY = false;
-	fUseBDriftX = false;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetAboveAllYOnly() {
-	fUseARPCX = false;
-	fUseARPCY = true;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = false;
-	fUseADriftY = true;
-	fUseBDriftX = false;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetBelowAllXOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = true;
-	fUseBRPCY = false;
-	fUseADriftX = false;
-	fUseADriftY = false;
-	fUseBDriftX = true;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetBelowAllYOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = true;
-	fUseADriftX = false;
-	fUseADriftY = false;
-	fUseBDriftX = false;
-	fUseBDriftY = true;
-}
-
-
-
-void BristolPoCAFitter::SetAllXOnly() {
-	fUseARPCX = true;
-	fUseARPCY = false;
-	fUseBRPCX = true;
-	fUseBRPCY = false;
-	fUseADriftX = true;
-	fUseADriftY = false;
-	fUseBDriftX = true;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetAllYOnly() {
-	fUseARPCX = false;
-	fUseARPCY = true;
-	fUseBRPCX = false;
-	fUseBRPCY = true;
-	fUseADriftX = false;
-	fUseADriftY = true;
-	fUseBDriftX = false;
-	fUseBDriftY = true;
-}
-
-void BristolPoCAFitter::SetAboveDriftXOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = true;
-	fUseADriftY = false;
-	fUseBDriftX = false;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetAboveDriftYOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = false;
-	fUseADriftY = true;
-	fUseBDriftX = false;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetBelowDriftXOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = false;
-	fUseADriftY = false;
-	fUseBDriftX = true;
-	fUseBDriftY = false;
-}
-
-void BristolPoCAFitter::SetBelowDriftYOnly() {
-	fUseARPCX = false;
-	fUseARPCY = false;
-	fUseBRPCX = false;
-	fUseBRPCY = false;
-	fUseADriftX = false;
-	fUseADriftY = false;
-	fUseBDriftX = false;
-	fUseBDriftY = true;
-}
-
-
-
-
-// ------------------------------------------------------------------------
-// Single Track Fitter
-//
-// This is a bit awkward. Need to load in arbrirtrary sets of vectors
-// and run the fit to them, whilst making the distinction between
-// drift and rpc hits.
-// ------------------------------------------------------------------------
-
-
-std::vector<bool> BristolPoCAFitter::GetBestComboForDriftHits(int drifttype) {
-
-	// Set data vectors depending on type
-	FillSingleContainers(drifttype);
-
-	// Get Combo Map
-	std::vector<std::vector<bool> > xcombomapa;
-	std::vector<bool> xcomboa;
-	FillComboVect( xcombomapa, GetN() );
-
-	// Loop over all iterations, find best chi2
-	double bestchi2 = -1;
-	int n = xcombomapa.size();
-
-	for (int j = 0; j < n; j++) {
-
-		// Update combination based on type
-		SetVectorC( &xcombomapa[j] );
-
-		// Get the results
-		double chi2 = DoSingleTrackFitWithX();
-
-		// If better than current, update
-		if (bestchi2 < 0 or chi2 <= bestchi2) {
-			xcomboa = xcombomapa[j];
-			bestchi2 = chi2;
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (minz < hit->zpos || minz == -999.) {
+			minz = hit->zpos;
+			minhit = hit->GetHit();
 		}
-
 	}
 
-	return xcomboa;
+	return minhit;
+}
+
+double BristolPoCAFitter::GetHighestHit(int hitreq) {
+	double maxz = -999.;
+	double maxhit = -999.;
+
+	std::vector<MuonHit*>* xahits = GetHitCombination(hitreq);
+	std::vector<MuonHit*>::iterator xahits_iter = xahits->begin();
+	for ( ; xahits_iter != xahits->end(); xahits_iter++) {
+		MuonHit* hit = (MuonHit*)(*xahits_iter);
+		if (maxz > hit->zpos || maxz == -999.) {
+			maxz = hit->zpos;
+			maxhit = hit->GetHit();
+		}
+	}
+
+	return maxhit;
+}
+
+int BristolPoCAFitter::GetNHits(int hitreq) {
+	return GetHitCombination(hitreq)->size();
 }
 
 
-double BristolPoCAFitter::DoSingleTrackFitWithX(double* fitx, double* fitpx, double* /*fitz*/) {
+// ---------------------------------------
 
-	// Create Minimizer Object
-	ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	min->SetPrintLevel(-1);
+void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap, int ndrifthits ) {
 
-	// Setup Functor for the fitter
-	int npars = 2;
-	BristolTrackFitterFCN* singlefcn = new BristolTrackFitterFCN(this);
-	ROOT::Math::Functor func(*singlefcn, npars);
-	min->SetFunction(func);
-
-	// Get start pos and grad from hits
-	double startx  = PredictStartX();
-
-	// Run the fit
-	min->SetVariable(0, "x",   startx,  0.1);
-	min->SetVariable(1, "px1", 0.0, 10);
-	min->Minimize();
-
-	// Get the results
-	const double* xx = min->X();
-	double chi2 = DoSingleEvalWithX(xx);
-	if (fitx)   *fitx = xx[0];
-	if (fitpx) *fitpx = xx[1];
-	// if (fitz)   *fitz = xx[2];
-
-	delete min;
-
-	return chi2;
-}
-
-void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap, int n) {
-
-	for (int i = 0; i < (1 << n); i++) {
+	// Make drift only combinations
+	std::vector<std::vector<bool> > driftcombos;
+	for (int i = 0; i < (1 << ndrifthits); i++) {
 		std::vector<bool> combo;
-		for (int j = 0; j < n; j++) {
+		for (int j = 0; j < ndrifthits; j++) {
 			combo.push_back(((i & (1 << j)) ? 1 : 0));
 		}
 		combomap.push_back(combo);
@@ -1130,104 +371,127 @@ void BristolPoCAFitter::FillComboVect(std::vector<std::vector<bool> >& combomap,
 
 }
 
+double BristolPoCAFitter::DoSingleEval(const double* x, std::vector<MuonHit*>* hits) const {
+	return EvaluateTrackResidual(x[0], x[1], 0.0, hits);
+}
 
-double BristolPoCAFitter::DoSingleEvalWithX(const double *x) const {
 
-	double chi2 = 0.0;
+double BristolPoCAFitter::DoSingleTrackFitWithX(int hitreq, double* x, double* px) {
 
-	double pointx = x[0];
-	double momx   = x[1];
-	double pointz = 0.0; //values_z.at(0);
-	double momz   = 1.0;
+	ROOT::Minuit2::MnUserParameters mn_param;
 
-	for (uint i = 0; i < values_x.size(); i++) {
-		if (values_c->at(i)) {
-			chi2 += pow( ( values_g.at(i) - (pointx + momx * (pointz - values_z.at(i)) / momz) ) / values_e.at(i), 2 );
-		} else {
-			chi2 += pow( ( values_x.at(i) - (pointx + momx * (pointz - values_z.at(i)) / momz) ) / values_e.at(i), 2 );
+	double startx = GetAverageHit(hitreq);
+	mn_param.Add("x", startx,  0.1);
+	mn_param.Add("px1", 0.0, 10.0);
+
+	std::vector<MuonHit*>* hits = GetHitCombination(hitreq);
+
+	CHANCESingleTrackFitterFCN* singlefcn = new CHANCESingleTrackFitterFCN(this, hitreq);
+	ROOT::Minuit2::MnMigrad migrad( *singlefcn, mn_param, 2 ); //Strategy 2
+	ROOT::Minuit2::FunctionMinimum min = migrad();
+	ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
+	double xx[2];
+	xx[0] = MinParams[0];
+	xx[1] = MinParams[1];
+	double chi2 = DoSingleEval(xx, hits);
+	if (x) *x = xx[0];
+	if (px) *px = xx[1];
+	return chi2;
+
+}
+
+void SetHitCombo(std::vector<MuonHit*>* muonhits, std::vector<bool>* combo) {
+	for (int i = 0; i < muonhits->size(); i++) {
+		(*muonhits)[i]->useghost = (*combo)[i];
+	}
+}
+
+std::vector<bool> BristolPoCAFitter::GetBestComboForDriftHits(int hitreq) {
+
+	std::vector<MuonHit*>* muonhits = GetHitCombination(hitreq);
+	int nhits = muonhits->size();
+	std::vector<std::vector<bool> > xcombomapa;
+	std::vector<bool> xcomboa;
+
+	FillComboVect(xcombomapa, nhits);
+
+	// Loop over all iterations, find best chi2
+	double bestchi2 = -1;
+	int n = xcombomapa.size();
+	int jointreq = 0;
+
+	int fullhitreq = hitreq;
+	if (hitreq == kDriftAboveX and fUseRPC) fullhitreq = kAboveX;
+	if (hitreq == kDriftAboveY and fUseRPC) fullhitreq = kAboveY;
+	if (hitreq == kDriftBelowX and fUseRPC) fullhitreq = kBelowX;
+	if (hitreq == kDriftBelowY and fUseRPC) fullhitreq = kBelowY;
+
+	// Iterate over all combinations
+	for (int j = 0; j < n; j++) {
+
+		SetHitCombo( muonhits, &xcombomapa[j] );
+
+		// Get the results
+		double chi2 = DoSingleTrackFitWithX(fullhitreq);
+
+		if (bestchi2 < 0 or chi2 <= bestchi2) {
+			// if (j != 0){
+				// std::cout << "Adding  ghost combo " << j << " " << chi2 << " " << bestchi2 << std::endl;
+			// }
+			xcomboa = xcombomapa[j];
+			bestchi2 = chi2;
+			
 		}
 	}
 
-	for (uint i = 0; i < values_rx.size(); i++) {
-		chi2 += pow( ( values_rx.at(i) - (pointx + momx * (pointz - values_rz.at(i)) / momz) ) / values_re.at(i), 2 );
-	}
+	// std::cout << " Best Chi2 From Drift : " << bestchi2 << std::endl;
 
-	// std::cout << " Single Chi2 = " << chi2 << std::endl;
-
-	return chi2;
+	SetHitCombo(muonhits, &xcomboa);
+	// muonhits = GetHitCombination(hitreq);
+	// for (int i = 0; i < muonhits->size(); i++){
+// std::cout << "SINGLE HIT " << muonhits->at(i)->type << " -> " << muonhits->at(i)->useghost << std::endl;
+	// }
+	return xcomboa;
 }
 
+void BristolPoCAFitter::PrintCombos(){
+	
+	std::vector<MuonHit*>* muonhits = GetHitCombination(0);
+	for (int i = 0; i < muonhits->size(); i++){
+		std::cout << "HIT " << muonhits->at(i)->type << " -> " << muonhits->at(i)->useghost << std::endl;
+	}
+
+}
 
 void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 
 	// Get fit values
 	double temp_above_x = 0.0;
 	double temp_above_px = 0.0;
-	double temp_above_xz = 0.0;
 	double temp_above_y = 0.0;
 	double temp_above_py = 0.0;
-	double temp_above_yz = 0.0;
 
 	double temp_below_x = 0.0;
 	double temp_below_px = 0.0;
-	double temp_below_xz = 0.0;
 	double temp_below_y = 0.0;
 	double temp_below_py = 0.0;
-	double temp_below_yz = 0.0;
 
-	// std::cout << "Doing single track fits" << std::endl;
-	// Perform an Upper X fit
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	DoSingleTrackFitWithX(&temp_above_x, &temp_above_px, &temp_above_xz);
+	// // Perform an Upper X fit
+	DoSingleTrackFitWithX(kAboveX, &temp_above_x, &temp_above_px);
 
-	// Perform an Upper Y fit
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	DoSingleTrackFitWithX(&temp_above_y, &temp_above_py, &temp_above_yz);
+	// // Perform an Upper Y fit
+	DoSingleTrackFitWithX(kAboveY, &temp_above_y, &temp_above_py);
 
-	// Perform an Lower X fit
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	DoSingleTrackFitWithX(&temp_below_x, &temp_below_px, &temp_below_xz);
+	// // Perform an Lower X fit
+	DoSingleTrackFitWithX(kBelowX, &temp_below_x, &temp_below_px);
 
-	// Perform an Lower Y fit
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	DoSingleTrackFitWithX(&temp_below_y, &temp_below_py, &temp_below_yz);
+	// // Perform an Lower Y fit
+	DoSingleTrackFitWithX(kBelowY, &temp_below_y, &temp_below_py);
 
-	// std::cout << "Doing joint track fits" << std::endl;
 
 	// Perform a dodgy joint ABOVE+BELOW X Fit
-	FillSingleContainers(kFitAllX);
-	std::vector<bool> tempcombo;
-	if (above_drift_xc) {
-		for (int i = 0; i < above_drift_xc->size(); i++) {
-			tempcombo.push_back(false); //above_drift_xc->at(i));
-		}
-	}
-	if (below_drift_xc) {
-		for (int i = 0; i < below_drift_xc->size(); i++) {
-			tempcombo.push_back(false); //below_drift_xc->at(i));
-		}
-	}
-	SetVectorC( &tempcombo );
-	double xChi2 = DoSingleTrackFitWithX();
-
-	FillSingleContainers(kFitAllY);
-	tempcombo.clear();
-	if (above_drift_yc) {
-		for (int i = 0; i < above_drift_yc->size(); i++) {
-			tempcombo.push_back(above_drift_yc->at(i));
-		}
-	}
-	if (below_drift_yc) {
-		for (int i = 0; i < below_drift_yc->size(); i++) {
-			tempcombo.push_back(below_drift_yc->at(i));
-		}
-	}
-	SetVectorC( &tempcombo );
-	double yChi2 = DoSingleTrackFitWithX();
+	double xChi2 = DoSingleTrackFitWithX(kAllX);
+	double yChi2 = DoSingleTrackFitWithX(kAllY);
 
 
 	// Get vectors from the fits
@@ -1291,313 +555,6 @@ void BristolPoCAFitter::PerformDoubleTrackPoCAFit(double* pocafitparams) {
 
 	return;
 }
-
-double BristolPoCAFitter::GetLowestXXAbove() {
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	return GetLowestX();
-}
-
-double BristolPoCAFitter::GetLowestXZAbove() {
-	FillSingleContainers(kFitAllAboveX);
-	SetVectorC( above_drift_xc );
-	return GetLowestZ();
-}
-
-double BristolPoCAFitter::GetLowestYYAbove() {
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	return GetLowestX();
-}
-
-double BristolPoCAFitter::GetLowestYZAbove() {
-	FillSingleContainers(kFitAllAboveY);
-	SetVectorC( above_drift_yc );
-	return GetLowestZ();
-}
-
-double BristolPoCAFitter::GetHighestXXBelow() {
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	return GetHighestX();
-}
-
-double BristolPoCAFitter::GetHighestXZBelow() {
-	FillSingleContainers(kFitAllBelowX);
-	SetVectorC( below_drift_xc );
-	return GetHighestZ();
-}
-
-double BristolPoCAFitter::GetHighestYYBelow() {
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	return GetHighestX();
-}
-
-double BristolPoCAFitter::GetHighestYZBelow() {
-	FillSingleContainers(kFitAllBelowY);
-	SetVectorC( below_drift_yc );
-	return GetHighestZ();
-}
-
-
-void BristolPoCAFitter::ClearRPCVectors() {
-
-	if (above_rpc_xx) above_rpc_xx->clear();
-	if (above_rpc_xt) above_rpc_xt->clear();
-	if (above_rpc_xz) above_rpc_xz->clear();
-	if (above_rpc_xe) above_rpc_xe->clear();
-
-	if (above_rpc_yy) above_rpc_yy->clear();
-	if (above_rpc_yt) above_rpc_yt->clear();
-	if (above_rpc_yz) above_rpc_yz->clear();
-	if (above_rpc_ye) above_rpc_ye->clear();
-
-	if (below_rpc_xx) below_rpc_xx->clear();
-	if (below_rpc_xt) below_rpc_xt->clear();
-	if (below_rpc_xz) below_rpc_xz->clear();
-	if (below_rpc_xe) below_rpc_xe->clear();
-
-	if (below_rpc_yy) below_rpc_yy->clear();
-	if (below_rpc_yt) below_rpc_yt->clear();
-	if (below_rpc_yz) below_rpc_yz->clear();
-	if (below_rpc_ye) below_rpc_ye->clear();
-
-}
-
-void BristolPoCAFitter::ClearDriftVectors() {
-
-	if (above_drift_xx) above_drift_xx->clear();
-	if (above_drift_xg) above_drift_xg->clear();
-	if (above_drift_xt) above_drift_xt->clear();
-	if (above_drift_xz) above_drift_xz->clear();
-	if (above_drift_xe) above_drift_xe->clear();
-
-	if (above_drift_yy) above_drift_yy->clear();
-	if (above_drift_yg) above_drift_yg->clear();
-	if (above_drift_yt) above_drift_yt->clear();
-	if (above_drift_yz) above_drift_yz->clear();
-	if (above_drift_ye) above_drift_ye->clear();
-
-	if (below_drift_xx) below_drift_xx->clear();
-	if (below_drift_xg) below_drift_xg->clear();
-	if (below_drift_xt) below_drift_xt->clear();
-	if (below_drift_xz) below_drift_xz->clear();
-	if (below_drift_xe) below_drift_xe->clear();
-
-	if (below_drift_yy) below_drift_yy->clear();
-	if (below_drift_yg) below_drift_yg->clear();
-	if (below_drift_yt) below_drift_yt->clear();
-	if (below_drift_yz) below_drift_yz->clear();
-	if (below_drift_ye) below_drift_ye->clear();
-
-}
-
-
-
-// //fit two straight lines through the first and last sets of three data points
-// void BristolPoCAFitter::TwoTrackFit()
-// {
-// 	// std::cout << "Running Two Track Fit" << std::endl;
-
-// 	double zErrors[6] = {0.0};
-// 	double xHits[6], xErrors[6], yHits[6], yErrors[6];
-// 	double xLayers[6], yLayers[6];
-
-// 	FillSingleContainers(kFitAllAboveX);
-// 	SetVectorC( above_drift_xc );
-// 	for (int i = 0; i < 3; i++) {
-// 		xHits[i] = values_rx[i];
-// 		xErrors[i] = values_re[i];
-// 		xLayers[i] = values_rz[i];
-// 	}
-// 	FillSingleContainers(kFitAllBelowX);
-// 	SetVectorC( below_drift_xc );
-// 	for (int i = 0; i < 3; i++) {
-// 		xHits[i + 3] = values_rx[i];
-// 		xErrors[i + 3] = values_re[i];
-// 		xLayers[i + 3] = values_rz[i];
-// 	}
-
-
-// 	FillSingleContainers(kFitAllAboveY);
-// 	SetVectorC( above_drift_yc );
-// 	for (int i = 0; i < 3; i++) {
-// 		yHits[i] = values_rx[i];
-// 		yErrors[i] = values_re[i];
-// 		yLayers[i] = values_rz[i];
-// 	}
-// 	FillSingleContainers(kFitAllBelowY);
-// 	SetVectorC( below_drift_yc );
-// 	for (int i = 0; i < 3; i++) {
-// 		yHits[i + 3] = values_rx[i];
-// 		yErrors[i + 3] = values_re[i];
-// 		yLayers[i + 3] = values_rz[i];
-// 	}
-
-// // std::cout << "Got track hits" << std::endl;
-// 	double xMin = -300;
-// 	double xMax = 750;
-// 	double yMin = -300;
-// 	double yMax = 750;
-
-// 	TGraphErrors *xGraph, *yGraph, *xFitGraph, *yFitGraph;
-// 	TF1 *xLFitFunc, *xUFitFunc, *xLTrack, *xUTrack;
-// 	TF1 *yLFitFunc, *yUFitFunc, *yLTrack, *yUTrack;
-
-// 	xFitGraph = new TGraphErrors(6, xLayers, xHits, zErrors, xErrors);
-// 	yFitGraph = new TGraphErrors(6, yLayers, yHits, zErrors, yErrors);
-// 	xGraph = new TGraphErrors(6, xHits, xLayers, xErrors, zErrors);
-// 	yGraph = new TGraphErrors(6, yHits, yLayers, yErrors, zErrors);
-
-
-// 	// std::cout << "UX LIM : " << (xLayers[3]+xLayers[2])/2.0 << " -> " << xLayers[0] << std::endl;
-// 	xLFitFunc = new TF1("xLFitFunc", "pol1", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-// 	xUFitFunc = new TF1("xUFitFunc", "pol1", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-// 	yLFitFunc = new TF1("yLFitFunc", "pol1", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-// 	yUFitFunc = new TF1("yUFitFunc", "pol1", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
-
-// 	xLTrack = new TF1("xLTrack", "pol1", xMin, xMax);
-// 	xUTrack = new TF1("xUTrack", "pol1", xMin, xMax);
-// 	yLTrack = new TF1("yLTrack", "pol1", yMin, yMax);
-// 	yUTrack = new TF1("yUTrack", "pol1", yMin, yMax);
-
-// 	//fit ignoring error bars first, to set initial parameters
-// 	xFitGraph->Fit(xLFitFunc, "QEX0", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-// 	xFitGraph->Fit(xUFitFunc, "+QEX0", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-// 	yFitGraph->Fit(yLFitFunc, "QEX0", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-// 	yFitGraph->Fit(yUFitFunc, "+QEX0", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
-
-// 	//fit considering error bars to get a better fit
-// 	xFitGraph->Fit(xLFitFunc, "QF", "", xLayers[5], (xLayers[3] + xLayers[2]) / 2.0);
-// 	xFitGraph->Fit(xUFitFunc, "+QF", "", (xLayers[3] + xLayers[2]) / 2.0, xLayers[0]);
-// 	yFitGraph->Fit(yLFitFunc, "QF", "", yLayers[5], (yLayers[3] + yLayers[2]) / 2.0);
-// 	yFitGraph->Fit(yUFitFunc, "+QF", "", (yLayers[3] + yLayers[2]) / 2.0, yLayers[0]);
-
-// 	//fix parameters for track line
-// 	xLTrack->FixParameter(0, (-xLFitFunc->GetParameter(0) / xLFitFunc->GetParameter(1)));
-// 	xLTrack->FixParameter(1, (1.0 / xLFitFunc->GetParameter(1)));
-// 	xUTrack->FixParameter(0, (-xUFitFunc->GetParameter(0) / xUFitFunc->GetParameter(1)));
-// 	xUTrack->FixParameter(1, (1.0 / xUFitFunc->GetParameter(1)));
-// 	yLTrack->FixParameter(0, (-yLFitFunc->GetParameter(0) / yLFitFunc->GetParameter(1)));
-// 	yLTrack->FixParameter(1, (1.0 / yLFitFunc->GetParameter(1)));
-// 	yUTrack->FixParameter(0, (-yUFitFunc->GetParameter(0) / yUFitFunc->GetParameter(1)));
-// 	yUTrack->FixParameter(1, (1.0 / yUFitFunc->GetParameter(1)));
-
-// 	//fit with fixed parameters, just to put the line on the graph
-// 	xGraph->Fit(xLTrack, "BQC", "", xMin, xMax);
-// 	xGraph->Fit(xUTrack, "+BQC", "", xMin, xMax);
-// 	yGraph->Fit(yLTrack, "BQC", "", yMin, yMax);
-// 	yGraph->Fit(yUTrack, "+BQC", "", yMin, yMax);
-
-// 	//format graphs
-// 	xGraph->GetXaxis()->SetLimits(xMin, xMax);
-// 	xGraph->GetXaxis()->SetTitle("x position (strip number)");
-// 	xGraph->GetYaxis()->SetTitle("z position (mm)");
-// 	xGraph->SetTitle("Track (x strips)");
-// 	xGraph->SetMarkerColor(4);
-// 	xGraph->SetMarkerStyle(20);
-// 	xGraph->SetMarkerSize(0.7);
-// 	yGraph->GetXaxis()->SetLimits(yMin, yMax);
-// 	yGraph->GetXaxis()->SetTitle("x position (strip number)");
-// 	yGraph->GetYaxis()->SetTitle("z position (mm)");
-// 	yGraph->SetTitle("Track (y strips)");
-// 	yGraph->SetMarkerColor(4);
-// 	yGraph->SetMarkerStyle(20);
-// 	yGraph->SetMarkerSize(0.7);
-
-// 	xFitGraph->SetMarkerColor(4);
-// 	xFitGraph->SetMarkerStyle(20);
-// 	xFitGraph->SetMarkerSize(0.7);
-// 	yFitGraph->SetMarkerColor(4);
-// 	yFitGraph->SetMarkerStyle(20);
-// 	yFitGraph->SetMarkerSize(0.7);
-
-// 	// std::cout << "U " << xUTrack->GetParameter(1) << " " << xUTrack->GetParameter(0) << std::endl;
-// 	// std::cout << "L " << xLTrack->GetParameter(1) << " " << xLTrack->GetParameter(0) << std::endl;
-
-// 	xScatterAngle = atan( abs((xUTrack->GetParameter(1) - xLTrack->GetParameter(1)) / (1 + xUTrack->GetParameter(1) * xLTrack->GetParameter(1))) );
-// 	yScatterAngle = atan( abs((yUTrack->GetParameter(1) - yLTrack->GetParameter(1)) / (1 + yUTrack->GetParameter(1) * yLTrack->GetParameter(1))) );
-
-// 	// std::cout << "xScatter Angle " << xScatterAngle << std::endl;
-
-// 	double temp_above_px = xUTrack->GetParameter(1);
-// 	double temp_above_py = yUTrack->GetParameter(1);
-// 	double temp_below_px = xLTrack->GetParameter(1);
-// 	double temp_below_py = yLTrack->GetParameter(1);
-
-// 	// Get the scatter angles
-// 	TVector3 grad1X(temp_above_px, 0., 1.);
-// 	TVector3 grad2X(temp_below_px, 0., 1.);
-
-// 	TVector3 grad1Y(0., temp_above_py, 1.);
-// 	TVector3 grad2Y(0., temp_below_py, 1.);
-
-// 	TVector3 grad1(temp_above_px, temp_above_py, 1.);
-// 	TVector3 grad2(temp_below_px, temp_below_py, 1.);
-
-// 	double scatter_x  = grad1X.Angle(grad2X);
-// 	double scatter_y  = grad1Y.Angle(grad2Y);
-// 	double scatter_3d = grad1.Angle(grad2);
-
-// 	// std::cout << "New Scatter Angle X : " << scatter_x << std::endl;
-
-
-// 	xUchi2 = xUFitFunc->GetChisquare();
-// 	xLchi2 = xLFitFunc->GetChisquare();
-// 	yUchi2 = yUFitFunc->GetChisquare();
-// 	yLchi2 = yLFitFunc->GetChisquare();
-
-// 	trackParams[4] = xUTrack->GetParameter(0);
-// 	trackParams[5] = xUTrack->GetParameter(1);
-// 	trackParams[6] = xLTrack->GetParameter(0);
-// 	trackParams[7] = xLTrack->GetParameter(1);
-// 	trackParams[8] = yUTrack->GetParameter(0);
-// 	trackParams[9] = yUTrack->GetParameter(1);
-// 	trackParams[10] = yLTrack->GetParameter(0);
-// 	trackParams[11] = yLTrack->GetParameter(1);
-
-// 	//save fit parametes so they can be used by other functions
-// 	xUFitPrms[0] = xUTrack->GetParameter(0);
-// 	xUFitPrms[1] = xUTrack->GetParameter(1);
-// 	xLFitPrms[0] = xLTrack->GetParameter(0);
-// 	xLFitPrms[1] = xLTrack->GetParameter(1);
-// 	yUFitPrms[0] = yUTrack->GetParameter(0);
-// 	yUFitPrms[1] = yUTrack->GetParameter(1);
-// 	yLFitPrms[0] = yLTrack->GetParameter(0);
-// 	yLFitPrms[1] = yLTrack->GetParameter(1);
-
-// 	// Get z intersection point at layer 13 zpos.
-
-// 	//x_intersect = (-400 - xUTrack->GetParameter(0)) / xUTrack->GetParameter(1);
-// 	//y_intersect = (-400 - yUTrack->GetParameter(0)) / yUTrack->GetParameter(1);
-
-// 	// if (config.perEventPlots == 1) {
-// 	if (false) {
-// 		// if ((xUchi2 < 1) && (xLchi2 < 1) && (yUchi2 < 1) && (yLchi2 < 1)) {
-// 		xGraph->Write("x Two Track");
-// 		yGraph->Write("y Two Track");
-// 		// }
-// 	}
-// 	// //		xFitGraph->Write("x two-track fit");
-// 	// //		yFitGraph->Write("y two-track fit");
-// 	// 	}
-// 	// }
-
-// 	//clean up allocated objects
-// 	delete xFitGraph;
-// 	delete yFitGraph;
-// 	delete xGraph;
-// 	delete yGraph;
-// 	delete xUFitFunc;
-// 	delete xLFitFunc;
-// 	delete yUFitFunc;
-// 	delete yLFitFunc;
-// 	delete xUTrack;
-// 	delete xLTrack;
-// 	delete yUTrack;
-// 	delete yLTrack;
-// }
 
 }
 

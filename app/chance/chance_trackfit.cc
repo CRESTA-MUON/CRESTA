@@ -77,9 +77,6 @@
 #include "geo/simple/GeoBox.hh"
 #include "geo/simple/GeoTubs.hh"
 #include "sd/DetectorManager.hh"
-#include "sd/LongDriftSD.hh"
-#include "chance/AWEDriftSD.hh"
-#include "chance/BristolRPCSD.hh"
 
 
 
@@ -147,10 +144,12 @@
 #include "Minuit2/MnPrint.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/MnUserParameters.h"
+#include "chance/TrueMCReader.hh"
 
 using namespace std;
 using namespace COSMIC;
 
+bool debugflag = false;
 
 // Run Inputs
 std::string gRunTag = "trackfit";
@@ -204,17 +203,9 @@ void FillComboVect(std::vector<std::vector<bool> >& combomap, int n) {
 void PrintHelpScreen() {
 
   std::cout << "USAGE" << std::endl << std::endl;
-
-  std::cout << " -n nevents : Events to generate" << std::endl;
-  std::cout << " -j ntriggs : Triggers to generate" << std::endl;
-  std::cout << " -t exposur : Exposure to generate" << std::endl;
-  std::cout << " -c chunksz : Event chunk size for exposure/trigger mode" << std::endl;
-  std::cout << " -s seed    : Seed. Default is -1, meaning get from time+pid" << std::endl;
-  std::cout << " -o outtag  : Output File Tag. Will create file : outtag.run.subrun.root " << std::endl;
-  std::cout << " -i         : Flag. Run in interactive mode." << std::endl;
-  std::cout << " -g geofile : Load a geometry JSON file. Can use multiple times." << std::endl;
-  std::cout << " --run    r : Set Run ID Manually" << std::endl;
-  std::cout << " --subrun r : Set Sub Run ID Manually" << std::endl << std::endl;
+  std::cout << " chance_trackfit -i inputfile [-o outputtag]" << std::endl << std::endl;
+  std::cout << " -i inputfile : Input MC file to run trackfit over" << std::endl;
+  std::cout << " -o outputtag : Output tag. Output file becomes inputfile.outputtag.root. Default is 'trackfit'" << std::endl;
 
   exit(0);
 
@@ -259,7 +250,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Reading Configuration" << std::endl;
   // bool fUseRPC = true;
   // bool fUseDrift = true;
@@ -278,33 +269,51 @@ int main(int argc, char** argv) {
     fMinBRPCY = 3;
   }
 
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
 
   // Read in input Trees
   TFile* f = new TFile(gInputFile.c_str(), "READ");
   TTree* t = (TTree*)f->Get("detectorevents");
-
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Reading Event Inputs" << std::endl;
 
-  std::string prefixa = "system_above";
-  std::string prefixb = "system";
+  std::string prefixa = "det_above";
+  std::string prefixb = "det_below";
 
   BristolPoCAFitter* pocafit = new BristolPoCAFitter();
   pocafit->ReadInputTTree(t, prefixa, prefixb);
 
+  if (gInputMode == kUseRPC) {
+    pocafit->SetUseRPC(true);
+    pocafit->SetUseDrift(true);
+
+  } else if (gInputMode == kUseDrift) {
+    pocafit->SetUseRPC(true);
+    pocafit->SetUseDrift(true);
+  } else {
+    pocafit->SetUseRPC(true);
+    pocafit->SetUseDrift(true);
+  }
 
   // Read Truth Trees
-  TBranch* truthbranch = NULL ; //(TBranch*) t->GetBranch(prefixa + "_volume_t".c_str());
-  if (truthbranch){
-    std::cout << "========================================= " << std::endl;
-    std::cout << "APP: Reading Truth Inputs" << std::endl;
+  // TBranch* truthbranch = (TBranch*) t->GetBranch((prefixa + "_trueexit_t").c_str());
+  // if (truthbranch) {
+  //   // std::cout << "========================================= " << std::endl;
+  //   std::cout << "APP: Reading Truth Inputs" << std::endl;
+  // }
+  bool fIsMC = true;
+  TrueMCReader* truefit = NULL;
+  if (fIsMC){
+    truefit = new TrueMCReader();
+    truefit->ReadInputTTree(t, prefixa, prefixb);
   }
+
+  t->SetCacheSize(100000000);
 
 
   // Make output File
-  std::cout << "========================================= " << std::endl;
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Creating Output Tree" << std::endl;
 
   std::string strippedinput = gInputFile;
@@ -347,22 +356,8 @@ int main(int argc, char** argv) {
   otree->Branch("mctruth", fMCTruth, "energy/D:p:px:py:pz:v:scatterangle:passflag");
 
 
-
   std::cout << "========================================= " << std::endl;
-  std::cout << "APP: Creating Histograms" << std::endl;
-
-  // TH1F* cutHisto = new TH1F("cuthisto", "Number of events after each cut step", 13, 0, 13);
-  // TH1F* pAccHisto = new TH1F("p_acc_histo","Momentum accuracy",500, -2, 30);
-  // TH1F* pAccCorrHisto = new TH1F("p_acc_corr_histo","Momentum accuracy (corrected)",500, -2, 30);
-
-  // TH2F* estVsTrueHisto = new TH2F("P_true_P_est", "Estimated Pagainst true P; P estimate; P true",100,-100,15000,100,-100,12000);
-  // TH2F* sigmaVsTrueHisto = new TH2F("Sigma_P_true","Sigma against 1/P_true; 1/P_true; sigma",100,0,0.003,100,0,0.03);
-
-
-
-
-  std::cout << "========================================= " << std::endl;
-  std::cout << "APP: Creating Minimizer" << std::endl;
+  std::cout << "APP: Event Loop" << std::endl;
 
   // ROOT::Minuit2::MnPrint::SetLevel(-1);
   gErrorIgnoreLevel = 1001;
@@ -375,93 +370,64 @@ int main(int argc, char** argv) {
   int savecount = 0;
   int n = t->GetEntries();
 
+  int nbadtotal = 0;
+  int nbadsingle = 0;
+  int nlowrpcs = 0;
+  int ndriftrpcs = 0;
+
   // Loop over all entries
   for (int i = 0; i < t->GetEntries(); i++) {
 
     // Read Event
     t->GetEntry(i);
+    pocafit->PreProcessData();
 
-    if (i % 10000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
-
-    // std::cout << "Clearing" << std::endl;
-    // Clear vectors if not using certain components
-    if (gInputMode == kUseRPC) {
-      pocafit->ClearDriftVectors();
-      pocafit->SetUseRPC(true);
-      pocafit->SetUseDrift(false);
-
-    }
-    if (gInputMode == kUseDrift) {
-      pocafit->ClearRPCVectors();
-      pocafit->SetUseRPC(false);
-      pocafit->SetUseDrift(true);
-    }
-
-    // std::cout << "Offsetting" << std::endl;
-    pocafit->ApplyOffsets();
-
-
-    // std::cout << " NDrift : " << pocafit->GetNAboveDriftX()<< " " << pocafit->GetNAboveDriftY()<< " " << pocafit->GetNBelowDriftX()<< " " << pocafit->GetNBelowDriftY() << std::endl;
-
+    if (i % 20000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
+    // std::cout << " New Event " << std::endl;
 
     // Apply NHit cuts
     if (gInputMode == kUseRPC || gInputMode == kUseAll) {
-      if (pocafit->GetNAboveRPCX()   < fMinARPCX) continue;
-      if (pocafit->GetNAboveRPCY()   < fMinARPCY) continue;
-      if (pocafit->GetNBelowRPCX()   < fMinBRPCX) continue;
-      if (pocafit->GetNBelowRPCY()   < fMinBRPCY) continue;
+      if (pocafit->GetNAboveRPCX()   != fMinARPCX ||
+          pocafit->GetNAboveRPCY()   != fMinARPCY ||
+          pocafit->GetNBelowRPCX()   != fMinBRPCX ||
+          pocafit->GetNBelowRPCY()   != fMinBRPCY) {
+
+        nlowrpcs++;
+        continue;
+      }
     }
 
     if (gInputMode == kUseDrift || gInputMode == kUseAll) {
-      if (pocafit->GetNAboveDriftX() < fMinADriftX) continue;
-      if (pocafit->GetNAboveDriftY() < fMinADriftY) continue;
-      if (pocafit->GetNBelowDriftX() < fMinBDriftX) continue;
-      if (pocafit->GetNBelowDriftY() < fMinBDriftY) continue;
+      if (pocafit->GetNAboveDriftX() != fMinADriftX ||
+          pocafit->GetNAboveDriftY() != fMinADriftY ||
+          pocafit->GetNBelowDriftX() != fMinBDriftX ||
+          pocafit->GetNBelowDriftY() != fMinBDriftY) {
+
+        ndriftrpcs++;
+        continue;
+      }
     }
-    // std::cout << "Got Hits " << std::endl;
-    // std::cout << " NDrift : Below : " << pocafit->GetNBelowDriftX() << " " << pocafit->GetNBelowDriftY() << std::endl;
-    // std::cout << " NDrift : Above : " << pocafit->GetNAboveDriftX() << " " << pocafit->GetNAboveDriftY() << std::endl;
-    
 
     // Get the best fit drift combinations for this event
     if (pocafit->GetNAboveDriftX()) {
-      comboax = pocafit->GetBestComboForDriftHits(BristolPoCAFitter::kFitAllAboveX);
-      pocafit->SetAboveComboX(&comboax);
+      pocafit->GetBestComboForDriftHits(kDriftAboveX);
     }
-    if (pocafit->GetNAboveDriftY()) {
-      comboay = pocafit->GetBestComboForDriftHits(BristolPoCAFitter::kFitAllAboveY);
-      pocafit->SetAboveComboY(&comboay);
-    }
+
     if (pocafit->GetNBelowDriftX()) {
-      combobx = pocafit->GetBestComboForDriftHits(BristolPoCAFitter::kFitAllBelowX);
-      pocafit->SetBelowComboX(&combobx);
+      pocafit->GetBestComboForDriftHits(kDriftBelowX);
     }
+
+    if (pocafit->GetNAboveDriftY()) {
+      pocafit->GetBestComboForDriftHits(kDriftAboveY);
+    }
+
     if (pocafit->GetNBelowDriftY()) {
-      comboby = pocafit->GetBestComboForDriftHits(BristolPoCAFitter::kFitAllBelowY);
-      pocafit->SetBelowComboY(&comboby);
+      pocafit->GetBestComboForDriftHits(kDriftBelowY);
     }
-    // std::cout << "Predicting" << std::endl;
-
-    // Get the starting track values for above and below
-    pocafit->SetUseAll();
-
-    double startpx1 = pocafit->PredictStartBelowPX();
-    double startpy1 = pocafit->PredictStartBelowPY();
-    double startpx2 = pocafit->PredictStartAbovePX();
-    double startpy2 = pocafit->PredictStartAbovePY();
-
-    // Set the starting PoCA as the mean
-    double startx = pocafit->PredictStartPoCAX();
-    double starty = pocafit->PredictStartPoCAY();
-    double startz = pocafit->PredictStartPoCAZ();
-
-    // Tell POCA to use all available information in subsequent fit
-    pocafit->SetUseAll();
 
     // Run an upper and lower single track fit here
     double pocafitparams[16] = {0.};
     pocafit->PerformDoubleTrackPoCAFit(pocafitparams);
-
     double stf_above_x  = pocafitparams[0];
     double stf_above_px = pocafitparams[1];
 
@@ -473,9 +439,8 @@ int main(int argc, char** argv) {
 
     double stf_below_y  = pocafitparams[6];
     double stf_below_py = pocafitparams[7];
-    pocafit->SetUseAll();
 
-    // // Save PoCA Results
+    // Save PoCA Results
     fPOCAScattering[0] = pocafitparams[8]; // ScatterX
     fPOCAScattering[1] = pocafitparams[9]; // ScatterY
     fPOCAScattering[2] = pocafitparams[10]; // Scatter3D
@@ -484,36 +449,39 @@ int main(int argc, char** argv) {
     fPOCAScattering[4] = pocafitparams[12]; // fitVy;
     fPOCAScattering[5] = pocafitparams[13]; // fitVz;
 
-    // std::cout << "Calcing" << std::endl;
     // Apply Cuts to fits
-    double chi2arpcx = pocafit->GetChi2AboveRPCX( stf_above_x, stf_above_px, 0.0 );
-    double chi2arpcy = pocafit->GetChi2AboveRPCY( stf_above_y, stf_above_py, 0.0 );
-    double chi2brpcx = pocafit->GetChi2BelowRPCX( stf_below_x, stf_below_px, 0.0 );
-    double chi2brpcy = pocafit->GetChi2BelowRPCY( stf_below_y, stf_below_py, 0.0 );
+    double chi2arpcx = pocafit->EvaluateTrackResidual( stf_above_x, stf_above_px, 0.0, kRPCAboveX);
+    double chi2arpcy = pocafit->EvaluateTrackResidual( stf_above_y, stf_above_py, 0.0, kRPCAboveY);
+    double chi2brpcx = pocafit->EvaluateTrackResidual( stf_below_x, stf_below_px, 0.0, kRPCBelowX);
+    double chi2brpcy = pocafit->EvaluateTrackResidual( stf_below_y, stf_below_py, 0.0, kRPCBelowY);
 
-    double chi2adriftx = pocafit->GetChi2AboveDriftX( stf_above_x, stf_above_px, 0.0 );
-    double chi2adrifty = pocafit->GetChi2AboveDriftY( stf_above_y, stf_above_py, 0.0 );
-    double chi2bdriftx = pocafit->GetChi2BelowDriftX( stf_below_x, stf_below_px, 0.0 );
-    double chi2bdrifty = pocafit->GetChi2BelowDriftY( stf_below_y, stf_below_py, 0.0 );
-    pocafit->SetUseAll();
+    double chi2adriftx = pocafit->EvaluateTrackResidual( stf_above_x, stf_above_px, 0.0, kDriftAboveX);
+    double chi2adrifty = pocafit->EvaluateTrackResidual( stf_above_y, stf_above_py, 0.0, kDriftAboveY);
+    double chi2bdriftx = pocafit->EvaluateTrackResidual( stf_below_x, stf_below_px, 0.0, kDriftBelowX);
+    double chi2bdrifty = pocafit->EvaluateTrackResidual( stf_below_y, stf_below_py, 0.0, kDriftBelowY);
 
     fScattering[18] = chi2arpcx + chi2adriftx; // event.xUchi2;
     fScattering[19] = chi2arpcy + chi2adrifty; // event.yUchi2;
     fScattering[20] = chi2brpcx + chi2bdriftx; // event.xLchi2;
     fScattering[21] = chi2brpcy + chi2bdrifty; // event.yLchi2;
 
-
     fScattering[22] = pocafitparams[14]; //chi2arpcx + chi2adriftx + chi2brpcx + chi2bdriftx; // event.xchi2;
     fScattering[23] = pocafitparams[15]; //chi2arpcy + chi2adrifty + chi2brpcy + chi2bdrifty; // event.ychi2;
     fScattering[24] = fMinuitParams[0]; // chi2
 
+
     double ChiSquareCut3Points = 2000;
     if (gInputMode != kUseAll) ChiSquareCut3Points = 1000;
 
-    if (fScattering[18] > ChiSquareCut3Points || 
+    if (fScattering[18] > ChiSquareCut3Points ||
         fScattering[19] > ChiSquareCut3Points ||
         fScattering[20] > ChiSquareCut3Points ||
         fScattering[21] > ChiSquareCut3Points) {
+      nbadsingle++;
+
+      // std::cout << " Ind Chi2 : " << fScattering[18] << " " << fScattering[19] << " " << fScattering[20] << " " << fScattering[21] << std::endl;
+      // pocafit->PrintCombos();
+      // sleep(2);
       continue;
     }
 
@@ -528,7 +496,6 @@ int main(int argc, char** argv) {
     mn_param.Add("py1", 0.0, 10);
     mn_param.Add("py2", 0.0, 10);
 
-    pocafit->SetUseAll();
 
     // Minimisation
     ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
@@ -537,7 +504,7 @@ int main(int argc, char** argv) {
     ROOT::Minuit2::MnAlgebraicSymMatrix MinCovarMatrix = min.Error().Matrix();
     ROOT::Minuit2::MnAlgebraicVector MinParams = min.Parameters().Vec();
 
-    for (int j = 0; j < npars; j++){
+    for (int j = 0; j < npars; j++) {
       fBestFitPars[j] = MinParams[j];
     }
 
@@ -561,75 +528,18 @@ int main(int argc, char** argv) {
       }
     }
 
-    pocafit->SetUseAll();
 
-
-
-    // Create Minimizer Object
-    // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-    // min->SetPrintLevel(-1);
-    // min->SetMaxIterations(int(1E15));
-    // min->SetMaxFunctionCalls(int(1E20));
-    // min->SetTolerance(0.001);
-    // min->SetStrategy(2);
-
-    /*
-    // Setup Functor for the fitter
-    int npars = 7;
-    BristolPoCAFitterFCN* fcn = new BristolPoCAFitterFCN(pocafit);
-    ROOT::Math::Functor func(*fcn, npars);
-    min->SetFunction(func);
-    */
-    // Tell Minuit the variables
-    // min->SetVariable(0, "rx",  pocafitparams[11],   10.0);
-    // min->SetVariable(1, "ry",  pocafitparams[12],   10.0);
-    // min->SetVariable(2, "rz",  pocafitparams[13],   10.0);
-    // min->SetVariable(3, "px1", stf_above_px,        10.0);
-    // min->SetVariable(4, "px2", stf_below_px,        10.0);
-    // min->SetVariable(5, "py1", stf_above_py,        10.0);
-    // min->SetVariable(6, "py2", stf_below_py,        10.0);
-    /*
-    // Tell Minuit the variables
-    min->SetVariable(0, "rx",  225.0, 10.0);
-    min->SetVariable(1, "ry",  225.0, 10.0);
-    min->SetVariable(2, "rz",  -250.0, 10.0);
-    min->SetVariable(3, "px1", 0.0, 10.0);
-    min->SetVariable(4, "px2", 0.0, 10.0);
-    min->SetVariable(5, "py1", 0.0, 10.0);
-    min->SetVariable(6, "py2", 0.0, 10.0);
-
-    // Run the fit
-    min->Minimize();
-
-    // Get results
-    const double* xx = min->X();
-    for (int j = 0; j < npars; j++) {
-      fBestFitPars[j] = xx[j];
-    }
-
-    // Get Minuit Params
-    Double_t istat = 0;
-    if (min->CovMatrixStatus() > 0) istat = 3;
-    fMinuitParams[0] = pocafit->DoEval(xx);
-    fMinuitParams[1] = min->Edm();
-    fMinuitParams[2] = min->ErrorDef();
-    fMinuitParams[3] = 7;
-    fMinuitParams[4] = 7;
-    fMinuitParams[5] = istat;
-
-    // Cut on Chi2
-    min->GetCovMatrix(fCovarMatrix);
-    */
 
     double CombinedChi2Cut = 2000;
-    // if (gInputMode != kUseAll) CombinedChi2Cut = 1000;
-
-    if (fMinuitParams[0] > CombinedChi2Cut){
+    if (gInputMode != kUseAll) CombinedChi2Cut = 1000;
+    if (fMinuitParams[0] > CombinedChi2Cut) {
+      nbadtotal++;
+      // std::cout << "Final Chi2 " << fMinuitParams[0] << std::endl;
+      // pocafit->PrintCombos();
       continue;
-    }      
+    }
 
     // Get the covariance
-
     // Read params for calculations
     double fitVx  = fBestFitPars[0];
     double fitVy  = fBestFitPars[1];
@@ -653,21 +563,20 @@ int main(int argc, char** argv) {
     fScattering[1] = grad1Y.Angle(grad2Y); // Scatter Angle Y
     fScattering[2] = grad1.Angle(grad2); // Scatter Angle 3d
 
-    double projux = (fitVx + fitpx1 * (fitVz - pocafit->GetLowestXZAbove()));
-    double projuy = (fitVy + fitpy1 * (fitVz - pocafit->GetLowestYZAbove()));
-    double projlx = (fitVx + fitpx2 * (fitVz - pocafit->GetHighestXZBelow()));
-    double projly = (fitVy + fitpy2 * (fitVz - pocafit->GetHighestYZBelow()));
+    double projux = (fitVx + fitpx1 * (fitVz - pocafit->GetLowestZ(kAboveX)));
+    double projuy = (fitVy + fitpy1 * (fitVz - pocafit->GetLowestZ(kAboveY)));
+    double projlx = (fitVx + fitpx2 * (fitVz - pocafit->GetHighestZ(kBelowX)));
+    double projly = (fitVy + fitpy2 * (fitVz - pocafit->GetHighestZ(kBelowY)));
 
-    double U_offsetX = fabs( pocafit->GetLowestXXAbove()  - projux);
-    double U_offsetY = fabs( pocafit->GetLowestYYAbove()  - projuy);
-    double L_offsetX = fabs( pocafit->GetHighestXXBelow() - projlx);
-    double L_offsetY = fabs( pocafit->GetHighestYYBelow() - projly);
+    double U_offsetX = fabs( pocafit->GetLowestHit(kAboveX)  - projux);
+    double U_offsetY = fabs( pocafit->GetLowestHit(kAboveY)  - projuy);
+    double L_offsetX = fabs( pocafit->GetHighestHit(kBelowX) - projlx);
+    double L_offsetY = fabs( pocafit->GetHighestHit(kBelowY) - projly);
 
     fScattering[3] = U_offsetX; // Find lowest Z point in X
     fScattering[4] = U_offsetY; // Find lowest Z point in Y
     fScattering[5] = L_offsetX; // Find highest Z point in X
     fScattering[6] = L_offsetY; // Find highest Z point in Y
-    pocafit->SetUseAll();
 
     // Unknown
     fScattering[7] = 0.0;
@@ -715,23 +624,30 @@ int main(int argc, char** argv) {
     fScattering[27] = UPoCA_Vy;
     fScattering[28] = LPoCA_Vy;
 
-    // Get Truth Information
-    fMCTruth[0] = pocafit->GetTrueEnergy();
-    fMCTruth[1] = pocafit->GetTrueP();
-    fMCTruth[2] = pocafit->GetTruePX();
-    fMCTruth[3] = pocafit->GetTruePY();
-    fMCTruth[4] = pocafit->GetTruePZ();
-    fMCTruth[5] = pocafit->GetTrueV();
-    fMCTruth[6] = pocafit->GetScatterAngle();
-    fMCTruth[7] = pocafit->GetPassFlag();
+    // // Get Truth Information
+    if (truefit) {
+      fMCTruth[0] = truefit->GetTrueEnergy();
+      fMCTruth[1] = truefit->GetTrueP();
+      fMCTruth[2] = truefit->GetTruePX();
+      fMCTruth[3] = truefit->GetTruePY();
+      fMCTruth[4] = truefit->GetTruePZ();
+      fMCTruth[5] = truefit->GetTrueV();
+      fMCTruth[6] = truefit->GetScatterAngle();
+      fMCTruth[7] = truefit->GetPassFlag();
+    }
 
     // Fill this event
     otree->Fill();
-    savecount++;  
+    savecount++;
 
     // Clean up look sharp
     //delete min;
   }
+
+  std::cout << "N Bad Total : " << nbadtotal << std::endl;
+  std::cout << "N Bad Single : " << nbadsingle << std::endl;
+  std::cout << "N Low RPCs : " << nlowrpcs << std::endl;
+  std::cout << "N Drift RPCs : " << ndriftrpcs << std::endl;
 
   // Save outputs to TTree
   o->cd();

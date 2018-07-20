@@ -16,6 +16,13 @@ SimpleScintillatorSD::SimpleScintillatorSD(DBTable tbl):
     // Set initial state
     ResetState();
 
+    // Get the efficiency
+    fEfficiency = 1.0;
+    if (tbl.Has("efficiency")) {
+        fEfficiency = tbl.GetD("efficiency");
+        std::cout << "TRG: Setting Efficiency : " << fEfficiency << std::endl;
+    }
+
     // By default also include the auto processor
     if (!tbl.Has("processor") or tbl.GetI("processor") > 0) {
         Analysis::Get()->RegisterProcessor(new SimpleScintillatorProcessor(this));
@@ -55,6 +62,13 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     if (edep <= 0.) {
         return false;
     }
+
+    if (fEfficiency != 1.0) {
+        G4double r = G4UniformRand();
+        if (r > fEfficiency) return false;
+    }
+
+
     G4Track* track = step->GetTrack();
 
     // Get the step inside the detector
@@ -62,7 +76,9 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     G4TouchableHistory* touchable = (G4TouchableHistory*)(preStepPoint->GetTouchable());
 
     // Get the position of the volume associated with the step
-    G4ThreeVector volume_position = touchable->GetVolume()->GetTranslation()/m;
+    G4ThreeVector volume_position = touchable->GetVolume()->GetTranslation() / m;
+    G4int this_id = touchable->GetVolume()->GetCopyNo();
+
     // std::cout << "Vol: " << volume_position << std::endl;
 
     // Get the hitTime
@@ -72,6 +88,7 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     hit->SetParticleType((int) track->GetParticleDefinition()->GetPDGEncoding());
     hit->SetEdep(edep);
     hit->SetTime(hitTime);
+    hit->SetID(1);
     hit->SetPos(preStepPoint->GetPosition());
     hit->SetVolPos(volume_position);
     hit->SetAngles(track->GetMomentumDirection());
@@ -143,7 +160,6 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
 
     // Now average
     fTime /= nhits + 0.;
-
     fPosX /= nhits + 0.;
     fPosY /= nhits + 0.;
     fPosZ /= nhits + 0.;
@@ -155,8 +171,8 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
     fThetaXZ /= nhits + 0.;
     fThetaYZ /= nhits + 0.;
 
-    fPDG = (double) ( *(hc) )[0]->GetType();
-
+    fPDG = (int) ( *(hc) )[0]->GetType();
+    fID = (int) (*(hc))[0]->GetID();
 
     // Register Trigger State
     fHasInfo = fEdep > 0.0;
@@ -182,6 +198,7 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
 
         man->FillNtupleDColumn(fThXZIndex, fThetaXZ);
         man->FillNtupleDColumn(fThYZIndex, fThetaYZ);
+        man->FillNtupleDColumn(fIdIndex, fId);
 
         return true;
     } else {
@@ -199,7 +216,7 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
         man->FillNtupleDColumn(fVolPosZIndex, -999.);
         man->FillNtupleDColumn(fThXZIndex, -999.);
         man->FillNtupleDColumn(fThYZIndex, -999.);
-
+        man->FillNtupleDColumn(fIdIndex, -999.);
         return false;
     }
 }

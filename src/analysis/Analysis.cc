@@ -11,6 +11,7 @@
 #include "VTrigger.hh"
 #include "VFluxProcessor.hh"
 #include "VDetector.hh"
+#include "analysis/Analysis.hh"
 
 namespace COSMIC {
 
@@ -259,6 +260,9 @@ void Analysis::PrintProgress(int curcount, int totalcount) {
   // Only print every 1000 events regardless
   if (curcount % 1000 != 0 or curcount == 0) return;
 
+  std::cout << "Generated : " << curcount << std::endl;
+  return;
+
   // Get time taken so far
   long int curtime = time(0);
   long int prctime = curtime - fStartTime;
@@ -266,30 +270,30 @@ void Analysis::PrintProgress(int curcount, int totalcount) {
   // Print N Events
   if (fRunMode == kEventMode) {
 
-    double remtime = double(totalcount*prctime/double(curcount));
+    double remtime = double(totalcount * prctime / double(curcount));
 
-    if (curcount - fLastCount > totalcount/20.0) {
+    if (curcount - fLastCount > totalcount / 20.0) {
       std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60 << " min. "
                 << "Approx. " << remtime / 60 << " min remaining." << std::endl;
       fLastCount = curcount;
     }
 
-  } else if (fRunMode == kTimeExposureMode){
+  } else if (fRunMode == kTimeExposureMode) {
 
     double curexposure = GetExposureTime();
-    double remtime = double((fRequiredExposure-curexposure)*prctime/curexposure);
+    double remtime = double((fRequiredExposure - curexposure) * prctime / curexposure);
 
-    if (curexposure - fLastCount > (fRequiredExposure/20.0)) {
-      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime/60.0  << " minutes. "
-                << "Approx. " << remtime/60.0  << " min remaining. Exposure : " << int(curexposure) << "/" << fRequiredExposure << std::endl;
+    if (curexposure - fLastCount > (fRequiredExposure / 20.0)) {
+      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
+                << "Approx. " << remtime / 60.0  << " min remaining. Exposure : " << int(curexposure) << "/" << fRequiredExposure << std::endl;
       fLastCount = curexposure;
     }
-  } else if (fRunMode == kTriggerMode){
+  } else if (fRunMode == kTriggerMode) {
 
-    double remtime = double((fRequiredTriggers-fSavedEvents)*prctime/fSavedEvents);
-    if (fSavedEvents - fLastCount > (fRequiredTriggers/20.0)){
-      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime/60.0  << " minutes. "
-                << "Approx. " << remtime/60.0  << " min remaining. Triggers : " << fSavedEvents << "/" << fRequiredTriggers << std::endl;
+    double remtime = double((fRequiredTriggers - fSavedEvents) * prctime / fSavedEvents);
+    if (fSavedEvents - fLastCount > (fRequiredTriggers / 20.0)) {
+      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
+                << "Approx. " << remtime / 60.0  << " min remaining. Triggers : " << fSavedEvents << "/" << fRequiredTriggers << std::endl;
       fLastCount = fSavedEvents;
     }
 
@@ -297,6 +301,14 @@ void Analysis::PrintProgress(int curcount, int totalcount) {
   }
 }
 
+G4VVisManager* Analysis::GetVisManager() {
+  if (fInteractive) {
+    G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+    return pVVisManager;
+  } else {
+    return NULL;
+  }
+}
 } // - namespace COSMIC
 
 

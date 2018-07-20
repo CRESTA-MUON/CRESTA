@@ -60,36 +60,36 @@ void LargeSteelDrum::Construct(DBTable table)
     
   	// - Uniform Shell
   	std::string shell_name = "unishell";
-    G4Tubs* shell_sol = new G4Tubs( shell_name, 0.0, shell_r_max, shell_size_z/2.0, 0.0, CLHEP::twopi);
+	G4Tubs* shell_sol = new G4Tubs( shell_name, 0.0, shell_r_max, shell_size_z/2.0, 0.0, CLHEP::twopi);
 
-    // - End Cap
-    std::string cap_name = "cap";
-    G4Tubs* cap_sol = new G4Tubs( cap_name, 0.0, cap_r_max, cap_size_z/2.0, 0.0, CLHEP::twopi);
-    G4ThreeVector cap_pos = G4ThreeVector(0.0, 0.0, 0.5*(shell_size_z+cap_size_z));
-
-    // - Base Cap
-    std::string base_name = "base";
-    G4Tubs* base_sol = new G4Tubs( base_name, 0.0, base_r_max, base_size_z/2.0, 0.0, CLHEP::twopi);
-    G4ThreeVector base_pos = G4ThreeVector(0.0, 0.0, -0.5*(shell_size_z+base_size_z));
-
-    // Torus Ring
-    std::string tors_name = "torus";
-    G4Torus* tors_sol = new G4Torus( tors_name, 0.0, ring_radius, shell_r_max, 0.0, CLHEP::twopi);
-    G4ThreeVector tors_pos = G4ThreeVector(0.0, 0.0, 0.0);
-    G4ThreeVector tors_off = G4ThreeVector(0.0, 0.0, 1.0*m);
-
-
-    // Combined Drum Volume
+	// - End Cap
+	std::string cap_name = "cap";
+	G4Tubs* cap_sol = new G4Tubs( cap_name, 0.0, cap_r_max, cap_size_z/2.0, 0.0, CLHEP::twopi);
+	G4ThreeVector cap_pos = G4ThreeVector(0.0, 0.0, 0.5*(shell_size_z+cap_size_z));
+	
+	// - Base Cap
+	std::string base_name = "base";
+	G4Tubs* base_sol = new G4Tubs( base_name, 0.0, base_r_max, base_size_z/2.0, 0.0, CLHEP::twopi);
+	G4ThreeVector base_pos = G4ThreeVector(0.0, 0.0, -0.5*(shell_size_z+base_size_z));
+	
+	// Torus Ring
+	std::string tors_name = "torus";
+	G4Torus* tors_sol = new G4Torus( tors_name, 0.0, ring_radius, shell_r_max, 0.0, CLHEP::twopi);
+	G4ThreeVector tors_pos = G4ThreeVector(0.0, 0.0, 0.0);
+	G4ThreeVector tors_off = G4ThreeVector(0.0, 0.0, 1.0*m);
+	
+	
+	// Combined Drum Volume
 	G4VSolid* steel_sol        = new G4UnionSolid("shell", shell_sol, cap_sol,  0, cap_pos);
 	steel_sol                  = new G4UnionSolid("shell", steel_sol,  base_sol, 0, base_pos);
-
-    G4VSolid* rings_sol = new G4UnionSolid("rings", tors_sol, tors_sol, 0, -0.20*tors_off);
-    rings_sol = new G4UnionSolid("rings", rings_sol, tors_sol, 0, -0.50*tors_off);
-    rings_sol = new G4UnionSolid("rings", rings_sol, tors_sol, 0, -0.70*tors_off);
-
-    G4VSolid* drum_sol                  = new G4UnionSolid("drum", steel_sol, rings_sol, 0, 0.35*tors_off);
-    G4LogicalVolume* drum_log = new G4LogicalVolume(drum_sol, shell_mat, "drum");
-
+	
+	G4VSolid* rings_sol = new G4UnionSolid("rings", tors_sol, tors_sol, 0, -0.20*tors_off);
+	rings_sol = new G4UnionSolid("rings", rings_sol, tors_sol, 0, -0.50*tors_off);
+	rings_sol = new G4UnionSolid("rings", rings_sol, tors_sol, 0, -0.70*tors_off);
+	
+	G4VSolid* drum_sol        = new G4UnionSolid(fName + "_outer", steel_sol, rings_sol, 0, 0.35*tors_off);
+	G4LogicalVolume* drum_log = new G4LogicalVolume(drum_sol, shell_mat, fName + "_outer");
+	
     // --------------------------------------------------------------------------
     // Set Vis of the main drum
     G4VisAttributes *drum_vis = new G4VisAttributes();

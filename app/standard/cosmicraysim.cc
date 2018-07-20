@@ -90,7 +90,7 @@ int gNTriggers = -1; ///< Number of triggered events to generate
 // Mode : Generate t exposure
 int gExposureTime = -1; ///< Number of seconds exposure to generate
 
-int gProcessingChunks = 10000; ///< By default what the chunk size should be
+int gProcessingChunks = 100000; ///< By default what the chunk size should be
 
 // User Defined Geometry files
 std::vector<std::string> gGeomtryFiles;

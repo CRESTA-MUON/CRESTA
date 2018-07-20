@@ -16,7 +16,7 @@ CoincidenceTrigger::CoincidenceTrigger(DBTable tbl)
   std::cout << "TRG: Loading Coincidence Trigger : " << tbl.GetIndexName() << std::endl;
 
   // Get list of detector objects
-  if (tbl.Has("processors")){
+  if (tbl.Has("processors")) {
     SetupProcessors(tbl.GetVecS("processors"));
   }
 
@@ -27,17 +27,24 @@ CoincidenceTrigger::CoincidenceTrigger(DBTable tbl)
     std::cout << "TRG: Setting Energy Threshold : " << fEnergyThreshold << std::endl;
   }
 
-  if (tbl.Has("require_n")){
+  if (tbl.Has("require_n")) {
     fRequireN = tbl.GetI("require_n");
     std::cout << "TRG: Setting Coincident Detectors : " << fRequireN << std::endl;
   }
+
+  fEfficiency = 1.0;
+  if (tbl.Has("efficiency")) {
+    fEfficiency = tbl.GetD("efficiency");
+    std::cout << "TRG: Setting Efficiency : " << fEfficiency << std::endl;
+  }
+
 
 
 }
 
 CoincidenceTrigger::CoincidenceTrigger(std::string name,
-                             std::vector<std::string> processors,
-                             G4int N, G4double energy_thresh) : VTrigger(name)
+                                       std::vector<std::string> processors,
+                                       G4int N, G4double energy_thresh) : VTrigger(name)
 {
 
   SetupProcessors(processors);
@@ -60,14 +67,18 @@ bool CoincidenceTrigger::ProcessTrigger(const G4Event* /*event*/) {
   // Trigger requires all detectors to be triggered within a certain time window
   bool complete_trig = false;
   int triggers = 0;
-  for (uint i = 0; i < fProcessors.size(); i++){
+  for (uint i = 0; i < fProcessors.size(); i++) {
     G4double ener = fProcessors[i]->GetEnergy();
     if (ener > fEnergyThreshold) triggers++;
   }
 
-  if(triggers>=fRequireN) complete_trig = true;
+  if (triggers >= fRequireN) complete_trig = true;
 
-  // std::cout << "Returning True Trigger : " << complete_trig << std::endl;
+  if (complete_trig and fEfficiency != 1.0) {
+    G4double r = G4UniformRand();
+    if (r > fEfficiency) complete_trig = false;
+  }
+
   fTriggered = complete_trig;
 
   return complete_trig;

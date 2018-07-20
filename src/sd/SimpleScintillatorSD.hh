@@ -26,6 +26,7 @@
 #include "analysis/VProcessor.hh"
 #include "analysis/VDetector.hh"
 #include "ScintillatorHit.hh"
+#include "Randomize.hh"
 
 #include "db/DBTable.hh"
 
@@ -60,6 +61,7 @@ protected:
 
   ScintillatorHitsCollection* fHitsCollection;
   G4int fHCID;
+  G4double fEfficiency;
 
 };
 
@@ -116,6 +118,9 @@ protected:
   G4double fPDG;
   G4double fThetaXZ;
   G4double fThetaYZ;
+  G4int fId;
+  int fTrg;
+  int fIdIndex;
 
   int fTimeIndex;
   int fPDGIndex;

@@ -47,7 +47,15 @@ add_definitions(-DG4ANALYSIS_USE_ROOT)
 include(${Geant4_USE_FILE})
 include_directories(${ROOT_INCLUDE_DIR} ${Geant4_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/geo/)
 
-SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lMinuit2)
+SET(LINK_LIBRARIES ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+
+# Check for Minuit2
+string(FIND "${LINK_LIBRARIES}" "Minuit2" minuit2pos)
+message(STATUS "Looking for Minuit2 ${minuit2pos}")
+if("${minuit2pos}" EQUAL "-1")
+  message(STATUS "Adding Minuit2 libs as not enabled by default!")
+  SET(LINK_LIBRARIES "${LINK_LIBRARIES} -lMinuit2")
+endif()
 
 #----------------------------------------------------------------------------
 # USE CADMESH
@@ -74,10 +82,10 @@ if(USE_CADMESH)
     endif()
 
     # Add libraries and headers if so.
-    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} {CADMESH_DIR}/lib/")
+    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${CADMESH_DIR}/lib/")
     include_directories(${CADMESH_DIR}/include/)
     set(cadmesh_LIBRARIES "assimp;cadmesh;tet")
-    set(LINK_DIRS "${LINK_DIRS} -L{CADMESH_DIR}/lib/")
+    set(LINK_DIRS "${LINK_DIRS} -L${CADMESH_DIR}/lib/")
 #    find_library(cadmesh_LIBRARIES 
 #                 NAMES assimp cadmesh tet
 #                 HINTS "{CADMESH_DIR}/lib/}")
@@ -88,6 +96,27 @@ if(USE_CADMESH)
   SET(LINK_LIBRARIES "${LINK_LIBRARIES};${cadmesh_LIBRARIES}")
 
 endif()
+
+if(USE_GPERF)
+  
+  if(GPERF_DIR)
+    message(STATUS "Reading GPERF_DIR=${GPERF_DIR}")
+  else()
+    message(FATAL_ERROR "NO GPERF_DIR GIVEN")
+  endif()
+  
+  if (EXISTS ${GPERF_DIR})
+  else()
+    message(FATAL_ERROR "Invalid GPERF_DIR GIVEN")
+  endif()
+
+  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} {GPERF_DIR}/lib/")
+  include_directories(${GPERF_DIR}/include/)
+  set(LINK_LIBRARIES "${LINK_LIBRARIES};profiler")
+  set(LINK_DIRS "${LINK_DIRS} -L{GPERF_DIR}/lib/")
+
+endif()
+
 
 #----------------------------------------------------------------------------
 # USE PUMAS FLAG
@@ -136,6 +165,8 @@ target_link_libraries(chance_g4sim ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 add_executable(chance_trackfit ${PROJECT_SOURCE_DIR}/app/chance/chance_trackfit.cc)
 target_link_libraries(chance_trackfit ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
+add_executable(chance_discr ${PROJECT_SOURCE_DIR}/app/chance/chance_discr.cc)
+target_link_libraries(chance_discr ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
 if(USE_PUMAS)
 add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)

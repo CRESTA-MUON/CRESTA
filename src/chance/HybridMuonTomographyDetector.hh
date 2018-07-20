@@ -35,7 +35,7 @@
 #include "analysis/Analysis.hh"
 #include "sd/SimpleScintillatorSD.hh"
 
-
+#include "chance/ChannelMapping.hh"
 
 
 class G4LogicalVolume;
@@ -84,7 +84,7 @@ public:
 
   /// Fit a set of XY points
   void GetMXC(G4double& m, G4double& me, G4double& c, G4double& ce, std::vector<G4double>& x, std::vector<G4double>& y, std::vector<G4double>& yerr);
-void ResetVariables();
+  void ResetVariables();
 
   int ConvertHitInfo(std::string s);
 
@@ -107,31 +107,16 @@ protected:
   std::vector<BristolRPCProcessor*> fRPCProcs; ///< List of all drift processors
   std::vector<int> fRPCHitInfo;
 
-
   std::vector<double> fScintE;
   std::vector<double> fScintT;
 
-  std::vector<double> fRPCHits_XX;
-  std::vector<double> fRPCHits_XT;
-  std::vector<double> fRPCHits_XZ;
-  std::vector<double> fRPCHits_XE;
+  std::vector<double> fHits_Reco;
+  std::vector<double> fHits_True;
+  std::vector<double> fHits_ZPos;
+  std::vector<double> fHits_Error;
+  std::vector<double> fHits_Ghost;
+  std::vector<int>    fHits_Type;
 
-  std::vector<double> fRPCHits_YY;
-  std::vector<double> fRPCHits_YT;
-  std::vector<double> fRPCHits_YZ;
-  std::vector<double> fRPCHits_YE;
-
-  std::vector<double> fDriftHits_XX;
-  std::vector<double> fDriftHits_XG;
-  std::vector<double> fDriftHits_XT;
-  std::vector<double> fDriftHits_XZ;
-  std::vector<double> fDriftHits_XE;
-
-  std::vector<double> fDriftHits_YY;
-  std::vector<double> fDriftHits_YG;
-  std::vector<double> fDriftHits_YT;
-  std::vector<double> fDriftHits_YZ;
-  std::vector<double> fDriftHits_YE;
 
 };
 

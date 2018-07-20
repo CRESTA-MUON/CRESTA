@@ -153,12 +153,12 @@ ShuklaPrimaryGenerator::ShuklaPrimaryGenerator()
     G4int nofParticles = 1;
     fParticleGun  = new G4ParticleGun(nofParticles);
 
-
     // Now setup the particle integrals and source/target boxes
-    fEnergyPDF->SetRange(fMinEnergy*GeV, fMaxEnergy*GeV);
+    fEnergyPDF->SetRange(fMinEnergy * GeV, fMaxEnergy  * GeV);
     fSourceBox = false;
     GetSourceBox();
     GetTargetBoxes();
+    fEnergyPDF->SetRange(fMinEnergy  * GeV, fMaxEnergy * GeV); // E in MeV
 
     std::cout << "FLX: --> Complete." << std::endl;
 
@@ -262,8 +262,7 @@ std::vector<G4Box*> ShuklaPrimaryGenerator::GetTargetBoxes() {
         // Select tables with target box names
         std::string index = tbl.GetIndexName();
         if (index.find("target_box_") == std::string::npos) continue;
-        std::cout << " --> Loading : " << index << std::endl;
-        
+
         // If it has position and size we can use it
         if (!tbl.Has("position") || !tbl.Has("size")) {
             std::cout << "Failed to find/create target box!" << std::endl;
@@ -335,6 +334,7 @@ void ShuklaPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
     G4ThreeVector direction = G4ThreeVector();
     G4ThreeVector position = G4ThreeVector();
 
+    G4int num_target_boxes_hit=0;
     // The muon rate
     //  - fArea is in mm (internal G4 units) so need to convert to m
     G4double adjusted_rate = fFluxIntegrated*fArea/fSpeedUp;//< Adjust this rate if we are only sampling a smaller portion of the energy-angle PDF
@@ -344,7 +344,6 @@ void ShuklaPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
         throws++;
         // Sample point and direction
         direction = SampleDirection();
-        G4int num_target_boxes_hit=0;
 
         position[0] = fSourceBoxPosition[0] + fSourceBoxWidth[0] * (-1.0 + 2.0 * G4UniformRand()) ;
         position[1] = fSourceBoxPosition[1] + fSourceBoxWidth[1] * (-1.0 + 2.0 * G4UniformRand()) ;
@@ -362,7 +361,7 @@ void ShuklaPrimaryGenerator::GeneratePrimaries(G4Event* anEvent) {
             G4double d = (fTargetBoxes.at(i))->DistanceToIn(
                              position - fTargetBoxPositions.at(i), direction);
 
-	    
+
             if (d != kInfinity){
               // Increment the counter for the number of target boxes hit
               num_target_boxes_hit++;
@@ -486,20 +485,6 @@ bool ShuklaPrimaryFluxProcessor::ProcessEvent(const G4Event* /*event*/) {
 G4double ShuklaPrimaryFluxProcessor::GetExposureTime() {
     return fGenerator->GetMuonTime();
 }
-
-double ShuklaPrimaryFluxProcessor::GetEventRate(){
-  for (int i = 0; i < 1000; i++){
-    G4Event* g = new G4Event();
-    fGenerator->GeneratePrimaries(g);
-    delete g;
-  }
-  double rate = 1000.0 / GetExposureTime();
-  ResetExposureTime();
-  std::cout << "FLX: --> Total Shukla RATE : " << rate << std::endl;
-  return rate;
-}
-
-
 //---------------------------------------------------------------------------------
 
 } // - namespace COSMIC

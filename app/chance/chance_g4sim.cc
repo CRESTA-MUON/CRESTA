@@ -90,7 +90,7 @@ int gNTriggers = -1; ///< Number of triggered events to generate
 // Mode : Generate t exposure
 int gExposureTime = -1; ///< Number of seconds exposure to generate
 
-long int gProcessingChunks = 1E10; ///< By default what the chunk size should be
+long int gProcessingChunks = 1E7; ///< By default what the chunk size should be
 
 // User Defined Geometry files
 std::vector<std::string> gGeomtryFiles;
@@ -276,6 +276,8 @@ int main(int argc, char** argv) {
     std::cout << "========================================= " << std::endl;
     std::cout << "APP: Running Interactive Mode" << std::endl;
 
+    Analysis::Get()->SetInteractive(true);
+
 #ifdef G4UI_USE
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
 
@@ -301,6 +303,7 @@ int main(int argc, char** argv) {
 
     std::cout << "========================================= " << std::endl;
     std::cout << "APP: Running Batch Mode" << std::endl;
+    Analysis::Get()->SetInteractive(false);
 
     // Run initial configuration commands
     DBTable tbl = rdb->GetTable("GLOBAL", "config");
