@@ -150,6 +150,8 @@ public:
   G4VVisManager* GetVisManager();
 
 
+  void SetIntegratedRate(double r){ fIntegratedRate = r; };
+
 protected:
 
   static Analysis *fPrimary; ///< Singleton Object
@@ -185,6 +187,8 @@ protected:
   G4int fRequiredTriggers;
 
   bool fInteractive;
+
+  double fIntegratedRate;
 
 };
 

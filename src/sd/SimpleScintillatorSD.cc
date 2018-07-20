@@ -16,6 +16,13 @@ SimpleScintillatorSD::SimpleScintillatorSD(DBTable tbl):
     // Set initial state
     ResetState();
 
+    // Get the efficiency
+    fEfficiency = 1.0;
+    if (tbl.Has("efficiency")) {
+        fEfficiency = tbl.GetD("efficiency");
+        std::cout << "TRG: Setting Efficiency : " << fEfficiency << std::endl;
+    }
+
     // By default also include the auto processor
     if (!tbl.Has("processor") or tbl.GetI("processor") > 0) {
         Analysis::Get()->RegisterProcessor(new SimpleScintillatorProcessor(this));
@@ -55,6 +62,13 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     if (edep <= 0.) {
         return false;
     }
+
+    if (fEfficiency != 1.0) {
+        G4double r = G4UniformRand();
+        if (r > fEfficiency) return false;
+    }
+
+
     G4Track* track = step->GetTrack();
 
     // Get the step inside the detector
@@ -62,7 +76,7 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     G4TouchableHistory* touchable = (G4TouchableHistory*)(preStepPoint->GetTouchable());
 
     // Get the position of the volume associated with the step
-    G4ThreeVector volume_position = touchable->GetVolume()->GetTranslation()/m;
+    G4ThreeVector volume_position = touchable->GetVolume()->GetTranslation() / m;
     // std::cout << "Vol: " << volume_position << std::endl;
 
     // Get the hitTime

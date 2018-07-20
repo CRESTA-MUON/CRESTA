@@ -5,6 +5,7 @@
 #include "G4Event.hh"
 
 #include "analysis/VTrigger.hh"
+#include "Randomize.hh"
 
 namespace COSMIC {
 
@@ -40,7 +41,8 @@ protected:
   std::vector<VProcessor*> fProcessors; ///< Vector of all valid processors
   G4int fRequireN;// Requires N detectors to be hit in order to trigger
   G4double fEnergyThreshold; ///< Energy Threshold setting, applied to all processors
-
+  G4double fEfficiency;
+  
 };
 
 } // - namespace COSMIC
