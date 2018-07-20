@@ -118,6 +118,9 @@ protected:
   G4double fPDG;
   G4double fThetaXZ;
   G4double fThetaYZ;
+  G4int fId;
+  int fTrg;
+  int fIdIndex;
 
   int fTimeIndex;
   int fPDGIndex;
