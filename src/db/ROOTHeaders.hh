@@ -35,6 +35,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH2D.h"
+#include "TH3.h"
 #include "TF1.h"
 #include "TRandom3.h"
 #include "TVirtualFitter.h"

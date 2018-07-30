@@ -302,17 +302,6 @@ int main(int argc, char** argv) {
   // List of configs we care about
   // - Resolution
   // - Use RPC or Use Drift
-
-
-
-
-
-
-
-
-
-
-
   if (gInputMode == kUseRPC) {
     pocafit->SetUseRPC(true);
     pocafit->SetUseDrift(true);

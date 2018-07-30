@@ -5,8 +5,10 @@
 #include "G4RunManager.hh"
 #include "G4Event.hh"
 #include "G4SDManager.hh"
+#include "G4TransportationManager.hh"
 
 #include "db/DB.hh"
+#include "db/ROOTHeaders.hh"
 #include "VProcessor.hh"
 #include "VTrigger.hh"
 #include "VFluxProcessor.hh"
@@ -36,7 +38,76 @@ Analysis::~Analysis()
 Analysis *Analysis::fPrimary(0);
 
 
-void Analysis::BeginOfRunAction(const G4Run* run) {
+void Analysis::BuildMCMap() {
+
+  // Make new output file
+  std::string outputname = "";
+  outputname += fOutputTag + ".";
+  outputname += std::to_string(fRunID) + ".mcmap.root";
+
+  std::cout << "Making Map File" << std::endl;
+  TFile* mapfile = new TFile(outputname.c_str(), "RECREATE");
+  mapfile->cd();
+
+
+  std::cout << "Getting configuration" << std::endl;
+  // Build a new navigation history
+  DBTable configuration = DB::Get()->GetTable("DISCRIMINATOR", "config");
+
+  double grid_size = configuration.GetD("grid_size");
+
+  double xmin = configuration.GetD("grid_minx");
+  double xmax = configuration.GetD("grid_maxx");
+  int nbinsx = ((xmax - xmin)/grid_size);
+
+  double ymin = configuration.GetD("grid_miny");
+  double ymax = configuration.GetD("grid_maxy");
+  int nbinsy = ((ymax - ymin)/grid_size);
+
+  double zmin = configuration.GetD("grid_minz");
+  double zmax = configuration.GetD("grid_maxz");
+  int nbinsz = ((zmax - zmin)/grid_size);
+
+  std::cout << "Building density hist" << std::endl;
+  TH3D* density_hist = new TH3D("density_hist","density_hist", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
+
+  std::cout << "Getting Navigator" << std::endl;
+  G4Navigator* nav =  G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
+  std::cout << "Getting nav data " << nav << std::endl;
+  for (int i = 0; i < nbinsx; i++) {
+    for (int j = 0; j < nbinsy; j++) {
+      for (int k = 0; k < nbinsz; k++) {
+
+        double x = xmin + (i + 0.5) * grid_size;
+        double y = ymin + (j + 0.5) * grid_size;
+        double z = zmin + (k + 0.5) * grid_size;
+
+        G4VPhysicalVolume* phys = nav->LocateGlobalPointAndSetup(G4ThreeVector(x*mm, y*mm, z*mm));
+        if (!phys) continue;
+
+        G4LogicalVolume* log = phys->GetLogicalVolume();
+        if (!log) continue;
+
+        G4Material* mat = log->GetMaterial();
+        if (!mat) continue;
+
+        G4double density = mat->GetDensity() / (g / cm3);
+
+        density_hist->SetBinContent(i,j,k,density);
+
+      }
+    }
+  }
+  // Write the histograms
+  density_hist->Write();
+
+  // Clean up
+  mapfile->Close();
+
+  return;
+}
+
+void Analysis::BeginOfRunAction(const G4Run * run) {
 
   // Setup Ntuples
   if (!fNTuplesSetup) {
@@ -84,7 +155,7 @@ void Analysis::BeginOfEventAction() {
   ResetState();
 }
 
-void Analysis::ProcessEvent(const G4Event* event) {
+void Analysis::ProcessEvent(const G4Event * event) {
 
   // Run Flux Processor
   if (fFluxProcessor) fFluxProcessor->ProcessEvent(event);
@@ -120,7 +191,7 @@ void Analysis::ResetState() {
   ResetDetectors();
 }
 
-void Analysis::RegisterTrigger(VTrigger* t) {
+void Analysis::RegisterTrigger(VTrigger * t) {
   fTriggers.push_back(t);
 }
 
@@ -166,7 +237,7 @@ VTrigger* Analysis::GetTrigger(std::string id, bool silentfail) {
   return 0;
 }
 
-void Analysis::RegisterProcessor(VProcessor* p) {
+void Analysis::RegisterProcessor(VProcessor * p) {
   fProcessors.push_back(p);
 }
 
@@ -196,7 +267,7 @@ VProcessor* Analysis::GetProcessor(std::string id, bool silentfail) {
   return 0;
 }
 
-void Analysis::RegisterDetector(VDetector* p) {
+void Analysis::RegisterDetector(VDetector * p) {
   fDetectors.push_back(p);
   G4SDManager::GetSDMpointer()->AddNewDetector(static_cast<G4VSensitiveDetector*>(p));
 }
@@ -227,7 +298,7 @@ VDetector* Analysis::GetDetector(std::string id, bool silentfail) {
   return 0;
 }
 
-void Analysis::SetFluxProcessor(VFluxProcessor* p) {
+void Analysis::SetFluxProcessor(VFluxProcessor * p) {
   fFluxProcessor = p;
 }
 

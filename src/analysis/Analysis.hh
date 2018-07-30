@@ -152,6 +152,9 @@ public:
 
   void SetIntegratedRate(double r){ fIntegratedRate = r; };
 
+
+  void BuildMCMap();
+
 protected:
 
   static Analysis *fPrimary; ///< Singleton Object
