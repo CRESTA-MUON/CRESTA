@@ -59,13 +59,39 @@ void BristolPoCAFitter::PreProcessData() {
 
 	ApplyOffsets();
 
+
+
+	for ( std::vector<MuonHit*>::iterator it = fMuonHits_Above.begin(); it != fMuonHits_Above.end(); ++it) {
+		delete (*it);
+	}
+	fMuonHits_Above.clear();
+
+	for ( std::vector<MuonHit*>::iterator it = fMuonHits_Below.begin(); it != fMuonHits_Below.end(); ++it) {
+		delete (*it);
+	}
+	fMuonHits_Below.clear();
+
+	std::map<int, std::vector<MuonHit*> >::iterator it2 = fMuonHits_Map.begin();
+	for ( ; it2 != fMuonHits_Map.end(); it2++) {
+		// for ( std::vector<MuonHit*>::iterator it = (it2->second).begin(); it != (it2->second).end(); ++it) {
+		// 	if (*it) delete (*it);
+		// }
+		it2->second.clear();
+	}
+	fMuonHits_Map.clear();
+
+
+
+
+
+
 	std::vector<int>::iterator    type_iter  = fHits_Above_Type->begin();
 	std::vector<double>::iterator reco_iter  = fHits_Above_Reco->begin();
 	std::vector<double>::iterator true_iter  = fHits_Above_True->begin();
 	std::vector<double>::iterator zpos_iter  = fHits_Above_ZPos->begin();
 	std::vector<double>::iterator error_iter = fHits_Above_Error->begin();
 	std::vector<double>::iterator ghost_iter = fHits_Above_Ghost->begin();
-	fMuonHits_Above.clear();
+
 
 	// Loop over all vectors
 	while ( type_iter != fHits_Above_Type->end() ) {
@@ -88,7 +114,6 @@ void BristolPoCAFitter::PreProcessData() {
 	zpos_iter  = fHits_Below_ZPos->begin();
 	error_iter = fHits_Below_Error->begin();
 	ghost_iter = fHits_Below_Ghost->begin();
-	fMuonHits_Below.clear();
 
 	// Loop over all vectors
 	while ( type_iter != fHits_Below_Type->end() ) {
@@ -105,7 +130,7 @@ void BristolPoCAFitter::PreProcessData() {
 		ghost_iter++;
 	}
 
-	fMuonHits_Map.clear();
+
 
 	xahits = NULL;
 	xbhits = NULL;
@@ -396,6 +421,8 @@ double BristolPoCAFitter::DoSingleTrackFitWithX(int hitreq, double* x, double* p
 	double chi2 = DoSingleEval(xx, hits);
 	if (x) *x = xx[0];
 	if (px) *px = xx[1];
+
+	delete singlefcn;
 	return chi2;
 
 }
@@ -436,11 +463,11 @@ std::vector<bool> BristolPoCAFitter::GetBestComboForDriftHits(int hitreq) {
 
 		if (bestchi2 < 0 or chi2 <= bestchi2) {
 			// if (j != 0){
-				// std::cout << "Adding  ghost combo " << j << " " << chi2 << " " << bestchi2 << std::endl;
+			// std::cout << "Adding  ghost combo " << j << " " << chi2 << " " << bestchi2 << std::endl;
 			// }
 			xcomboa = xcombomapa[j];
 			bestchi2 = chi2;
-			
+
 		}
 	}
 
@@ -454,10 +481,10 @@ std::vector<bool> BristolPoCAFitter::GetBestComboForDriftHits(int hitreq) {
 	return xcomboa;
 }
 
-void BristolPoCAFitter::PrintCombos(){
-	
+void BristolPoCAFitter::PrintCombos() {
+
 	std::vector<MuonHit*>* muonhits = GetHitCombination(0);
-	for (int i = 0; i < muonhits->size(); i++){
+	for (int i = 0; i < muonhits->size(); i++) {
 		std::cout << "HIT " << muonhits->at(i)->type << " -> " << muonhits->at(i)->useghost << std::endl;
 	}
 

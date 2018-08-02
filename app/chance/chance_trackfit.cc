@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
     t->GetEntry(i);
     pocafit->PreProcessData();
 
-    if (i % 20000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
+    if (i % 200 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
     // std::cout << " New Event " << std::endl;
 
     // Apply NHit cuts
@@ -620,6 +620,8 @@ int main(int argc, char** argv) {
     fScattering[8] = sqrt(covarV->Similarity(vec_w)); //V_long_error;
     fScattering[9] = sqrt(covarV->Similarity(vec_v)); //V_trans1_error;
     fScattering[10] = sqrt(covarV->Similarity(vec_u));  //V_trans2_error;
+
+    delete covarV;
 
     // Get actual fit values again?!
     fScattering[11] = fitVx;
