@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
     } else if (std::strcmp(argv[i], "-o") == 0) {
       gOutputTag = std::string(argv[++i]);
 
-    } else if (std::strcmp(argv[i], "-c" == 0)) {
+    } else if (std::strcmp(argv[i], "-c") == 0) {
       defaultconfig = std::string(argv[++i]);
 
     } else if (std::strcmp(argv[i], "-h") == 0) {
