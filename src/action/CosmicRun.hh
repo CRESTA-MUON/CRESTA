@@ -1,4 +1,3 @@
-//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -22,32 +21,40 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicRun.hh 68058 2013-03-13 14:47:43Z gcosmo $
-//
-/// \file CosmicRun.hh
-/// \brief Definition of the CosmicRun class
-
-#ifndef CosmicRun_h
-#define CosmicRun_h 1
+#ifndef __CosmicRun_hh__
+#define __CosmicRun_hh__ 
 
 #include "G4Run.hh"
-#include "globals.hh"
-#include <ctime>
 
+// Forward Declarations
+class G4Event;
+class G4Run;
+
+// namespace COSMIC
+namespace COSMIC {
+
+/// Main CosmicRun class used for event recording and generation
 class CosmicRun : public G4Run
 {
   public:
+    /// Constructor
     CosmicRun();
+    /// Destructor
     virtual ~CosmicRun();
+    
+    /// Process to register the event
     virtual void RecordEvent(const G4Event*);
-    virtual void Merge(const G4Run*);
-    int fPrintSize;
-    long int fStartTime;
-    long int fCurTime;
 
+    /// Merges run outputs between slave jobs
+    virtual void Merge(const G4Run*);
+
+  protected:
+    int fPrintSize; ///< Counter to check processing size is sufficient
+    long int fStartTime; ///< Start Time of this Run
+    long int fCurTime; ///< End Time of this Run
 };
 
+} // - namespace COSMIC
 #endif
 
     

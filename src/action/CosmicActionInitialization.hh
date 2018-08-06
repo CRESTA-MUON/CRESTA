@@ -1,4 +1,3 @@
-//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -22,31 +21,24 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicActionInitialization.hh 68058 2013-03-13 14:47:43Z gcosmo $
-//
-/// \file CosmicActionInitialization.hh
-/// \brief Definition of the CosmicActionInitialization class (Mandatory)
-
-#ifndef CosmicActionInitialization_h
-#define CosmicActionInitialization_h 1
+#ifndef __CosmicActionInitialization_hh__
+#define __CosmicActionInitialization_hh__
 
 #include "G4VUserActionInitialization.hh"
 
-/// Action initialization class.
-///
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+// namespace COSMIC
 namespace COSMIC{
+
+/// Action initialization class.
 class CosmicActionInitialization : public G4VUserActionInitialization
 {
 public:
+
   ///Constructor
   CosmicActionInitialization();
   ///Destructor
   virtual ~CosmicActionInitialization();
 
-  ///Basic interface intherited from the base class G4VUserActionInitialization
 
   ///Registers User Actions for the master (only Run Action)
   virtual void BuildForMaster() const;
@@ -55,9 +47,8 @@ public:
   virtual void Build() const;
 
 };
-}
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+} // - namespace COSMIC
 #endif
 
     

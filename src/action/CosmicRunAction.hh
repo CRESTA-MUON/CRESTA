@@ -1,4 +1,3 @@
-//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -22,39 +21,42 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicRunAction.hh 70599 2013-06-03 11:14:56Z gcosmo $
-//
-/// \file CosmicRunAction.hh
-/// \brief Definition of the CosmicRunAction class
-
-#ifndef CosmicRunAction_h
-#define CosmicRunAction_h 1
+#ifndef __CosmicRunAction_hh__
+#define __CosmicRunAction_hh__ 
 
 #include "G4UserRunAction.hh"
 #include "globals.hh"
+
 #include "sd/DetectorManager.hh"
+
+// Forward Declarations
 class G4Run;
 
-/// User's CosmicRunAction class. this class implements all the user actions to be executed at each run
+// namespace COSMIC
+namespace COSMIC {
 
+/// User's CosmicRunAction class. this class implements all the user actions to be executed at each run.
 class CosmicRunAction : public G4UserRunAction
 {
-  public:
+public:
+
   /// constructor
-    CosmicRunAction();
+  CosmicRunAction();
   /// destructor
-    virtual ~CosmicRunAction();
-    
-    virtual G4Run* GenerateRun();
+  virtual ~CosmicRunAction();
+
+  /// Create a new run
+  virtual G4Run* GenerateRun();
+  
   /// Called at the beginning of each run
-    virtual void BeginOfRunAction(const G4Run*);
+  virtual void BeginOfRunAction(const G4Run*);
   /// Called at the end of each run
-    virtual void   EndOfRunAction(const G4Run*);
-    int fCurrentRun;
+  virtual void   EndOfRunAction(const G4Run*);
+  
+protected:
+  int fCurrentRun; ///< Index of current run
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#endif
+} // - namespace COSMIC
+#endif 
 
