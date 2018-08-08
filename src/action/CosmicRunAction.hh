@@ -21,13 +21,12 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __CosmicRunAction_hh__
-#define __CosmicRunAction_hh__ 
+#ifndef __COSMIC_CosmicRunAction_hh__
+#define __COSMIC_CosmicRunAction_hh__
 
+// G4 Headers
 #include "G4UserRunAction.hh"
 #include "globals.hh"
-
-#include "sd/DetectorManager.hh"
 
 // Forward Declarations
 class G4Run;
@@ -47,16 +46,16 @@ public:
 
   /// Create a new run
   virtual G4Run* GenerateRun();
-  
+
   /// Called at the beginning of each run
   virtual void BeginOfRunAction(const G4Run*);
   /// Called at the end of each run
   virtual void   EndOfRunAction(const G4Run*);
-  
+
 protected:
   int fCurrentRun; ///< Index of current run
 };
 
 } // - namespace COSMIC
-#endif 
+#endif
 

@@ -24,23 +24,23 @@
 // ********************************************************************
 #include "action/CosmicRunAction.hh"
 
-#include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4Run.hh"
-#include "G4RunManager.hh"
+// G4 Headers
 #include "G4Event.hh"
-#include "G4SDManager.hh"
 #include "G4HCofThisEvent.hh"
-#include "G4THitsMap.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4SDManager.hh"
+#include "G4THitsMap.hh"
+#include "G4UnitsTable.hh"
 
+// Cosmic Headers
 #include "analysis/Analysis.hh"
 #include "action/CosmicRun.hh"
 #include "sd/DetectorManager.hh"
 #include "sd/DetectorManager.hh"
 
+// namespace COSMIC
 using namespace COSMIC;
 
 CosmicRunAction::CosmicRunAction() : G4UserRunAction(), fCurrentRun(0)

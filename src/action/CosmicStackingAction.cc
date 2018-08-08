@@ -23,14 +23,16 @@
 // ********************************************************************
 #include "action/CosmicStackingAction.hh"
 
+// G4 Headers
 #include "G4Track.hh"
 #include "G4NeutrinoE.hh"
 #include "G4Electron.hh"
 #include "G4Positron.hh"
 
+// namespace COSMIC
 using namespace COSMIC;
 
-CosmicStackingAction::CosmicStackingAction(){
+CosmicStackingAction::CosmicStackingAction() {
 }
 
 CosmicStackingAction::~CosmicStackingAction() {
@@ -41,7 +43,9 @@ G4ClassificationOfNewTrack CosmicStackingAction::ClassifyNewTrack(const G4Track*
 
   // kill secondary neutrino
   if (track->GetParentID() > 0) {
-    if (track->GetDefinition() == G4NeutrinoE::NeutrinoE()) {
+    if (track->GetDefinition() == G4NeutrinoE::NeutrinoE() ||
+        track->GetDefinition() == G4Electron::Electron() ||
+        track->GetDefinition() == G4Positron::Positron() ) {
       return fKill;
     }
   }

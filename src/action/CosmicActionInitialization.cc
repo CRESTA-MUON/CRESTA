@@ -23,16 +23,18 @@
 // ********************************************************************
 #include "action/CosmicActionInitialization.hh"
 
+// Cosmic Headers
 #include "action/CosmicRunAction.hh"
 #include "action/CosmicStackingAction.hh"
 #include "flux/PrimaryGeneratorFactory.hh"
 #include "physics/PhysicsFactory.hh"
 #include "sd/DetectorConstruction.hh"
 
+// namespace COSMIC
 using namespace COSMIC;
 
 CosmicActionInitialization::CosmicActionInitialization()
- : G4VUserActionInitialization()
+  : G4VUserActionInitialization()
 {}
 
 CosmicActionInitialization::~CosmicActionInitialization()
@@ -50,5 +52,5 @@ void CosmicActionInitialization::Build() const
   SetUserAction(PrimaryGeneratorFactory::LoadGenerator());
   SetUserAction(new CosmicRunAction);
   SetUserAction(new CosmicStackingAction);
-}  
+}
 

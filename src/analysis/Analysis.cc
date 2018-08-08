@@ -1,5 +1,29 @@
+// ********************************************************************
+// * License and Disclaimer                                           *
+// *                                                                  *
+// * The  Geant4 software  is  copyright of the Copyright Holders  of *
+// * the Geant4 Collaboration.  It is provided  under  the terms  and *
+// * conditions of the Geant4 Software License,  included in the file *
+// * LICENSE and available at  http://cern.ch/geant4/license .  These *
+// * include a list of copyright holders.                             *
+// *                                                                  *
+// * Neither the authors of this software system, nor their employing *
+// * institutes,nor the agencies providing financial support for this *
+// * work  make  any representation or  warranty, express or implied, *
+// * regarding  this  software system or assume any liability for its *
+// * use.  Please see the license in the file  LICENSE  and URL above *
+// * for the full disclaimer and the limitation of liability.         *
+// *                                                                  *
+// * This  code  implementation is the result of  the  scientific and *
+// * technical work of the GEANT4 collaboration.                      *
+// * By using,  copying,  modifying or  distributing the software (or *
+// * any work based  on the software)  you  agree  to acknowledge its *
+// * use  in  resulting  scientific  publications,  and indicate your *
+// * acceptance of all terms of the Geant4 Software license.          *
+// ********************************************************************
 #include "Analysis.hh"
 
+// G4 Headers
 #include "g4root.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
@@ -7,23 +31,26 @@
 #include "G4SDManager.hh"
 #include "G4TransportationManager.hh"
 
+// Cosmic Headers
+#include "analysis/Analysis.hh"
+#include "analysis/VDetector.hh"
+#include "analysis/VFluxProcessor.hh"
+#include "analysis/VProcessor.hh"
+#include "analysis/VTrigger.hh"
 #include "db/DB.hh"
 #include "db/ROOTHeaders.hh"
-#include "VProcessor.hh"
-#include "VTrigger.hh"
-#include "VFluxProcessor.hh"
-#include "VDetector.hh"
-#include "analysis/Analysis.hh"
 
-namespace COSMIC {
+// namespace COSMIC
+using namespace COSMIC;
 
+
+// ---------------------------------------------------------
+// Constructors
+// ---------------------------------------------------------
 Analysis::Analysis() :
   fFluxProcessor(0),
   fSavedEvents(0),
-  fSavedEventsLimit(-1),
   fGeneratedEvents(0),
-  fGeneratedEventsLimit(-1),
-  fExposureTimeLimit(-1.0),
   fNTuplesSetup(0),
   fChunkSize(10000),
   fRunMode(kEventMode),
@@ -35,156 +62,91 @@ Analysis::~Analysis()
 {
 }
 
+
+// ---------------------------------------------------------
+// Singleton Access
+// ---------------------------------------------------------
 Analysis *Analysis::fPrimary(0);
 
 
-void Analysis::BuildMCMap() {
-
-  // Make new output file
-  std::string outputname = "";
-  outputname += fOutputTag + ".";
-  outputname += std::to_string(fRunID) + ".mcmap.root";
-
-  std::cout << "Making Map File" << std::endl;
-  TFile* mapfile = new TFile(outputname.c_str(), "RECREATE");
-  mapfile->cd();
-
-
-  std::cout << "Getting configuration" << std::endl;
-  // Build a new navigation history
-  DBTable configuration = DB::Get()->GetTable("DISCRIMINATOR", "config");
-
-  double grid_size = configuration.GetD("grid_size");
-
-  double xmin = configuration.GetD("grid_minx");
-  double xmax = configuration.GetD("grid_maxx");
-  int nbinsx = ((xmax - xmin) / grid_size);
-
-  double ymin = configuration.GetD("grid_miny");
-  double ymax = configuration.GetD("grid_maxy");
-  int nbinsy = ((ymax - ymin) / grid_size);
-
-  double zmin = configuration.GetD("grid_minz");
-  double zmax = configuration.GetD("grid_maxz");
-  int nbinsz = ((zmax - zmin) / grid_size);
-
-  int nthrows = 100;
-  if (configuration.Has("nthrows")) nthrows = configuration.GetI("nthrows");
-
-  std::cout << "Building voxel histograms." << std::endl;
-  TH3D* density_hist = new TH3D("density_hist", "Voxel Density (g/cm3)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* atomspv_hist = new TH3D("atomspv_hist", "Voxel Atoms Per Volume", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* elecspv_hist = new TH3D("elecspv_hist", "Voxel Electrons Per Volume", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* elecden_hist = new TH3D("elecden_hist", "Voxel Electron Density", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* radlens_hist = new TH3D("radlens_hist", "Voxel Radiation Length (mm)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* nuclens_hist = new TH3D("nuclens_hist", "Voxel Nuclear Length (mm)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  // TH3D* atomicZ_hist = new TH3D("atomicZ_hist", "Voxel Atomic Z", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  // TH3D* atomicA_hist = new TH3D("atomicA_hist", "Voxel Atomic A", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-
-  TH3D* density_ravg = new TH3D("density_ravg", "Rand. Avg. Density (g/cm3)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* atomspv_ravg = new TH3D("atomspv_ravg", "Rand. Avg. Atoms Per Volume", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* elecspv_ravg = new TH3D("elecspv_ravg", "Rand. Avg. Electrons Per Volume", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* elecden_ravg = new TH3D("elecden_ravg", "Rand. Avg. Electron Density", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* radlens_ravg = new TH3D("radlens_ravg", "Rand. Avg. Radiation Length (mm)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* nuclens_ravg = new TH3D("nuclens_ravg", "Rand. Avg. Nuclear Length (mm)", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  // TH3D* atomicZ_ravg = new TH3D("atomicZ_ravg", "Rand. Avg. Atomic Z", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  // TH3D* atomicA_ravg = new TH3D("atomicA_ravg", "Rand. Avg. Atomic A", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-  TH3D* counter_ravg = new TH3D("counter_ravg", "Rand. Avg. Counter", nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax);
-
-  G4Navigator* nav =  G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
-  for (int i = 0; i < nbinsx; i++) {
-    if (i % 5 == 0) std::cout << "--> Processed " << i << "/" << nbinsx << " 2D slices." << std::endl;
-    for (int j = 0; j < nbinsy; j++) {
-      for (int k = 0; k < nbinsz; k++) {
-
-        double x = xmin + (i + 0.5) * grid_size;
-        double y = ymin + (j + 0.5) * grid_size;
-        double z = zmin + (k + 0.5) * grid_size;
-
-        G4VPhysicalVolume* phys = nav->LocateGlobalPointAndSetup(G4ThreeVector(x * mm, y * mm, z * mm));
-        if (!phys) continue;
-
-        G4LogicalVolume* log = phys->GetLogicalVolume();
-        if (!log) continue;
-
-        G4Material* mat = log->GetMaterial();
-        if (!mat) continue;
-
-        G4double density = mat->GetDensity() / (g / cm3);
-
-        density_hist->SetBinContent(i, j, k, density);
-        atomspv_hist->SetBinContent(i, j, k, mat->GetTotNbOfAtomsPerVolume());
-        elecspv_hist->SetBinContent(i, j, k, mat->GetTotNbOfElectPerVolume());
-        elecden_hist->SetBinContent(i, j, k, mat->GetElectronDensity());
-        radlens_hist->SetBinContent(i, j, k, mat->GetRadlen());
-        nuclens_hist->SetBinContent(i, j, k, mat->GetNuclearInterLength());
-        // atomicZ_hist->SetBinContent(i, j, k, mat->GetZ());
-        // atomicA_hist->SetBinContent(i, j, k, mat->GetA());
-
-        for (int t = 0; t < nthrows; t++) {
-          x = xmin + (i + G4UniformRand()) * grid_size;
-          y = ymin + (j + G4UniformRand()) * grid_size;
-          z = zmin + (k + G4UniformRand()) * grid_size;
-
-          G4VPhysicalVolume* phys = nav->LocateGlobalPointAndSetup(G4ThreeVector(x * mm, y * mm, z * mm));
-          if (!phys) continue;
-
-          G4LogicalVolume* log = phys->GetLogicalVolume();
-          if (!log) continue;
-
-          G4Material* mat = log->GetMaterial();
-          if (!mat) continue;
-
-          G4double density = mat->GetDensity() / (g / cm3);
-
-          density_ravg->SetBinContent(i, j, k, density_ravg->GetBinContent(i,j,k) + density);
-          atomspv_ravg->SetBinContent(i, j, k, atomspv_ravg->GetBinContent(i,j,k) + mat->GetTotNbOfAtomsPerVolume());
-          elecspv_ravg->SetBinContent(i, j, k, elecspv_ravg->GetBinContent(i,j,k) + mat->GetTotNbOfElectPerVolume());
-          elecden_ravg->SetBinContent(i, j, k, elecden_ravg->GetBinContent(i,j,k) + mat->GetElectronDensity());
-          radlens_ravg->SetBinContent(i, j, k, radlens_ravg->GetBinContent(i,j,k) + mat->GetRadlen());
-          nuclens_ravg->SetBinContent(i, j, k, nuclens_ravg->GetBinContent(i,j,k) + mat->GetNuclearInterLength());
-          // atomicZ_ravg->SetBinContent(i, j, k, atomicZ_ravg->GetBinContent(i,j,k) + mat->GetZ());
-          // atomicA_ravg->SetBinContent(i, j, k, atomicA_ravg->GetBinContent(i,j,k) + mat->GetA());
-          counter_ravg->SetBinContent(i, j, k, counter_ravg->GetBinContent(i,j,k) + 1);
-        }
-      }
+// ---------------------------------------------------------
+// COUNTERS / IO
+// ---------------------------------------------------------
+void Analysis::CheckAbortState() {
+  if (fRunMode == kTimeExposureMode) {
+    if (GetExposureTime() > fRequiredExposure) {
+      G4RunManager::GetRunManager()->AbortRun(true);
     }
   }
-
-  // Write the voxel histograms
-  density_hist->Write();
-  atomspv_hist->Write();
-  elecspv_hist->Write();
-  elecden_hist->Write();
-  radlens_hist->Write();
-  nuclens_hist->Write();
-  // atomicZ_hist->Write();
-  // atomicA_hist->Write();
-
-  density_ravg->Divide(counter_ravg);
-  atomspv_ravg->Divide(counter_ravg);
-  elecspv_ravg->Divide(counter_ravg);
-  elecden_ravg->Divide(counter_ravg);
-  radlens_ravg->Divide(counter_ravg);
-  nuclens_ravg->Divide(counter_ravg);
-  // atomicZ_ravg->Divide(counter_ravg);
-  // atomicA_ravg->Divide(counter_ravg);
-
-  density_ravg->Write();
-  atomspv_ravg->Write();
-  elecspv_ravg->Write();
-  elecden_ravg->Write();
-  radlens_ravg->Write();
-  nuclens_ravg->Write();
-  // atomicZ_ravg->Write();
-  // atomicA_ravg->Write();
-
-  // Clean up
-  mapfile->Close();
-
+  if (fRunMode == kTriggerMode) {
+    if (fSavedEvents > fRequiredTriggers) {
+      G4RunManager::GetRunManager()->AbortRun(true);
+    }
+  }
   return;
 }
 
+void Analysis::ResetCounters() {
+  fSavedEvents = 0;
+  fGeneratedEvents = 0;
+  fFluxProcessor->ResetExposureTime();
+}
+
+double Analysis::GetEventRate() {
+  return fFluxProcessor->GetEventRate();
+}
+
+void Analysis::PrintProgress(int curcount, int totalcount) {
+
+  // Only print every 1000 events regardless
+  if (curcount % 1000 != 0 or curcount == 0) return;
+
+  std::cout << "Generated : " << curcount << std::endl;
+  return;
+
+  // Get time taken so far
+  long int curtime = time(0);
+  long int prctime = curtime - fStartTime;
+
+  // Print N Events
+  if (fRunMode == kEventMode) {
+
+    double remtime = double(totalcount * prctime / double(curcount));
+
+    if (curcount - fLastCount > totalcount / 20.0) {
+      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60 << " min. "
+                << "Approx. " << remtime / 60 << " min remaining." << std::endl;
+      fLastCount = curcount;
+    }
+
+  } else if (fRunMode == kTimeExposureMode) {
+
+    double curexposure = GetExposureTime();
+    double remtime = double((fRequiredExposure - curexposure) * prctime / curexposure);
+
+    if (curexposure - fLastCount > (fRequiredExposure / 20.0)) {
+      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
+                << "Approx. " << remtime / 60.0  << " min remaining. Exposure : " << int(curexposure) << "/" << fRequiredExposure << std::endl;
+      fLastCount = curexposure;
+    }
+  } else if (fRunMode == kTriggerMode) {
+
+    double remtime = double((fRequiredTriggers - fSavedEvents) * prctime / fSavedEvents);
+    if (fSavedEvents - fLastCount > (fRequiredTriggers / 20.0)) {
+      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
+                << "Approx. " << remtime / 60.0  << " min remaining. Triggers : " << fSavedEvents << "/" << fRequiredTriggers << std::endl;
+      fLastCount = fSavedEvents;
+    }
+
+
+  }
+}
+
+
+
+// ---------------------------------------------------------
+// Main Run Processing
+// ---------------------------------------------------------
 void Analysis::BeginOfRunAction(const G4Run * run) {
 
   // Setup Ntuples
@@ -269,6 +231,12 @@ void Analysis::ResetState() {
   ResetDetectors();
 }
 
+
+
+
+// ---------------------------------------------------------
+// TRIGGERS
+// ---------------------------------------------------------
 void Analysis::RegisterTrigger(VTrigger * t) {
   fTriggers.push_back(t);
 }
@@ -315,6 +283,11 @@ VTrigger* Analysis::GetTrigger(std::string id, bool silentfail) {
   return 0;
 }
 
+
+
+// ---------------------------------------------------------
+// PROCESSORS
+// ---------------------------------------------------------
 void Analysis::RegisterProcessor(VProcessor * p) {
   fProcessors.push_back(p);
 }
@@ -345,6 +318,10 @@ VProcessor* Analysis::GetProcessor(std::string id, bool silentfail) {
   return 0;
 }
 
+
+//------------------------------------------------------
+// DETECTORS
+// ---------------------------------------------------------
 void Analysis::RegisterDetector(VDetector * p) {
   fDetectors.push_back(p);
   G4SDManager::GetSDMpointer()->AddNewDetector(static_cast<G4VSensitiveDetector*>(p));
@@ -376,80 +353,11 @@ VDetector* Analysis::GetDetector(std::string id, bool silentfail) {
   return 0;
 }
 
-void Analysis::SetFluxProcessor(VFluxProcessor * p) {
-  fFluxProcessor = p;
-}
-
-void Analysis::ResetCounters() {
-  fSavedEvents = 0;
-  fGeneratedEvents = 0;
-  fFluxProcessor->ResetExposureTime();
-}
-
-double Analysis::GetEventRate() {
-  return fFluxProcessor->GetEventRate();
-}
-
-void Analysis::CheckAbortState() {
-  if (fRunMode == kTimeExposureMode) {
-    if (GetExposureTime() > fRequiredExposure) {
-      G4RunManager::GetRunManager()->AbortRun(true);
-    }
-  }
-  if (fRunMode == kTriggerMode) {
-    if (fSavedEvents > fRequiredTriggers) {
-      G4RunManager::GetRunManager()->AbortRun(true);
-    }
-  }
-  return;
-}
-
-void Analysis::PrintProgress(int curcount, int totalcount) {
-
-  // Only print every 1000 events regardless
-  if (curcount % 1000 != 0 or curcount == 0) return;
-
-  std::cout << "Generated : " << curcount << std::endl;
-  return;
-
-  // Get time taken so far
-  long int curtime = time(0);
-  long int prctime = curtime - fStartTime;
-
-  // Print N Events
-  if (fRunMode == kEventMode) {
-
-    double remtime = double(totalcount * prctime / double(curcount));
-
-    if (curcount - fLastCount > totalcount / 20.0) {
-      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60 << " min. "
-                << "Approx. " << remtime / 60 << " min remaining." << std::endl;
-      fLastCount = curcount;
-    }
-
-  } else if (fRunMode == kTimeExposureMode) {
-
-    double curexposure = GetExposureTime();
-    double remtime = double((fRequiredExposure - curexposure) * prctime / curexposure);
-
-    if (curexposure - fLastCount > (fRequiredExposure / 20.0)) {
-      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
-                << "Approx. " << remtime / 60.0  << " min remaining. Exposure : " << int(curexposure) << "/" << fRequiredExposure << std::endl;
-      fLastCount = curexposure;
-    }
-  } else if (fRunMode == kTriggerMode) {
-
-    double remtime = double((fRequiredTriggers - fSavedEvents) * prctime / fSavedEvents);
-    if (fSavedEvents - fLastCount > (fRequiredTriggers / 20.0)) {
-      std::cout << "RUN: --> Processing Event : " << curcount << " after " << prctime / 60.0  << " minutes. "
-                << "Approx. " << remtime / 60.0  << " min remaining. Triggers : " << fSavedEvents << "/" << fRequiredTriggers << std::endl;
-      fLastCount = fSavedEvents;
-    }
 
 
-  }
-}
-
+// ---------------------------------------------------------
+// VISUALISATION
+// ---------------------------------------------------------
 G4VVisManager* Analysis::GetVisManager() {
   if (fInteractive) {
     G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
@@ -458,7 +366,32 @@ G4VVisManager* Analysis::GetVisManager() {
     return NULL;
   }
 }
-} // - namespace COSMIC
+
+
+// ---------------------------------------------------------
+// OTHER
+// ---------------------------------------------------------
+
+void Analysis::BuildMCMap() {
+
+  // Make new output file
+  std::string outputname = "";
+  outputname += fOutputTag + ".";
+  outputname += std::to_string(fRunID) + ".mcmap.root";
+  std::cout << "[ANA ]: Saving MCMap to : " << outputname << std::endl;
+
+  // Open New File
+  TFile* mapfile = new TFile(outputname.c_str(), "RECREATE");
+  mapfile->cd();
+
+  // Call generator to save histograms to this file
+  GEO::BuildMCMapFromCurrentGEO();
+
+  // Clean up
+  mapfile->Close();
+
+  return;
+}
 
 
 

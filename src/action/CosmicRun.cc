@@ -23,10 +23,12 @@
 // ********************************************************************
 #include "action/CosmicRun.hh"
 
+// System Headers
 #include <ctime>
 #include <math.h>
 #include <stdio.h>
 
+// G4 Headers
 #include "globals.hh"
 #include "G4Event.hh"
 #include "G4HCofThisEvent.hh"
@@ -36,12 +38,14 @@
 #include "G4SystemOfUnits.hh"
 #include "G4THitsMap.hh"
 
+// Cosmic Headers
 #include "analysis/Analysis.hh"
-#include "sd/DetectorManager.hh"
 #include "geo/GeoManager.hh"
+#include "sd/DetectorManager.hh"
 #include "sd/DetectorManager.hh"
 #include "trigger/TriggerManager.hh"
 
+// namespace COSMIC
 using namespace COSMIC;
 
 CosmicRun::CosmicRun()
@@ -57,7 +61,7 @@ CosmicRun::~CosmicRun()
 
 void CosmicRun::RecordEvent(const G4Event* event)
 {
- 
+
   // Print progress
   int eventid = event->GetEventID();
   Analysis::Get()->PrintProgress(eventid, numberOfEventToBeProcessed);

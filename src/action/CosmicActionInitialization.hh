@@ -21,13 +21,14 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __CosmicActionInitialization_hh__
-#define __CosmicActionInitialization_hh__
+#ifndef __COSMIC_CosmicActionInitialization_hh__
+#define __COSMIC_CosmicActionInitialization_hh__
 
+// G4 Headers
 #include "G4VUserActionInitialization.hh"
 
 // namespace COSMIC
-namespace COSMIC{
+namespace COSMIC {
 
 /// Action initialization class.
 class CosmicActionInitialization : public G4VUserActionInitialization
@@ -51,4 +52,4 @@ public:
 } // - namespace COSMIC
 #endif
 
-    
+

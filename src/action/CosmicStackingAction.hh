@@ -21,9 +21,10 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __CosmicStackingAction_hh__
-#define __CosmicStackingAction_hh__
+#ifndef __COSMIC_CosmicStackingAction_hh__
+#define __COSMIC_CosmicStackingAction_hh__
 
+// G4 Headers
 #include "G4UserStackingAction.hh"
 #include "globals.hh"
 
@@ -33,15 +34,15 @@ namespace COSMIC {
 /// Stacking action class : manage the newly generated particles
 class CosmicStackingAction : public G4UserStackingAction
 {
-  public:
+public:
 
-    /// Constructor
-    CosmicStackingAction();
-    /// Destructor
-    virtual ~CosmicStackingAction();
-    
-    /// Return classification status of new track 
-    virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);        
+  /// Constructor
+  CosmicStackingAction();
+  /// Destructor
+  virtual ~CosmicStackingAction();
+
+  /// Return classification status of new track
+  virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
 };
 
 } // - namespace COSMIC
