@@ -57,12 +57,13 @@ void AWEDriftChamber::Construct(DBTable table) {
   // Composite is just a box of a given size with extra copper boxes above and below.
   // Dimensions of the box are hardcoded for now. Can be modified later.
   G4double chambersize_x  = 180*cm;
-  G4double chambersize_y  = 60*cm;
-  G4double chambersize_z  = 6*cm;
-  G4double edge_thickness = 0.015*mm;
-  G4double top_thickness  = 0.002*mm;
-  G4String edge_material  = "G4_AIR";
-  G4String top_material   = "G4_AIR";
+  G4double chambersize_y  = 60.3*cm + 2*4.57*mm;
+  G4double chambersize_z  = 62.54*mm;
+  G4double edge_thickness = 4.57*mm;
+  G4double top_thickness  = 1.77*mm;
+  G4double gas_thickness  = 2.8*cm;
+  G4String edge_material  = "G4_Al";
+  G4String top_material   = "BRISTOL_GASMIX1";
   G4String gas_material   = "AWE_GASMIX1";
   G4String box_material   = "G4_AIR";
 
@@ -86,7 +87,7 @@ void AWEDriftChamber::Construct(DBTable table) {
   std::vector<G4double> gas_size_vector;
   gas_size_vector.push_back( chambersize_x );
   gas_size_vector.push_back( chambersize_y - 2*edge_thickness );
-  gas_size_vector.push_back( chambersize_z - 2*top_thickness );
+  gas_size_vector.push_back( gas_thickness );
 
   DBTable gasinfo = DBTable("GEO",fName);
   gasinfo.Set("type",     "box");
@@ -109,13 +110,14 @@ void AWEDriftChamber::Construct(DBTable table) {
   std::vector<G4double> edge_size_vector;
   edge_size_vector.push_back( chambersize_x );
   edge_size_vector.push_back( edge_thickness );
-  edge_size_vector.push_back( chambersize_z - 2*top_thickness );
+  edge_size_vector.push_back( chambersize_z );
 
   std::vector<G4double> edge_pos_vector;
   edge_pos_vector.push_back( 0.0 );
   edge_pos_vector.push_back( 0.5*(chambersize_y - edge_thickness) );
   edge_pos_vector.push_back( 0.0 );
 
+  
   DBTable edgeinfo = DBTable("GEO",rootname + "_edge");
   edgeinfo.Set("type",      "box");
   edgeinfo.Set("mother",    rootname);
@@ -134,11 +136,11 @@ void AWEDriftChamber::Construct(DBTable table) {
 
   // - Top side
   edge_size_vector[0] = chambersize_x;
-  edge_size_vector[1] = chambersize_y;
+  edge_size_vector[1] = chambersize_y - 2*edge_thickness;
   edge_size_vector[2] = top_thickness;
   edge_pos_vector[0] = 0.0;
   edge_pos_vector[1] = 0.0;
-  edge_pos_vector[2] = +0.5*(chambersize_z - top_thickness);
+  edge_pos_vector[2] = +0.5*(gas_thickness + top_thickness);
 
   edgeinfo.Set("material",  top_material);
   edgeinfo.Set("size",      edge_size_vector);
@@ -148,9 +150,10 @@ void AWEDriftChamber::Construct(DBTable table) {
   // - Bottom side
   edge_pos_vector[0] = 0.0;
   edge_pos_vector[1] = 0.0;
-  edge_pos_vector[2] = -0.5*(chambersize_z - top_thickness);
+  edge_pos_vector[2] = -0.5*(gas_thickness + top_thickness);
   edgeinfo.Set("position",  edge_pos_vector);
   fSubObjects.push_back( new GeoBox(edgeinfo) );
+  
 
 }
 // --------------------------------------------------------------------------

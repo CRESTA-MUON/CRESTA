@@ -7,7 +7,15 @@
 #include "G4LogicalVolumeStore.hh"
 #include "G4LogicalVolume.hh"
 #include "db/DBTable.hh"
+// G4 Headers
+#include "g4root.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
+#include "G4Event.hh"
+#include "G4SDManager.hh"
+#include "G4TransportationManager.hh"
 
+#include "db/DB.hh"
 namespace COSMIC {
 
 /// GEO Utils namespace
@@ -21,6 +29,9 @@ G4Box* GetBoxFromStore(std::string name, bool verbose = true);
 G4LogicalVolume* GetLogicalFromStore(std::string name, bool verbose = true);
 /// Get a mother logical volume from the store via a table
 G4LogicalVolume* GetMotherLogicalFromStore(DBTable tb, bool verbose = true);
+
+// Build a set of MC TH3D histograms from current GEO
+void BuildMCMapFromCurrentGEO();
 
 } // - namespace GEO
 } // - namespace COSMIC

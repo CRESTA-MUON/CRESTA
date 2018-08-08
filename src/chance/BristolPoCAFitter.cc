@@ -147,10 +147,10 @@ void BristolPoCAFitter::ApplyOffsets() {
 }
 
 void BristolPoCAFitter::ApplyVectorOffset(std::vector<double>* vec) {
-	if (!vec) return;
-	for (int i = 0; i < vec->size(); i++) {
-		(*vec)[i] = (*vec)[i] - 250.0 / 1.5 + 250.0;
-	}
+  if (!vec) return;
+  for (int i = 0; i < vec->size(); i++) {
+    (*vec)[i] = (*vec)[i] - 250.0 / 1.5 + 250.0;
+  }
 }
 
 std::vector<MuonHit*>* BristolPoCAFitter::GetHitCombination(int hitreq) const {
