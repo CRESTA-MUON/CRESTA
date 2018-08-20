@@ -1,5 +1,5 @@
-#ifndef __VertexGrid_HH__
-#define __VertexGrid_HH__
+#ifndef __BackProjectionGrid_HH__
+#define __BackProjectionGrid_HH__
 
 #include "EventVertex.hh"
 
@@ -150,36 +150,40 @@
 #include "Minuit2/MnUserParameters.h"
 
 
-
-class VertexGrid {
+class BackProjectionVoxel {
 public:
-  VertexGrid(DBTable table);
-  VertexGrid(float sizx, float minx, float maxx, float sizy, float miny, float maxy, float sizz, float minz, float maxz);
-  ~VertexGrid();
+  BackProjectionVoxel();
+  ~BackProjectionVoxel();
 
-  int GetVoxelID(float x, float y, float z, bool withoutoff=false);
+  void Fill(float disc, float weight = 1.0);
+  float GetQuantile(float fraction);
+  void UpdateVoxelValue();
+  std::vector<float>* contents;
+  float value25;
+  float value50;
+  float value75;
+};
 
-  bool IsValidVertex(EventVertex& vertex);
+
+class BackProjectionGrid {
+public:
+  BackProjectionGrid(DBTable table);
+  BackProjectionGrid(float sizx, float minx, float maxx, float sizy, float miny, float maxy, float sizz, float minz, float maxz);
+  ~BackProjectionGrid();
+
   void SetGridOffsets(float xoff, float yoff, float zoff);
   void SetPointOffsets(float xoff, float yoff, float zoff);
-  void AddVertexToVoxel(uint voxelid, EventVertex vertex);
-  void AddVertex(EventVertex vertex);
-  void Bristol_SetTrackCut(int n){fTrackCut = n;};
-  void Bristol_SetDiscrCut(float n){fDiscrCut = n;};
 
+  int GetVoxelID(float x, float y, float z, bool withoutoff = false);
+
+  bool IsValidVertex(EventTracks& vertex);
+
+  void AddVertexToValidVoxels(EventTracks vertex);
+  void AddDiscriminatorsToVoxel(uint voxelid, float s1, float s2);
+  void UpdateValidVoxelChunks();
+  void SetVoxelChunk(int ichunk, int totchunk);
 
   void Write();
-
-  // float gGridSize = 10;
-  // float gXMIN = -1000.0;
-  // float gXMAX =  1000.0;
-  // float gXOFF = -250;
-  // float gYMIN = -1000.0;
-  // float gYMAX =  1000.0;
-  // float gYOFF = -250;
-  // float gZMIN = -400.0;
-  // float gZMAX =  400.0;
-  // float gZOFF =  0;
 
   float fXSIZ;
   float fXMIN;
@@ -201,12 +205,14 @@ public:
   int fXnbins;
   int fYnbins;
 
-  int fTrackCut;
-  float fDiscrCut;
+  double maxdisc;
+  double mindisc;
+  uint fLowVoxelLimit;
+  uint fHighVoxelLimit;
 
   // Really, I need a long int
-  std::map< uint, std::vector<EventVertex> > fVertices;
-
+  std::map< uint, std::vector<float> > fVoxelDiscriminators;
+  std::map< uint, BackProjectionVoxel* > fVoxelHistograms;
 };
 
 #endif

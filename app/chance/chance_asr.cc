@@ -148,7 +148,7 @@
 #include "Minuit2/MnUserParameters.h"
 
 #include "chance/EventVertex.hh"
-#include "chance/VertexGrid.hh"
+#include "chance/BackProjectionGrid.hh"
 
 using namespace std;
 using namespace COSMIC;
@@ -173,9 +173,9 @@ void PrintHelpScreen() {
 // Have option to pass any set of files or a list of files
 // The MuonGrid just gets given a new hit, so doesn't care about rotations itself.
 // RotationManager handles that in the list. Applies rotation to track parameters themselves.
-// Whole analysis runs over a for loop. Tells the VertexGrid, process voxels A->B, then B->C,
+// Whole analysis runs over a for loop. Tells the BackProjectionGrid, process voxels A->B, then B->C,
 // Update the corresponding grids accordingly.
-// Use Union if we want
+
 
 
 
@@ -243,9 +243,9 @@ int main(int argc, char** argv) {
   int maxsize = 0;
 
   int ntracks = t->GetEntries();
-  int printsi = ntracks / 10;
+  int printsi = ntracks / 100;
 
-  VertexGrid scangrid = VertexGrid(configuration.GetD("grid_sizex"),
+  BackProjectionGrid scangrid = BackProjectionGrid(configuration.GetD("grid_sizex"),
                                 configuration.GetD("grid_minx"),
                                 configuration.GetD("grid_maxx"),
                                 configuration.GetD("grid_sizey"),
@@ -270,64 +270,64 @@ int main(int argc, char** argv) {
   gSmearingOption = 0;
   if (configuration.Has("smearing")) gSmearingOption = configuration.GetI("smearing");
 
-  if (configuration.Has("bs_trackcut")) scangrid.Bristol_SetTrackCut(configuration.GetI("bs_trackcut"));
-  if (configuration.Has("bs_discrcut")) scangrid.Bristol_SetDiscrCut(configuration.GetI("bs_discrcut"));
+  int totchunks = 10;
 
+  for (int ichunk = 0; ichunk < totchunks; ichunk++){
 
-  for (int i = 0; i < ntracks; i++) {
+    std::cout << "Processing Voxel Chunk " << ichunk << std::endl;
+    scangrid.SetVoxelChunk(ichunk, totchunks);
 
-    if (i % printsi == 0) std::cout << "Processed " << i << " / " << ntracks << std::endl;
+    for (int i = 0; i < ntracks; i++) {
 
-    // Get the entry
-    t->GetEntry(i);
+      if (i % printsi == 0) std::cout << "Processed " << i << " / " << ntracks << " : " << int(100.0 * float(i)/float(ntracks)) << std::endl;
 
-    // Get the Voxel
-    double scatteranglex = fScattering[0];
-    double scatterangley = fScattering[1];
-    double scatterangle3d = fScattering[2];
+      // Get the entry
+      t->GetEntry(i);
 
-    double vertexx = fScattering[11];
-    double vertexy = fScattering[12];
-    double vertexz = fScattering[13];
-    //    double vertexx = fPOCAScattering[3];
-    //    double vertexy = fPOCAScattering[4];
-    //    double vertexz = fPOCAScattering[5];
+      // Get the Voxel
+      double scatteranglex = fScattering[0];
+      double scatterangley = fScattering[1];
+      double scatterangle3d = fScattering[2];
 
-    double momentum = fMCTruth[1];
+      double vertexx = fScattering[11];
+      double vertexy = fScattering[12];
+      double vertexz = fScattering[13];
 
-    double errorx = sqrt(fCovarMatrix[0]);
-    double errory = sqrt(fCovarMatrix[8]);
-    double errorz = sqrt(fCovarMatrix[16]);
+      double momentum = fMCTruth[1];
 
-    // Get Smearing
-    int nsmear = gSmearingOption;
-    for (int j = 0; j < nsmear + 1; j++) {
+      double errorx = sqrt(fCovarMatrix[0]);
+      double errory = sqrt(fCovarMatrix[8]);
+      double errorz = sqrt(fCovarMatrix[16]);
 
-      // Get smear
-      double smearx = vertexx + (j > 0) * G4RandGauss::shoot(0.0, errorx);
-      double smeary = vertexy + (j > 0) * G4RandGauss::shoot(0.0, errory);
-      double smearz = vertexz + (j > 0) * G4RandGauss::shoot(0.0, errorz);
+      double px1 = fScattering[15];
+      double py1 = fScattering[17];
+      double px2 = fScattering[14];
+      double py2 = fScattering[16];
 
       // Get the ID
-      int voxelid = scangrid.GetVoxelID(smearx, smeary, smearz);
+      int voxelid = scangrid.GetVoxelID(vertexx, vertexy, vertexz);
 
       // Skip bad voxels
       if (voxelid < 0) continue;
 
       // Make Track Object
-      EventVertex newtrack;
+      EventTracks newtrack;
       newtrack.x = vertexx;
       newtrack.y = vertexy;
       newtrack.z = vertexz;
       newtrack.thx = scatteranglex;
       newtrack.thy = scatterangley;
       newtrack.th  = scatterangle3d;
-      if (chosenmomentum > 0.0) newtrack.mom = chosenmomentum;
-      else newtrack.mom = momentum;
+      newtrack.mom = momentum;
+      newtrack.px1 = px1;
+      newtrack.py1 = py1;
+      newtrack.px2 = px2;
+      newtrack.py2 = py2;
 
-      scangrid.AddVertexToVoxel(voxelid, newtrack);
-
+      scangrid.AddVertexToValidVoxels(newtrack);
     }
+
+    scangrid.UpdateValidVoxelChunks();
   }
 
   TFile* ofile = new TFile((gOutputTag + ".discriminator.root").c_str(), "RECREATE");
