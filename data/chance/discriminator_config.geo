@@ -1,10 +1,10 @@
 {
   name: "DISCRIMINATOR"
   index: "config",
-  grid_sizex: 5.0,	
+  grid_sizex: 10.0,	
   grid_minx: -1000.0
   grid_maxx: 1000.0
-  grid_sizey: 5.0
+  grid_sizey: 10.0
   grid_miny: -1000.0
   grid_maxy: 1000.0
   grid_sizez: 10.0
