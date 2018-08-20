@@ -1,10 +1,34 @@
+// ********************************************************************
+// * License and Disclaimer                                           *
+// *                                                                  *
+// * The  Geant4 software  is  copyright of the Copyright Holders  of *
+// * the Geant4 Collaboration.  It is provided  under  the terms  and *
+// * conditions of the Geant4 Software License,  included in the file *
+// * LICENSE and available at  http://cern.ch/geant4/license .  These *
+// * include a list of copyright holders.                             *
+// *                                                                  *
+// * Neither the authors of this software system, nor their employing *
+// * institutes,nor the agencies providing financial support for this *
+// * work  make  any representation or  warranty, express or implied, *
+// * regarding  this  software system or assume any liability for its *
+// * use.  Please see the license in the file  LICENSE  and URL above *
+// * for the full disclaimer and the limitation of liability.         *
+// *                                                                  *
+// * This  code  implementation is the result of  the  scientific and *
+// * technical work of the GEANT4 collaboration.                      *
+// * By using,  copying,  modifying or  distributing the software (or *
+// * any work based  on the software)  you  agree  to acknowledge its *
+// * use  in  resulting  scientific  publications,  and indicate your *
+// * acceptance of all terms of the Geant4 Software license.          *
+// ********************************************************************
+
+// COSMIC Header
 #include <db/ReadFile.hh>
 
-namespace COSMIC {
+// namespace COSMIC
+using namespace COSMIC;
 
-namespace DBUtils {
-
-int ReadFile(const std::string &filename, std::string &filecontents)
+int DBUtils::ReadFile(const std::string &filename, std::string &filecontents)
 {
   bool bzip2 = true;
 
@@ -31,7 +55,7 @@ int ReadFile(const std::string &filename, std::string &filecontents)
   return 0;
 }
 
-std::vector<std::string> Expand(std::string pattern) {
+std::vector<std::string> DBUtils::Expand(std::string pattern) {
   glob_t g;
   std::vector<std::string> vecs;
   if (glob(pattern.c_str(), 0, 0, &g) == 0) {
@@ -44,8 +68,7 @@ std::vector<std::string> Expand(std::string pattern) {
   return vecs;
 }
 
-
-std::vector<std::string> ParseToStr(std::string str, const char* del) {
+std::vector<std::string> DBUtils::ParseToStr(std::string str, const char* del) {
   std::istringstream stream(str);
   std::string temp_string;
   std::vector<std::string> vals;
@@ -58,6 +81,3 @@ std::vector<std::string> ParseToStr(std::string str, const char* del) {
   return vals;
 }
 
-
-} // - namespace DBUtils
-} // - namespace COSMIC

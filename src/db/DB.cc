@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "DBTable.hh"
 
-namespace COSMIC {
+using namespace COSMIC;
 
 DB::DB()
 {
@@ -263,5 +263,3 @@ void DB::PrintSplashScreen() {
   std::cout << " contact : p.stowell@sheffield.ac.uk" << std::endl;
   std::cout << "\n=========================================" << std::endl;
 }
-
-} // namespace COSMIC
