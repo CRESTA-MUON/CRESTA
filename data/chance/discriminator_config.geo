@@ -18,4 +18,5 @@
   grid_offsetz: 0.0
   smearing: 0.0
   force_momentum: 0.0
+  smear_momentum: 0.50
 }
