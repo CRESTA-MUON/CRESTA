@@ -228,7 +228,7 @@ G4Box* CRYPrimaryGenerator::GetSourceBox() {
 
 void CRYPrimaryGenerator::Draw() {
   G4VVisManager* vis = Analysis::Get()->GetVisManager();
-  if (vis) {
+  if (false and vis) {
 
     G4Box drawbox = G4Box("source_box",  0.5 * fLateralBoxSize * m, 0.5 * fLateralBoxSize * m, 1*mm);
     G4Transform3D tr = G4Transform3D(G4RotationMatrix(), fSourceBoxPosition);
