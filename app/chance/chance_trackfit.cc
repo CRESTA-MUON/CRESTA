@@ -373,7 +373,6 @@ int main(int argc, char** argv) {
   otree->Branch("pocascattering", fPOCAScattering, "scatteranglex/D:scatterangley:scatterangle3d:vx:vy:vz");
   otree->Branch("mctruth", fMCTruth, "energy/D:p:px:py:pz:v:scatterangle:passflag");
 
-
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Event Loop" << std::endl;
 
@@ -506,14 +505,13 @@ int main(int argc, char** argv) {
     int npars = 7;
     ROOT::Minuit2::MnUserParameters mn_param;
 
-    mn_param.Add("vx", 225.0, 10);
-    mn_param.Add("vy", 225.0, 10);
-    mn_param.Add("vz", -250.0, 10);
-    mn_param.Add("px1", 0.0, 10);
-    mn_param.Add("px2", 0.0, 10);
-    mn_param.Add("py1", 0.0, 10);
-    mn_param.Add("py2", 0.0, 10);
-
+    mn_param.Add("vx",  fPOCAScattering[3], 10);
+    mn_param.Add("vy",  fPOCAScattering[4], 10);
+    mn_param.Add("vz",  fPOCAScattering[5], 10);
+    mn_param.Add("px1", stf_above_px, 10);
+    mn_param.Add("px2", stf_below_px, 10);
+    mn_param.Add("py1", stf_above_py, 10);
+    mn_param.Add("py2", stf_below_py, 10);
 
     // Minimisation
     ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
