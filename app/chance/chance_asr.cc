@@ -266,6 +266,8 @@ int main(int argc, char** argv) {
 
   double chosenmomentum = 0.0;
   if (configuration.Has("force_momentum")) chosenmomentum = configuration.GetD("force_momentum");
+  double smearmomentum = 0.0;
+  if (configuration.Has("smear_momentum")) smearmomentum = configuration.GetD("smear_momentum");
 
   gSmearingOption = 0;
   if (configuration.Has("smearing")) gSmearingOption = configuration.GetI("smearing");
@@ -294,6 +296,8 @@ int main(int argc, char** argv) {
       double vertexz = fScattering[13];
 
       double momentum = fMCTruth[1];
+      if (chosenmomentum != 0.0) momentum = chosenmomentum;
+      if (smearmomentum != 0.0)  momentum += G4RandGauss::shoot(0.0, smearmomentum * momentum);
 
       double errorx = sqrt(fCovarMatrix[0]);
       double errory = sqrt(fCovarMatrix[8]);
