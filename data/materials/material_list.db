@@ -166,3 +166,47 @@
   density: 3.35,
   density_units: "g/cm3"
 }
+
+{
+  name: "MATERIAL",
+  index: "LABLOGIC_SCINTILLATOR"
+  color: [0.1,0.1,1.0,0.6],
+  drawstyle: "solid"
+  PROPERTIES_X: ["2*eV","7.0*eV","10*eV"]
+  FASTCOMPONENT_Y: ["0.1", "1.0", "1.0"]
+  SLOWCOMPONENT_Y: ["0.1", "1.0", "1.0"]
+  RINDEX_Y: ["1.59","1.59","1.59"]
+  ABSLENGTH_Y: ["35*cm","35*cm","35*cm"]
+  SCINTILLATIONYIELD: "1200./MeV"
+  RESOLUTIONSCALE: 1.0
+  FASTTIMECONSTANT: "10*ns"
+  SLOWTIMECONSTANT: "30*ns"
+  YIELDRATIO: "1.0"
+  BIRKSCONSTANT: "0.126*mm/MeV"
+  density: "1.032*g/cm3"
+  element_names: ["C","H","Gd"]
+  element_counts: [0.4736842105,0.5263157895,0.02]
+}
+
+{
+  name: "MATERIAL",
+  index: "LABLOGIC_SCINTILLATOR_GD"
+  color: [0.1,0.1,1.0,0.6],
+  drawstyle: "solid"
+  PROPERTIES_X: ["2*eV","7.0*eV","10*eV"]
+  FASTCOMPONENT_Y: ["0.1", "0.5", "1.0"]
+  SLOWCOMPONENT_Y: ["0.1", "0.5", "1.0"]
+  RINDEX_Y: ["1.59","1.59","1.59"]
+  ABSLENGTH_Y: ["35*cm","35*cm","35*cm"]
+  SCINTILLATIONYIELD: "1200./MeV"
+  RESOLUTIONSCALE: 1.0
+  FASTTIMECONSTANT: "20*ns"
+  SLOWTIMECONSTANT: "45*ns"
+  YIELDRATIO: "0.1"
+  BIRKSCONSTANT: "0.126*mm/MeV"
+  density: "1.032*g/cm3"
+//  element_names: ["C","H","Gd"]
+//  element_counts: [0.4642105263,0.5157894737,0.01]
+  element_names: ["Gd"]
+  element_counts: [1.0]
+}

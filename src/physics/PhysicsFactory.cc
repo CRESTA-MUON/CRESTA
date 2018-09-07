@@ -5,6 +5,7 @@
 #include "db/DB.hh"
 #include "DefaultPhysics.hh"
 #include "G4PhysListFactory.hh"
+#include "ScintillatorPhysicsList.hh"
 
 namespace COSMIC {
 G4VUserPhysicsList* PhysicsFactory::LoadPhysicsList() {
@@ -35,6 +36,8 @@ G4VUserPhysicsList* PhysicsFactory::LoadPhysicsList(DBTable table) {
   } else if (physics.compare("default") == 0){
     physicsList = new DefaultPhysics();
     std::cout << "PHY: Setting Default Physics List" << std::endl;
+  } else if (physics.compare("scintillator") == 0){
+    physicsList = new ScintillatorPhysicsList();
   } else {
     physicsList = physListFactory->GetReferencePhysList(physics);
   }

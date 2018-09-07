@@ -28,6 +28,7 @@
 #include "G4NeutrinoE.hh"
 #include "G4Electron.hh"
 #include "G4Positron.hh"
+#include "G4Gamma.hh"
 
 // namespace COSMIC
 using namespace COSMIC;
@@ -45,10 +46,12 @@ G4ClassificationOfNewTrack CosmicStackingAction::ClassifyNewTrack(const G4Track*
   if (track->GetParentID() > 0) {
     if (track->GetDefinition() == G4NeutrinoE::NeutrinoE() ||
         track->GetDefinition() == G4Electron::Electron() ||
-        track->GetDefinition() == G4Positron::Positron() ) {
+        track->GetDefinition() == G4Positron::Positron() || 
+        track->GetDefinition() == G4Gamma::Gamma()) {
       return fKill;
     }
   }
+  if (track->GetDefinition() == G4Gamma::Gamma()) return fKill;
 
   // otherwise, return what Geant4 would have returned by itself
   return G4UserStackingAction::ClassifyNewTrack(track);

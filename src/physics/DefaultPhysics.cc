@@ -28,7 +28,9 @@
 #include "G4DecayPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "G4EmStandardPhysics.hh"
-
+#include "G4OpticalPhysics.hh"
+#include "Shielding.hh"
+#include "G4HadronPhysicsShielding.hh"
 
 DefaultPhysics::DefaultPhysics() 
 : G4VModularPhysicsList(){
@@ -48,6 +50,22 @@ DefaultPhysics::DefaultPhysics()
 
   // Standard EM Physics
   RegisterPhysics(new G4EmStandardPhysics());
+
+  RegisterPhysics(new G4HadronPhysicsShielding());
+
+  G4OpticalPhysics* opticalPhysics = new G4OpticalPhysics();
+  RegisterPhysics( opticalPhysics );
+
+   opticalPhysics->SetWLSTimeProfile("delta");
+
+  opticalPhysics->SetScintillationYieldFactor(1.0);
+  opticalPhysics->SetScintillationExcitationRatio(0.0);
+
+  opticalPhysics->SetMaxNumPhotonsPerStep(100);
+  opticalPhysics->SetMaxBetaChangePerStep(10.0);
+
+  opticalPhysics->SetTrackSecondariesFirst(kCerenkov,false);
+  opticalPhysics->SetTrackSecondariesFirst(kScintillation,false);
 
 }
 

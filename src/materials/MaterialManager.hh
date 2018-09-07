@@ -53,6 +53,11 @@ G4VisAttributes* GetVisForMaterial(DBTable table);
 /// Get vis just based on material database name
 G4VisAttributes* GetVisForMaterial(std::string name);
 
+/// Get the material properties
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(std::string name);
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
+
+
 } // - namespace MaterialFactory
 } // - namespace COSMIC
 #endif

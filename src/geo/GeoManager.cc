@@ -40,6 +40,9 @@
 #include "cadmesh/GeoCADMesh.hh"
 
 #include "iso/ISOSpacingTest.hh"
+#include "imps/IMPSNeutronBlock.hh"
+#include "imps/IMPSBlockArray.hh"
+
 
 #include <map>
 
@@ -62,7 +65,8 @@ GeoObject* GeoObjectFactory::Construct(DBTable table){
   else if (type.compare("smallsteeldrum") == 0) return new SmallSteelDrum(table);
   else if (type.compare("largesteeldrum") == 0) return new LargeSteelDrum(table);
   else if (type.compare("isospacingtest") == 0) return new ISOSpacingTest(table);
-
+  else if (type.compare("impsneutronblock") == 0) return new IMPSNeutronBlock(table);
+  else if (type.compare("impsblockarray") == 0) return new IMPSBlockArray(table);
   #ifdef __USE_CADMESH__
   else if (type.compare("cadmesh") == 0) return new GeoCADMesh(table);
   #endif

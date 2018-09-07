@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,61 +22,46 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+//
+// $Id: CosmicSteppingAction.cc 74483 2013-10-09 13:37:06Z gcosmo $
+//
+/// \file CosmicSteppingAction.cc
+/// \brief Implementation of the CosmicSteppingAction class
 
-#include "G4VSensitiveDetector.hh"
+#include "CosmicSteppingAction.hh"
+
+#include "G4Step.hh"
 #include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4LogicalVolume.hh"
+#include "analysis/VDetector.hh"
 
-namespace COSMIC {
+using namespace COSMIC;
 
-/// Template detector class for use in the analysis.
-/// Uses most of the sensitive detector functionality,
-/// but has a ResetState function to restore all variables
-/// at the start of an event.
-class VDetector : public G4VSensitiveDetector
+CosmicSteppingAction::CosmicSteppingAction()
+  : G4UserSteppingAction()
+{}
+
+CosmicSteppingAction::~CosmicSteppingAction()
+{}
+
+void CosmicSteppingAction::UserSteppingAction(const G4Step* step)
 {
-public:
-
-  /// Set ID on construction
-  inline VDetector(std::string id, std::string type) :
-    G4VSensitiveDetector(id) {
-    fID = id;
-    fType = type;
-  };
-  /// Destructor
-  virtual ~VDetector() {};
-
-
-  /// Reset detector state at start of event
-  virtual void ResetState() {};
-
-
-  /// Set this detectors ID tag
-  inline void SetID(std::string id) {fID = id;};
-  /// Get this detectors ID tag
-  inline std::string GetID() {return fID;};
-
-  /// Set this detectors type string for reference
-  inline void SetType(std::string type) {fType = type;};
-  /// Get this detectors type string for reference
-  inline std::string GetType() {return fType;};
-
-
-  /// Assign the detector to a logical volume
-  virtual inline void SetLogicalVolume(G4LogicalVolume* logic, G4VPhysicalVolume* /*physical*/) {
-    logic->SetSensitiveDetector(this);
+  // If there is a step for the current volume, check if it
+  G4StepPoint* posstep = step->GetPostStepPoint();
+  G4VSensitiveDetector* postsd = posstep->GetSensitiveDetector();
+  VDetector* det = NULL;
+  if (postsd) {
+    det = static_cast<VDetector*>(postsd);
+  }
+  if (det) {
+      G4Track* track = step->GetTrack();
+    G4TrackStatus trackstatus = det->ManuallyProcessHits(step, NULL);
+    if (trackstatus != track->GetTrackStatus()) {
+      track->SetTrackStatus(trackstatus);
+    }
   }
 
-  /// Manually process the events
-  virtual G4TrackStatus ManuallyProcessHits(const G4Step* aStep, G4TouchableHistory*){ return fAlive; };
-
-
-protected:
-  std::string fType; ///< Detector type
-  std::string fID;   ///< Detector Unique ID tag
-};
+  return;
 }
-
-#endif
 

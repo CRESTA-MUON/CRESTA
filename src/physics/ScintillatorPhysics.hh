@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,61 +22,60 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+//
+// $Id: ScintillatorPhysics.hh 90338 2015-05-26 08:35:43Z gcosmo $
+//
+/// \file optical/LXe/include/ScintillatorPhysics.hh
+/// \brief Definition of the ScintillatorPhysics class
+//
+//
+#ifndef ScintillatorPhysics_h
+#define ScintillatorPhysics_h 1
 
-#include "G4VSensitiveDetector.hh"
-#include "G4Event.hh"
+#include "globals.hh"
+#include "G4ios.hh"
 
-namespace COSMIC {
+#include "globals.hh"
+#include "G4ios.hh"
 
-/// Template detector class for use in the analysis.
-/// Uses most of the sensitive detector functionality,
-/// but has a ResetState function to restore all variables
-/// at the start of an event.
-class VDetector : public G4VSensitiveDetector
+#include "G4VPhysicsConstructor.hh"
+
+#include "G4PhotoElectricEffect.hh"
+#include "G4ComptonScattering.hh"
+#include "G4GammaConversion.hh"
+#include "G4eMultipleScattering.hh"
+#include "G4eIonisation.hh"
+#include "G4eBremsstrahlung.hh"
+#include "G4eplusAnnihilation.hh"
+
+#include "G4VPhysicsConstructor.hh"
+#include "G4MuMultipleScattering.hh"
+#include "G4MuBremsstrahlung.hh"
+#include "G4MuPairProduction.hh"
+#include "G4MuIonisation.hh"
+#include "G4hIonisation.hh"
+
+#include "G4MuonMinusCapture.hh"
+
+#include "G4VPhysicsConstructor.hh"
+
+
+class ScintillatorPhysics : public G4VPhysicsConstructor
 {
-public:
+  public:
 
-  /// Set ID on construction
-  inline VDetector(std::string id, std::string type) :
-    G4VSensitiveDetector(id) {
-    fID = id;
-    fType = type;
-  };
-  /// Destructor
-  virtual ~VDetector() {};
+    ScintillatorPhysics(const G4String& name = "general");
+    virtual ~ScintillatorPhysics();
 
+    // This method will be invoked in the Construct() method.
+    // each particle type will be instantiated
+    virtual void ConstructParticle();
+ 
+    // This method will be invoked in the Construct() method.
+    // each physics process will be instantiated and
+    // registered to the process manager of each particle type
+    virtual void ConstructProcess();
 
-  /// Reset detector state at start of event
-  virtual void ResetState() {};
-
-
-  /// Set this detectors ID tag
-  inline void SetID(std::string id) {fID = id;};
-  /// Get this detectors ID tag
-  inline std::string GetID() {return fID;};
-
-  /// Set this detectors type string for reference
-  inline void SetType(std::string type) {fType = type;};
-  /// Get this detectors type string for reference
-  inline std::string GetType() {return fType;};
-
-
-  /// Assign the detector to a logical volume
-  virtual inline void SetLogicalVolume(G4LogicalVolume* logic, G4VPhysicalVolume* /*physical*/) {
-    logic->SetSensitiveDetector(this);
-  }
-
-  /// Manually process the events
-  virtual G4TrackStatus ManuallyProcessHits(const G4Step* aStep, G4TouchableHistory*){ return fAlive; };
-
-
-protected:
-  std::string fType; ///< Detector type
-  std::string fID;   ///< Detector Unique ID tag
 };
-}
 
 #endif
-

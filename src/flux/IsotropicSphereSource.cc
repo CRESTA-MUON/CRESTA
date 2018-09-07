@@ -139,11 +139,13 @@ void IsotropicSphereGenerator::SamplePositionAndDirection(G4ThreeVector& pos, G4
     G4double y = fSphereRadius * sin_theta * sin_phi;
     G4double z = fSphereRadius * cos_theta;
     pos = G4ThreeVector(x, y, z);
+    // pos = G4ThreeVector(0, y, 0.5*m);
+
     // pos = G4ThreeVector(fSphereRadius, 0, 0);
 
     // Smear the direction slightly
-    theta += G4RandGauss::shoot(0.0, 3.1415926536);
-    phi   += G4RandGauss::shoot(0.0, 3.1415926536);
+    // theta += G4RandGauss::shoot(0.0, 3.1415926536);
+    // phi   += G4RandGauss::shoot(0.0, 3.1415926536);
 
     cos_theta = cos(theta);
     sin_theta = sin(theta);
@@ -153,6 +155,7 @@ void IsotropicSphereGenerator::SamplePositionAndDirection(G4ThreeVector& pos, G4
     y = sin_theta * sin_phi;
     z = cos_theta;
     dir = G4ThreeVector(-x,-y,-z);
+    // dir = G4ThreeVector(0.0, 0.0, -1.0);
     dir = (1.0/dir.mag()) * dir;
 
 

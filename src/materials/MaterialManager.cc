@@ -70,26 +70,37 @@ G4Material* MaterialFactory::GetMaterial(std::string name) {
 
   // First Check if its inside the nist manager
   mat = nist->FindOrBuildMaterial(name);
-  if (mat) return mat;
 
-  // If not, find the material inside custom database
-  DBTable mattbl = DB::Get()->GetTable("MATERIAL", name);
-  std::vector<std::string> elements = mattbl.GetVecS("element_names");
-  std::vector<double>      counts   = mattbl.GetVecD("element_counts");
-  G4double density = mattbl.GetG4D("density");
+  if (!mat) {
 
-  // Create the material
-  std::cout << "MAT: Creating : " << name << std::endl;
-  mat = new G4Material(name, density, counts.size());
-  for (uint j = 0; j < counts.size(); j++) {
-    std::cout << "MAT: --> Element : " << elements[j] << std::endl;
-    G4Element* ele = GetElement(elements[j]);
-    mat->AddElement( ele, counts[j] );
+    // If not, find the material inside custom database
+    DBTable mattbl = DB::Get()->GetTable("MATERIAL", name);
+    std::vector<std::string> elements = mattbl.GetVecS("element_names");
+    std::vector<double>      counts   = mattbl.GetVecD("element_counts");
+    G4double density = mattbl.GetG4D("density");
+
+    // Create the material
+    std::cout << "MAT: Creating : " << name << std::endl;
+    mat = new G4Material(name, density, counts.size());
+    for (uint j = 0; j < counts.size(); j++) {
+      std::cout << "MAT: --> Element : " << elements[j] << std::endl;
+      G4Element* ele = GetElement(elements[j]);
+      mat->AddElement( ele, counts[j] );
+    }
+    std::cout << "MAT: Total Material Density : " << mat->GetDensity()*cm3 / g << " g/cm3" << std::endl;
+
+    // Dump the Table of registered materials
+    // G4cout << *(G4Material::GetMaterialTable()) << G4endl;
   }
-  std::cout << "MAT: Total Material Density : " << mat->GetDensity()*cm3 / g << " g/cm3" << std::endl;
 
-  // Dump the Table of registered materials
-  // G4cout << *(G4Material::GetMaterialTable()) << G4endl;
+  G4MaterialPropertiesTable* props = GetMaterialPropertiesTable(name);
+  if (props) {
+    mat->SetMaterialPropertiesTable(props);
+    if (props->ConstPropertyExists("BIRKSCONSTANT")) {
+      // mat->GetIonisation()->SetBirksConstant( props->GetProperty("BIRKSCONSTANT"));
+    }
+  }
+
 
   return mat;
 }
@@ -151,3 +162,76 @@ G4VisAttributes* MaterialFactory::GetVisForMaterial(std::string name) {
   // Return pointer to new vis
   return vis;
 }
+
+G4MaterialPropertiesTable* MaterialFactory::GetMaterialPropertiesTable(std::string name) {
+
+  G4MaterialPropertiesTable* mat = NULL;
+
+  // Get the properties table for this material. If none found, return NULL
+  if (DB::Get()->HasTable("PROPERTIES", name)) {
+    DBTable table = DB::Get()->GetTable("PROPERTIES", name);
+    mat = GetMaterialPropertiesTable(table);
+  }
+
+
+  if (DB::Get()->HasTable("MATERIAL", name)) {
+    DBTable table = DB::Get()->GetTable("MATERIAL", name);
+    mat = GetMaterialPropertiesTable(table);
+  }
+
+  return mat;
+}
+
+G4MaterialPropertiesTable* MaterialFactory::GetMaterialPropertiesTable(DBTable table) {
+
+  G4MaterialPropertiesTable* mat = new G4MaterialPropertiesTable();
+  std::vector<std::string> allowed_properties;
+  allowed_properties.push_back("WLSTIMECONSTANT");
+  allowed_properties.push_back("BIRKSCONSTANT");
+  allowed_properties.push_back("FASTCOMPONENT");
+  allowed_properties.push_back("SLOWCOMPONENT");
+  allowed_properties.push_back("RINDEX");
+  allowed_properties.push_back("ABSLENGTH");
+  allowed_properties.push_back("SCINTILLATIONYIELD");
+  allowed_properties.push_back("RESOLUTIONSCALE");
+  allowed_properties.push_back("SLOWTIMECONSTANT");
+  allowed_properties.push_back("FASTTIMECONSTANT");
+  allowed_properties.push_back("YIELDRATIO");
+  allowed_properties.push_back("BIRKSCONSTANT");
+  allowed_properties.push_back("REFLECTIVITY");
+  allowed_properties.push_back("EFFICIENCY");
+
+  for (int i = 0; i < allowed_properties.size(); i++) {
+    std::string name = allowed_properties[i];
+    if (table.Has(name + "_Y")) {
+
+      std::vector<G4double> yvals = table.GetVecG4D(name + "_Y");
+
+      std::vector<G4double> xvals;
+      if (table.Has(name + "_X")) xvals = table.GetVecG4D(name + "_X");
+      else if (table.Has("PROPERTIES_X")) xvals = table.GetVecG4D("PROPERTIES_X");
+      else {
+        std::cout << "NO X" << std::endl;
+        throw;
+      }
+
+      if (xvals.size() != yvals.size()) {
+        std::cout << "Material X Y must be equal in length" << std::endl;
+        throw;
+      }
+      mat->AddProperty(name.c_str(), &xvals[0], &yvals[0], xvals.size());
+
+    } else if (table.Has(name)) {
+
+      mat->AddConstProperty(name.c_str(), table.GetG4D(name));
+
+    }
+  }
+
+  return mat;
+}
+
+
+
+
+

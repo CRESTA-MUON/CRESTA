@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,61 +22,62 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+//
+// $Id: PhotonHit.cc 72250 2013-07-12 08:59:26Z gcosmo $
+//
+/// \file optical/LXe/src/PhotonHit.cc
+/// \brief Implementation of the PhotonHit class
+//
+//
+#include "PhotonHit.hh"
+#include "G4ios.hh"
+#include "G4VVisManager.hh"
+#include "G4Colour.hh"
+#include "G4VisAttributes.hh"
+#include "G4LogicalVolume.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4Square.hh"
+#include "db/DBTable.hh"
+#include "analysis/Analysis.hh"
 
-#include "G4VSensitiveDetector.hh"
-#include "G4Event.hh"
+using namespace COSMIC;
 
-namespace COSMIC {
+G4ThreadLocal G4Allocator<PhotonHit>* PhotonHitAllocator = 0;
 
-/// Template detector class for use in the analysis.
-/// Uses most of the sensitive detector functionality,
-/// but has a ResetState function to restore all variables
-/// at the start of an event.
-class VDetector : public G4VSensitiveDetector
+PhotonHit::PhotonHit() {}
+
+PhotonHit::~PhotonHit() {}
+
+PhotonHit::PhotonHit(const PhotonHit &right) : G4VHit()
 {
-public:
-
-  /// Set ID on construction
-  inline VDetector(std::string id, std::string type) :
-    G4VSensitiveDetector(id) {
-    fID = id;
-    fType = type;
-  };
-  /// Destructor
-  virtual ~VDetector() {};
-
-
-  /// Reset detector state at start of event
-  virtual void ResetState() {};
-
-
-  /// Set this detectors ID tag
-  inline void SetID(std::string id) {fID = id;};
-  /// Get this detectors ID tag
-  inline std::string GetID() {return fID;};
-
-  /// Set this detectors type string for reference
-  inline void SetType(std::string type) {fType = type;};
-  /// Get this detectors type string for reference
-  inline std::string GetType() {return fType;};
-
-
-  /// Assign the detector to a logical volume
-  virtual inline void SetLogicalVolume(G4LogicalVolume* logic, G4VPhysicalVolume* /*physical*/) {
-    logic->SetSensitiveDetector(this);
-  }
-
-  /// Manually process the events
-  virtual G4TrackStatus ManuallyProcessHits(const G4Step* aStep, G4TouchableHistory*){ return fAlive; };
-
-
-protected:
-  std::string fType; ///< Detector type
-  std::string fID;   ///< Detector Unique ID tag
-};
+  fPos = right.fPos;
+  fEnergy = right.fEnergy;
+  fTime = right.fTime;
 }
 
-#endif
+const PhotonHit& PhotonHit::operator=(const PhotonHit &right) {
+  fPos = right.fPos;
+  fEnergy = right.fEnergy;
+  fTime = right.fTime;
+  return *this;
+}
 
+G4int PhotonHit::operator==(const PhotonHit &right) const {
+  return (fTime == right.fTime);
+}
+
+void PhotonHit::Draw() {
+  G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
+  if (pVVisManager)
+  {
+    G4Square square(fPos);
+    square.SetScreenSize(6);
+    square.SetFillStyle(G4Square::filled);
+    G4Colour colour(1., 0., 0.);
+    G4VisAttributes attribs(colour);
+    square.SetVisAttributes(attribs);
+    pVVisManager->Draw(square);
+  }
+}
+
+void PhotonHit::Print() {}

@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,61 +22,74 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+//
+// $Id: LXePMTHit.hh 72250 2013-07-12 08:59:26Z gcosmo $
+//
+/// \file optical/LXe/include/LXePMTHit.hh
+/// \brief Definition of the LXePMTHit class
+//
+//
+#ifndef PhotonHit_h
+#define PhotonHit_h 1
 
-#include "G4VSensitiveDetector.hh"
-#include "G4Event.hh"
+#include "G4VHit.hh"
+#include "G4THitsCollection.hh"
+#include "G4Allocator.hh"
+#include "G4ThreeVector.hh"
+#include "G4LogicalVolume.hh"
+#include "G4Transform3D.hh"
+#include "G4RotationMatrix.hh"
+#include "G4VPhysicalVolume.hh"
 
-namespace COSMIC {
+#include "tls.hh"
 
-/// Template detector class for use in the analysis.
-/// Uses most of the sensitive detector functionality,
-/// but has a ResetState function to restore all variables
-/// at the start of an event.
-class VDetector : public G4VSensitiveDetector
+class G4VTouchable;
+
+class PhotonHit : public G4VHit
 {
-public:
+  public:
+ 
+    PhotonHit();
+    virtual ~PhotonHit();
+    PhotonHit(const PhotonHit &right);
 
-  /// Set ID on construction
-  inline VDetector(std::string id, std::string type) :
-    G4VSensitiveDetector(id) {
-    fID = id;
-    fType = type;
-  };
-  /// Destructor
-  virtual ~VDetector() {};
+    const PhotonHit& operator=(const PhotonHit &right);
+    G4int operator==(const PhotonHit &right) const;
 
+    inline void *operator new(size_t);
+    inline void operator delete(void *aHit);
+ 
+    virtual void Draw();
+    virtual void Print();
 
-  /// Reset detector state at start of event
-  virtual void ResetState() {};
+    inline void SetPosition(G4ThreeVector v){ fPos = v; }
+    inline G4ThreeVector GetPosition(){ return fPos; }
 
+    inline void SetEnergy(G4double e){ fEnergy = e; }
+    inline G4double GetEnergy(){ return fEnergy; }
 
-  /// Set this detectors ID tag
-  inline void SetID(std::string id) {fID = id;};
-  /// Get this detectors ID tag
-  inline std::string GetID() {return fID;};
+    inline void SetTime(G4double e){ fTime = e; }
+    inline G4double GetTime(){ return fTime; }
 
-  /// Set this detectors type string for reference
-  inline void SetType(std::string type) {fType = type;};
-  /// Get this detectors type string for reference
-  inline std::string GetType() {return fType;};
+  private:
 
-
-  /// Assign the detector to a logical volume
-  virtual inline void SetLogicalVolume(G4LogicalVolume* logic, G4VPhysicalVolume* /*physical*/) {
-    logic->SetSensitiveDetector(this);
-  }
-
-  /// Manually process the events
-  virtual G4TrackStatus ManuallyProcessHits(const G4Step* aStep, G4TouchableHistory*){ return fAlive; };
-
-
-protected:
-  std::string fType; ///< Detector type
-  std::string fID;   ///< Detector Unique ID tag
+    G4ThreeVector fPos;
+    G4double fEnergy;
+    G4double fTime;
 };
+
+typedef G4THitsCollection<PhotonHit> PhotonHitsCollection;
+
+extern G4ThreadLocal G4Allocator<PhotonHit>* PhotonHitAllocator;
+
+inline void* PhotonHit::operator new(size_t){
+  if(!PhotonHitAllocator)
+      PhotonHitAllocator = new G4Allocator<PhotonHit>;
+  return (void *) PhotonHitAllocator->MallocSingle();
+}
+
+inline void PhotonHit::operator delete(void *aHit){
+  PhotonHitAllocator->FreeSingle((PhotonHit*) aHit);
 }
 
 #endif
-

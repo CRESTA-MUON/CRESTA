@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,61 +22,31 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+//
+// $Id: ScintillatorPhysicsList.hh 68058 2013-03-13 14:47:43Z gcosmo $
+//
+/// \file ScintillatorPhysicsList.hh
+/// \brief Definition of the ScintillatorPhysicsList class (Mandatory)
 
-#include "G4VSensitiveDetector.hh"
-#include "G4Event.hh"
+#ifndef ScintillatorPhysicsList_h
+#define ScintillatorPhysics_h 1
 
-namespace COSMIC {
+#include "G4VModularPhysicsList.hh"
 
-/// Template detector class for use in the analysis.
-/// Uses most of the sensitive detector functionality,
-/// but has a ResetState function to restore all variables
-/// at the start of an event.
-class VDetector : public G4VSensitiveDetector
+class ScintillatorPhysicsList: public G4VModularPhysicsList
 {
 public:
+  /// constructor
+  ScintillatorPhysicsList();
 
-  /// Set ID on construction
-  inline VDetector(std::string id, std::string type) :
-    G4VSensitiveDetector(id) {
-    fID = id;
-    fType = type;
-  };
-  /// Destructor
-  virtual ~VDetector() {};
+  /// destructor
+  virtual ~ScintillatorPhysicsList();
 
-
-  /// Reset detector state at start of event
-  virtual void ResetState() {};
-
-
-  /// Set this detectors ID tag
-  inline void SetID(std::string id) {fID = id;};
-  /// Get this detectors ID tag
-  inline std::string GetID() {return fID;};
-
-  /// Set this detectors type string for reference
-  inline void SetType(std::string type) {fType = type;};
-  /// Get this detectors type string for reference
-  inline std::string GetType() {return fType;};
-
-
-  /// Assign the detector to a logical volume
-  virtual inline void SetLogicalVolume(G4LogicalVolume* logic, G4VPhysicalVolume* /*physical*/) {
-    logic->SetSensitiveDetector(this);
-  }
-
-  /// Manually process the events
-  virtual G4TrackStatus ManuallyProcessHits(const G4Step* aStep, G4TouchableHistory*){ return fAlive; };
-
-
-protected:
-  std::string fType; ///< Detector type
-  std::string fID;   ///< Detector Unique ID tag
+  /// Set user cuts
+  virtual void SetCuts();
 };
-}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
 

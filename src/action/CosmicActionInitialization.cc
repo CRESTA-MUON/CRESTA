@@ -29,6 +29,7 @@
 #include "flux/PrimaryGeneratorFactory.hh"
 #include "physics/PhysicsFactory.hh"
 #include "sd/DetectorConstruction.hh"
+#include "action/CosmicSteppingAction.hh"
 
 // namespace COSMIC
 using namespace COSMIC;
@@ -52,5 +53,6 @@ void CosmicActionInitialization::Build() const
   SetUserAction(PrimaryGeneratorFactory::LoadGenerator());
   SetUserAction(new CosmicRunAction);
   SetUserAction(new CosmicStackingAction);
+  SetUserAction(new CosmicSteppingAction);
 }
 
