@@ -130,7 +130,7 @@ void DriftChamberHit::Draw()
             G4Transform3D tr = G4Transform3D(G4RotationMatrix(), fWorldPos);
             G4Colour colour(0., 1., 0.);
             if (fGhost) {
-                colour = G4Colour(0.7, 1., 0.);
+                colour = G4Colour(1.0, 0.2, 0.);
             }
             G4VisAttributes attribs(colour);
             pVVisManager->Draw(hitbox, attribs, tr);

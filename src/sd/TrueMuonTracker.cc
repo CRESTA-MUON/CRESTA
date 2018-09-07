@@ -151,7 +151,7 @@ bool TrueMuonProcessor::ProcessEvent(const G4Event* /*event*/) {
     man->FillNtupleDColumn(fMuonPosZIndex, fTracker->GetMuonPos().z() / m);
     man->FillNtupleIColumn(fMuonPDGIndex , fTracker->GetMuonPDG());
 
-    TrueMuonProcessor::DrawEvent();
+    //    TrueMuonProcessor::DrawEvent();
 
     return true;
   } else {

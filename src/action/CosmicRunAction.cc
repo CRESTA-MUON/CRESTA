@@ -22,36 +22,28 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicRunAction.cc 71323 2013-06-13 16:54:23Z gcosmo $
-//
-/// \file CosmicRunAction.cc
-/// \brief Implementation of the CosmicRunAction class
-
 #include "action/CosmicRunAction.hh"
 
-#include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4Run.hh"
-#include "G4RunManager.hh"
+// G4 Headers
 #include "G4Event.hh"
-#include "G4SDManager.hh"
 #include "G4HCofThisEvent.hh"
-#include "G4THitsMap.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4SDManager.hh"
+#include "G4THitsMap.hh"
+#include "G4UnitsTable.hh"
 
-#include "sd/DetectorManager.hh"
-#include "sd/DetectorManager.hh"
-#include "action/CosmicAnalysis.hh"
-#include "action/CosmicRun.hh"
+// Cosmic Headers
 #include "analysis/Analysis.hh"
+#include "action/CosmicRun.hh"
+#include "sd/DetectorManager.hh"
+#include "sd/DetectorManager.hh"
 
+// namespace COSMIC
 using namespace COSMIC;
 
-CosmicRunAction::CosmicRunAction()
-  : G4UserRunAction(), fCurrentRun(0)
+CosmicRunAction::CosmicRunAction() : G4UserRunAction(), fCurrentRun(0)
 {
 }
 
@@ -61,27 +53,36 @@ CosmicRunAction::~CosmicRunAction()
 }
 
 G4Run* CosmicRunAction::GenerateRun()
-{ return new CosmicRun; }
+{
+  return new CosmicRun;
+}
 
 void CosmicRunAction::BeginOfRunAction(const G4Run* run)
 {
+  // Logging Info
   std::cout << "=========================================" << std::endl;
   std::cout << "ACT: Beginning Run : " << fCurrentRun << std::endl;
+
+  // Do start analysis processing
   Analysis::Get()->BeginOfRunAction(run);
 }
 
 void CosmicRunAction::EndOfRunAction(const G4Run* run)
 {
+  // Do any run processing
   Analysis::Get()->EndOfRunAction(run);
+
+  // Add to the current counters
   fCurrentRun++;
   Analysis::Get()->IncrementSubRun();
-  std::cout << "ACT: Finished Run."
-            << " Events : " << Analysis::Get()->GetNEvents()
+
+  // Logging Info
+  std::cout << "ACT: Finished Run. "
+            << "Events : " << Analysis::Get()->GetNEvents()
             << ", Triggered : " << Analysis::Get()->GetNSavedEvents()
             << ", Exposure : " << Analysis::Get()->GetExposureTime() << " s" << std::endl;
-
+  std::cout << "=========================================" << std::endl;
 
   // Check exposure/trigger limits
   Analysis::Get()->CheckAbortState();
 }
-

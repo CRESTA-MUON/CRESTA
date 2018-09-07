@@ -154,15 +154,19 @@
 class VertexGrid {
 public:
   VertexGrid(DBTable table);
-  VertexGrid(float gridsize, float minx, float maxx, float miny, float maxy, float minz, float maxz);
+  VertexGrid(float sizx, float minx, float maxx, float sizy, float miny, float maxy, float sizz, float minz, float maxz);
   ~VertexGrid();
 
-  int GetVoxelID(float x, float y, float z);
+  int GetVoxelID(float x, float y, float z, bool withoutoff=false);
 
   bool IsValidVertex(EventVertex& vertex);
-  void SetOffsets(float xoff, float yoff, float zoff);
+  void SetGridOffsets(float xoff, float yoff, float zoff);
+  void SetPointOffsets(float xoff, float yoff, float zoff);
   void AddVertexToVoxel(uint voxelid, EventVertex vertex);
   void AddVertex(EventVertex vertex);
+  void Bristol_SetTrackCut(int n){fTrackCut = n;};
+  void Bristol_SetDiscrCut(float n){fDiscrCut = n;};
+
 
   void Write();
 
@@ -177,21 +181,30 @@ public:
   // float gZMAX =  400.0;
   // float gZOFF =  0;
 
-  float fGridSize;
+  float fXSIZ;
   float fXMIN;
   float fXMAX;
   float fXOFF;
+  float fXPFF;
+  float fYSIZ;
   float fYMIN;
   float fYMAX;
   float fYOFF;
+  float fYPFF;
+  float fZSIZ;
   float fZMIN;
   float fZMAX;
   float fZOFF;
+  float fZPFF;
 
   int fZnbins;
   int fXnbins;
   int fYnbins;
 
+  int fTrackCut;
+  float fDiscrCut;
+
+  // Really, I need a long int
   std::map< uint, std::vector<EventVertex> > fVertices;
 
 };

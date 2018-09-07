@@ -84,7 +84,7 @@ public:
   G4double GetMultiplicity() {return fParticleMult;};
 
   void ResetExposureTime();
-
+  void Draw();
 private:
 
   CRYGenerator* gen; ///< Actual CRY Generator
@@ -169,7 +169,7 @@ public:
   void ResetExposureTime();
   
   double GetEventRate();
-
+  void Draw();
 protected:
 
   CRYPrimaryGenerator* fGenerator; ///< Pointer to associated generator

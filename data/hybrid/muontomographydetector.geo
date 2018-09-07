@@ -51,7 +51,7 @@
   index: "AWE_GASMIX1",
   element_names: ["Ar","C","O","H"],
   element_counts: [0.925,0.75,0.100,0.100],
-  density: 2.4,  
+  density: 0.00166201,  
   density_units: "g/cm3"
 }
 {
@@ -59,7 +59,7 @@
   index: "AWE_SCINTMIX",
   element_names: ["C","H"]
   element_counts: [0.9,0.1],
-  density: 2.4,
+  density: 1.032,
   density_units: "g/cm3"
 }
 

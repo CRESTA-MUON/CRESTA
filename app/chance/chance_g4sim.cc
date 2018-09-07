@@ -92,6 +92,8 @@ int gExposureTime = -1; ///< Number of seconds exposure to generate
 
 long int gProcessingChunks = 1E7; ///< By default what the chunk size should be
 
+bool gMakeMCMap = false;
+
 // User Defined Geometry files
 std::vector<std::string> gGeomtryFiles;
 std::string gDefaultDetector;
@@ -112,6 +114,7 @@ void PrintHelpScreen() {
   std::cout << " --run    r : Set Run ID Manually" << std::endl;
   std::cout << " --subrun r : Set Sub Run ID Manually" << std::endl << std::endl;
   std::cout << " --detector : Override the default detector geometry JSON table." << std::endl;
+  std::cout << " --mcmap    : Build an MC Map" << std::endl;
   exit(0);
 
 }
@@ -172,6 +175,10 @@ int main(int argc, char** argv) {
       // Interactive Mode Flag "-i"
     } else if (std::strcmp(argv[i], "-i") == 0) {
       gInteractive = true;
+
+      // MC Map Mode Flag "--mcmap" 
+    } else if (std::strcmp(argv[i], "--mcmap") == 0) {
+      gMakeMCMap = true;
 
       // Geometry input " -g geofile1 -g geofile2 "
     } else if (std::strcmp(argv[i], "-g") == 0) {
@@ -320,10 +327,20 @@ int main(int argc, char** argv) {
     }
 
 
-    // *********************************
-    // N Generated mode
-    // *********************************
-    if (gNEvents > 0 && gNTriggers < 0 && gExposureTime < 0) {
+    if (gMakeMCMap){
+      // *********************************
+      // Map Mode
+      // *********************************
+
+      std::cout << "================================== " << std::endl;
+      std::cout << "APP: Generating MC True Map" << std::endl;
+      Analysis::Get()->BuildMCMap();
+
+
+      // *********************************
+      // N Generated mode
+      // *********************************
+    } else if (gNEvents > 0 && gNTriggers < 0 && gExposureTime < 0) {
       std::cout << "========================================= " << std::endl;
       std::cout << "APP: Running Generator" << std::endl;
       std::cout << "APP: --> NEvents : " << gNEvents << std::endl << std::endl;

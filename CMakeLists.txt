@@ -168,6 +168,9 @@ target_link_libraries(chance_trackfit ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 add_executable(chance_discr ${PROJECT_SOURCE_DIR}/app/chance/chance_discr.cc)
 target_link_libraries(chance_discr ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
 
+add_executable(chance_asr ${PROJECT_SOURCE_DIR}/app/chance/chance_asr.cc)
+target_link_libraries(chance_asr ${LINK_DIRS} ${LINK_LIBRARIES} cresta)
+
 if(USE_PUMAS)
 add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)
 target_link_libraries(pumas_example  ${LINK_DIRS} ${LINK_LIBRARIES} cresta)

@@ -48,7 +48,7 @@
 {
   name: "FLUXNULL",
   index: "target_box_0",
-  size: ["1.80*m","0.60*m","0.07*m"],
+  size: ["0.01*m","0.6*m","0.01*m"],
   position: ["1.0","0.0","0.0*m"],
   rotation: [90.0,0.0,90.0],
   region: "precision"

@@ -217,6 +217,8 @@ int main(int argc, char** argv) {
 
   // Print Splash Screen
   DB::PrintSplashScreen();
+  std::string defaultconfig = DB::GetDataPath() + "/chance/trackfit_config.geo";
+
 
   // Get User Inputs
   std::cout << "========================================= " << std::endl;
@@ -232,6 +234,9 @@ int main(int argc, char** argv) {
       // N Triggers Input " -j ntriggers"
     } else if (std::strcmp(argv[i], "-o") == 0) {
       gOutputTag = std::string(argv[++i]);
+
+    } else if (std::strcmp(argv[i], "-c") == 0) {
+      defaultconfig = std::string(argv[++i]);
 
     } else if (std::strcmp(argv[i], "--rpc-only") == 0) {
       gInputMode = kUseRPC;
@@ -270,6 +275,15 @@ int main(int argc, char** argv) {
   }
 
   // std::cout << "========================================= " << std::endl;
+  std::cout << "APP: Loading CONFIG : " << defaultconfig << std::endl;
+
+  DB *rdb = DB::Get();
+  rdb->LoadFile(defaultconfig);
+  rdb->Finalise();
+
+  DBTable configuration = rdb->GetTable("TRACKFIT", "config");
+
+  // std::cout << "========================================= " << std::endl;
   std::cout << "APP: Beginning Input Loop" << std::endl;
 
   // Read in input Trees
@@ -284,6 +298,10 @@ int main(int argc, char** argv) {
   BristolPoCAFitter* pocafit = new BristolPoCAFitter();
   pocafit->ReadInputTTree(t, prefixa, prefixb);
 
+
+  // List of configs we care about
+  // - Resolution
+  // - Use RPC or Use Drift
   if (gInputMode == kUseRPC) {
     pocafit->SetUseRPC(true);
     pocafit->SetUseDrift(true);
@@ -304,7 +322,7 @@ int main(int argc, char** argv) {
   // }
   bool fIsMC = true;
   TrueMCReader* truefit = NULL;
-  if (fIsMC){
+  if (fIsMC) {
     truefit = new TrueMCReader();
     truefit->ReadInputTTree(t, prefixa, prefixb);
   }
@@ -355,7 +373,6 @@ int main(int argc, char** argv) {
   otree->Branch("pocascattering", fPOCAScattering, "scatteranglex/D:scatterangley:scatterangle3d:vx:vy:vz");
   otree->Branch("mctruth", fMCTruth, "energy/D:p:px:py:pz:v:scatterangle:passflag");
 
-
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Event Loop" << std::endl;
 
@@ -382,7 +399,7 @@ int main(int argc, char** argv) {
     t->GetEntry(i);
     pocafit->PreProcessData();
 
-    if (i % 20000 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
+    if (i % 200 == 0) std::cout << "Processed " << i << "/" << n << " events. Saved : " << savecount << std::endl;
     // std::cout << " New Event " << std::endl;
 
     // Apply NHit cuts
@@ -488,14 +505,13 @@ int main(int argc, char** argv) {
     int npars = 7;
     ROOT::Minuit2::MnUserParameters mn_param;
 
-    mn_param.Add("vx", 225.0, 10);
-    mn_param.Add("vy", 225.0, 10);
-    mn_param.Add("vz", -250.0, 10);
-    mn_param.Add("px1", 0.0, 10);
-    mn_param.Add("px2", 0.0, 10);
-    mn_param.Add("py1", 0.0, 10);
-    mn_param.Add("py2", 0.0, 10);
-
+    mn_param.Add("vx",  fPOCAScattering[3], 10);
+    mn_param.Add("vy",  fPOCAScattering[4], 10);
+    mn_param.Add("vz",  fPOCAScattering[5], 10);
+    mn_param.Add("px1", stf_above_px, 10);
+    mn_param.Add("px2", stf_below_px, 10);
+    mn_param.Add("py1", stf_above_py, 10);
+    mn_param.Add("py2", stf_below_py, 10);
 
     // Minimisation
     ROOT::Minuit2::MnMigrad migrad( *pocafit, mn_param, 2 ); //Strategy 2
@@ -602,6 +618,8 @@ int main(int argc, char** argv) {
     fScattering[8] = sqrt(covarV->Similarity(vec_w)); //V_long_error;
     fScattering[9] = sqrt(covarV->Similarity(vec_v)); //V_trans1_error;
     fScattering[10] = sqrt(covarV->Similarity(vec_u));  //V_trans2_error;
+
+    delete covarV;
 
     // Get actual fit values again?!
     fScattering[11] = fitVx;

@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
     } else if (std::strcmp(argv[i], "-o") == 0) {
       gOutputTag = std::string(argv[++i]);
 
-    } else if (std::strcmp(argv[i], "-c" == 0)) {
+    } else if (std::strcmp(argv[i], "-c") == 0) {
       defaultconfig = std::string(argv[++i]);
 
     } else if (std::strcmp(argv[i], "-h") == 0) {
@@ -245,23 +245,35 @@ int main(int argc, char** argv) {
   int ntracks = t->GetEntries();
   int printsi = ntracks / 10;
 
-  VertexGrid scangrid = VertexGrid(configuration.GetD("grid_size"),
-                                   configuration.GetD("grid_minx"),
-                                   configuration.GetD("grid_maxx"),
-                                   configuration.GetD("grid_miny"),
-                                   configuration.GetD("grid_maxy"),
-                                   configuration.GetD("grid_minz"),
-                                   configuration.GetD("grid_maxz"));
+  VertexGrid scangrid = VertexGrid(configuration.GetD("grid_sizex"),
+                                configuration.GetD("grid_minx"),
+                                configuration.GetD("grid_maxx"),
+                                configuration.GetD("grid_sizey"),
+                                configuration.GetD("grid_miny"),
+                                configuration.GetD("grid_maxy"),
+                                configuration.GetD("grid_sizez"),
+                                configuration.GetD("grid_minz"),
+                                configuration.GetD("grid_maxz"));
 
-  scangrid.SetOffsets(configuration.GetD("grid_offsetx"),
-                      configuration.GetD("grid_offsety"),
-                      configuration.GetD("grid_offsetz"));
+  scangrid.SetGridOffsets(configuration.GetD("grid_offsetx"),
+                          configuration.GetD("grid_offsety"),
+                          configuration.GetD("grid_offsetz"));
+
+  scangrid.SetPointOffsets(configuration.GetD("point_offsetx"),
+                           configuration.GetD("point_offsety"),
+                           configuration.GetD("point_offsetz"));
+
 
   double chosenmomentum = 0.0;
+  double smearmomentum = 0.0;
   if (configuration.Has("force_momentum")) chosenmomentum = configuration.GetD("force_momentum");
+  if (configuration.Has("smear_momentum")) smearmomentum = configuration.GetD("smear_momentum");
 
   gSmearingOption = 0;
   if (configuration.Has("smearing")) gSmearingOption = configuration.GetI("smearing");
+
+  if (configuration.Has("bs_trackcut")) scangrid.Bristol_SetTrackCut(configuration.GetI("bs_trackcut"));
+  if (configuration.Has("bs_discrcut")) scangrid.Bristol_SetDiscrCut(configuration.GetI("bs_discrcut"));
 
 
   for (int i = 0; i < ntracks; i++) {
@@ -276,20 +288,20 @@ int main(int argc, char** argv) {
     double scatterangley = fScattering[1];
     double scatterangle3d = fScattering[2];
 
-    // double vertexx = fScattering[11];
-    // double vertexy = fScattering[12];
-    // double vertexz = fScattering[13];
-    double vertexx = fPOCAScattering[3];
-    double vertexy = fPOCAScattering[4];
-    double vertexz = fPOCAScattering[5];
+    double vertexx = fScattering[11];
+    double vertexy = fScattering[12];
+    double vertexz = fScattering[13];
+    //    double vertexx = fPOCAScattering[3];
+    //    double vertexy = fPOCAScattering[4];
+    //    double vertexz = fPOCAScattering[5];
 
     double momentum = fMCTruth[1];
+    if (chosenmomentum != 0.0) momentum = chosenmomentum;
+    if (smearmomentum != 0.0)  momentum += G4RandGauss::shoot(0.0, smearmomentum * momentum);
 
     double errorx = sqrt(fCovarMatrix[0]);
     double errory = sqrt(fCovarMatrix[8]);
     double errorz = sqrt(fCovarMatrix[16]);
-
-    // std::cout << "Starting to smear" << std::endl;
 
     // Get Smearing
     int nsmear = gSmearingOption;
@@ -298,12 +310,11 @@ int main(int argc, char** argv) {
       // Get smear
       double smearx = vertexx + (j > 0) * G4RandGauss::shoot(0.0, errorx);
       double smeary = vertexy + (j > 0) * G4RandGauss::shoot(0.0, errory);
-      double smearz = vertexz; // + (j > 0) * G4RandGauss::shoot(0.0, errorz);
+      double smearz = vertexz + (j > 0) * G4RandGauss::shoot(0.0, errorz);
 
       // Get the ID
       int voxelid = scangrid.GetVoxelID(smearx, smeary, smearz);
 
-      // std::cout << "Loading VoxelID " << voxelid << " " << smearx << " " << smeary << " " << smearz << std::endl;
       // Skip bad voxels
       if (voxelid < 0) continue;
 
@@ -315,76 +326,12 @@ int main(int argc, char** argv) {
       newtrack.thx = scatteranglex;
       newtrack.thy = scatterangley;
       newtrack.th  = scatterangle3d;
-      if (chosenmomentum > 0.0) newtrack.mom = chosenmomentum;
-      else newtrack.mom = momentum;
+      newtrack.mom = momentum;
 
       scangrid.AddVertexToVoxel(voxelid, newtrack);
 
     }
   }
-
-  // // Now loop through our TH3D and set values
-  // int nx = (gXMAX - gXMIN) / gGridSize;
-  // int ny = (gYMAX - gYMIN) / gGridSize;
-  // int nz = (gZMAX - gZMIN) / gGridSize;
-
-  // TH3F* hist25 = new TH3F("hist25", "hist25", nx, gXMIN, gXMAX, ny, gYMIN, gYMAX, nz, gZMIN, gZMAX);
-  // TH3F* hist50 = new TH3F("hist50", "hist50", nx, gXMIN, gXMAX, ny, gYMIN, gYMAX, nz, gZMIN, gZMAX);
-  // TH3F* hist75 = new TH3F("hist75", "hist75", nx, gXMIN, gXMAX, ny, gYMIN, gYMAX, nz, gZMIN, gZMAX);
-  // TH3I* histNS = new TH3I("histNS", "histNS", nx, gXMIN, gXMAX, ny, gYMIN, gYMAX, nz, gZMIN, gZMAX);
-  // TH3F* histBS = new TH3F("histBS", "histBS", nx, gXMIN, gXMAX, ny, gYMIN, gYMAX, nz, gZMIN, gZMAX);
-
-
-  // int totalbins = histNS->GetNbinsX() * histNS->GetNbinsY() * histNS->GetNbinsZ();
-  // int printbins = totalbins / 10;
-  // int curntbins = 0;
-
-  // for (int i = 0; i < histNS->GetNbinsX(); i++) {
-  //   double x = histNS->GetXaxis()->GetBinCenter(i + 1);
-  //   for (int j = 0; j < histNS->GetNbinsY(); j++) {
-  //     double y = histNS->GetYaxis()->GetBinCenter(j + 1);
-  //     for (int k = 0; k < histNS->GetNbinsZ(); k++) {
-  //       double z = histNS->GetZaxis()->GetBinCenter(k + 1);
-  //       int voxelid = GetVoxelID(x, y, z);
-  //       if (voxelid == -1) continue;
-  //       if (discriminators.find(voxelid) == discriminators.end()) continue;
-
-  //       std::vector<vertex> vertices = discriminators[voxelid];
-  //       if (vertices.size() < 2) continue;
-
-  //       std::vector<double> disc;
-  //       for (int q = 0; q < vertices.size(); q++){
-  //         disc.push_back(vertices[q].thx * vertices[q].mom);
-  //         disc.push_back(vertices[q].thy * vertices[q].mom);
-  //       }
-  //       std::sort(disc.begin(), disc.end());
-  //       hist25->SetBinContent(i + 1, j + 1, k + 1, disc[0.25 * disc.size()]);
-  //       hist50->SetBinContent(i + 1, j + 1, k + 1, disc[0.50 * disc.size()]);
-  //       hist75->SetBinContent(i + 1, j + 1, k + 1, disc[0.75 * disc.size()]);
-  //       histNS->SetBinContent(i + 1, j + 1, k + 1, disc.size());
-
-  //       double bristoldisc;
-  //       disc.clear();
-  //       for (int q = 0; q < vertices.size(); q++){
-  //         for (int p = 0; p < vertices.size(); p++){
-  //           if (p <= q) continue;
-  //           vertex v1 = vertices[q];
-  //           vertex v2 = vertices[p];
-  //           float distance = sqrt(pow(v1.x - v2.x,2) + pow(v1.y - v2.y,2) + pow(v1.z - v2.z,2) );
-
-  //           disc.push_back(distance / (v1.th*v1.mom) / (v2.th*v2.mom));
-  //         }
-  //       }
-  //       std::sort(disc.begin(), disc.end());
-
-  //       histBS->SetBinContent(i + 1, j + 1, k + 1, disc[disc.size()/2]);
-  //       discriminators[voxelid].clear();
-
-  //       curntbins++;
-  //       if (curntbins % printbins == 0) std::cout << "Processed " << curntbins << "/" << totalbins << " voxels. " << std::endl;
-  //     }
-  //   }
-  // }
 
   TFile* ofile = new TFile((gOutputTag + ".discriminator.root").c_str(), "RECREATE");
   ofile->cd();
