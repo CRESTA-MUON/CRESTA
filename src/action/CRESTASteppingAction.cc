@@ -47,21 +47,7 @@ CRESTASteppingAction::~CRESTASteppingAction()
 
 void CRESTASteppingAction::UserSteppingAction(const G4Step* step)
 {
-  // If there is a step for the current volume, check if it
-  G4StepPoint* posstep = step->GetPostStepPoint();
-  G4VSensitiveDetector* postsd = posstep->GetSensitiveDetector();
-  VDetector* det = NULL;
-  if (postsd) {
-    det = static_cast<VDetector*>(postsd);
-  }
-  if (det) {
-      G4Track* track = step->GetTrack();
-    G4TrackStatus trackstatus = det->ManuallyProcessHits(step, NULL);
-    if (trackstatus != track->GetTrackStatus()) {
-      track->SetTrackStatus(trackstatus);
-    }
-  }
-
+  G4UserSteppingAction::UserSteppingAction(step);
   return;
 }
 

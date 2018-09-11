@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,48 +22,33 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __CRESTA_MaterialsFactory_hh__
-#define __CRESTA_MaterialsFactory_hh__
+//
+// $Id: OpticalSteppingAction.hh 74483 2013-10-09 13:37:06Z gcosmo $
+//
+/// \file OpticalSteppingAction.hh
+/// \brief Definition of the OpticalSteppingAction class
 
-// System Headers
-#include <iostream>
+#ifndef OpticalSteppingAction_h
+#define OpticalSteppingAction_h 1
 
-// Cosmic Headers
-#include "db/DBTable.hh"
+#include "G4UserSteppingAction.hh"
+#include "globals.hh"
 
-// Forward Declarations
-class G4Material;
-class G4Element;
-class G4VisAttributes;
+class G4LogicalVolume;
 
-// namespace CRESTA
-namespace CRESTA {
+/// Stepping action class
+/// 
 
+class OpticalSteppingAction : public G4UserSteppingAction
+{
+  public:
+    OpticalSteppingAction();
+    virtual ~OpticalSteppingAction();
 
-/// Detector Factory used to create SD from tables
-namespace MaterialsFactory {
+    // method from the base class
+    virtual void UserSteppingAction(const G4Step*);
+};
 
-/// Get Element from string
-G4Element* GetElement(std::string name);
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-/// Function to create detector objects from tables
-G4Material* GetMaterial(std::string name);
-
-/// Get some logical visualisation attributes depending on
-/// material defaults
-G4VisAttributes* GetVisForMaterial(DBTable table);
-
-/// Get vis just based on material database name
-G4VisAttributes* GetVisForMaterial(std::string name);
-
-/// Get the material properties from its name
-G4MaterialPropertiesTable* GetMaterialPropertiesTable(std::string name);
-
-/// Build Material Properties from JSON table
-G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
-
-
-} // - namespace MaterialsFactory
-} // - namespace CRESTA
 #endif
-

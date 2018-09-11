@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,70 +22,50 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CRESTAActionInitialization.hh"
+//
+// $Id: OpticalSteppingAction.cc 74483 2013-10-09 13:37:06Z gcosmo $
+//
+/// \file OpticalSteppingAction.cc
+/// \brief Implementation of the OpticalSteppingAction class
 
-// CRESTA Headers
-#include "action/CRESTARunAction.hh"
-#include "action/CRESTAStackingAction.hh"
-#include "action/CRESTASteppingAction.hh"
-#include "flux/FluxFactory.hh"
-#include "physics/PhysicsFactory.hh"
-#include "sd/DetectorConstruction.hh"
+#include "OpticalSteppingAction.hh"
 
-// namespace CRESTA
+#include "G4Step.hh"
+#include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4LogicalVolume.hh"
+#include "analysis/VDetector.hh"
+
 using namespace CRESTA;
 
-CRESTAActionInitialization::CRESTAActionInitialization()
-  : G4VUserActionInitialization()
+OpticalSteppingAction::OpticalSteppingAction()
+  : G4UserSteppingAction()
 {}
 
-CRESTAActionInitialization::~CRESTAActionInitialization()
+OpticalSteppingAction::~OpticalSteppingAction()
 {}
 
-void CRESTAActionInitialization::BuildForMaster() const
+void OpticalSteppingAction::UserSteppingAction(const G4Step* step)
 {
-  // Set run action from factory
-  G4UserRunAction* run = new CRESTARunAction();
-  if (run) SetUserAction(run);
-  else {
-  	std::cout << "No run loaded in master!" << std::endl;
-  	throw;
-  }
-}
+  // Call Default
+  G4UserSteppingAction::UserSteppingAction(step);
 
-void CRESTAActionInitialization::Build() const
-{
-  // Set flux action from factory
-  G4VUserPrimaryGeneratorAction* gen = FluxFactory::LoadFluxGenerator();
-  if (gen) { SetUserAction(gen); }
-  else {
-  	std::cout << "No generator loaded in master!" << std::endl;
-  	throw;
+  // If there is a step for the current volume, check if it
+  G4StepPoint* posstep = step->GetPostStepPoint();
+  G4VSensitiveDetector* postsd = posstep->GetSensitiveDetector();
+  VDetector* det = NULL;
+  if (postsd) {
+    det = static_cast<VDetector*>(postsd);
   }
-
-  // Set run action from factory
-  G4UserRunAction* run = new CRESTARunAction();
-  if (run) { SetUserAction(run); }
-  else {
-  	std::cout << "No run loaded in slave!" << std::endl;
-  	throw;
+  
+  if (det) {
+    G4Track* track = step->GetTrack();
+    G4TrackStatus trackstatus = det->ManuallyProcessHits(step, NULL);
+    if (trackstatus != track->GetTrackStatus()) {
+      track->SetTrackStatus(trackstatus);
+    }
   }
 
-  // Set event action from factory
-  // G4UserEventAction* event = NULL;
-  // if (event) { SetUserAction(event); }
-
-  // Set stacking action from factory
-  G4UserStackingAction* stack = new CRESTAStackingAction();
-  if (stack) { SetUserAction(stack); }
-
-  // Set tracking action from factory
-  //  G4UserTrackingAction* track = NULL;
-  //  if (track) { SetUserAction(track); }
-
-  // Set stepping action from factory
-  //  G4UserSteppingAction* step = new CRESTASteppingAction(); 
-  //  if (step) { SetUserAction(step); }
-
+  return;
 }
 

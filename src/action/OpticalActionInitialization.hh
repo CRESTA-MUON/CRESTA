@@ -21,44 +21,35 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CRESTAStackingAction.hh"
+#ifndef __CRESTA_OpticalActionInitialization_hh__
+#define __CRESTA_OpticalActionInitialization_hh__
 
 // G4 Headers
-#include "G4Track.hh"
-#include "G4NeutrinoE.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
-#include "G4Gamma.hh"
-#include "G4SystemOfUnits.hh"
+#include "G4VUserActionInitialization.hh"
 
 // namespace CRESTA
-using namespace CRESTA;
+namespace CRESTA {
 
-CRESTAStackingAction::CRESTAStackingAction() {
-}
-
-CRESTAStackingAction::~CRESTAStackingAction() {
-}
-
-G4ClassificationOfNewTrack CRESTAStackingAction::ClassifyNewTrack(const G4Track* track)
+/// Action initialization class.
+class OpticalActionInitialization : public G4VUserActionInitialization
 {
+public:
 
-  if (track->GetParentID() > 0) {
-    // Kill secondary neutrinos
-    if (track->GetDefinition() == G4NeutrinoE::NeutrinoE()) return fKill;
+  ///Constructor
+  OpticalActionInitialization();
+  ///Destructor
+  virtual ~OpticalActionInitialization();
 
-    // Kill extremely low energy electrons/gammas < 5 MeV
-    // Path length in Al about 1cm at 5 MeV?
-    if (track->GetDefinition() == G4Electron::Electron() ||
-        track->GetDefinition() == G4Positron::Positron() ||
-        track->GetDefinition() == G4Gamma::Gamma()) {
-      if (track->GetTotalEnergy() < 5 * MeV) {
-        return fKill;
-      }
-    }
-  }
 
-  // otherwise, return what Geant4 would have returned by itself
-  return G4UserStackingAction::ClassifyNewTrack(track);
+  ///Registers User Actions for the master (only Run Action)
+  virtual void BuildForMaster() const;
 
-}
+  ///Register User Actions for the workers
+  virtual void Build() const;
+
+};
+
+} // - namespace CRESTA
+#endif
+
+

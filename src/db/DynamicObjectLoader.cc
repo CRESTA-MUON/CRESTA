@@ -51,7 +51,7 @@ void DynamicObjectLoader::LoadPlugins() {
 				std::cout << "Loading : " << (dirpath + ent->d_name) << std::endl;
 
 				void* dlobj =
-				    dlopen((dirpath + ent->d_name).c_str(), RTLD_NOW | RTLD_GLOBAL);
+				  dlopen((dirpath + ent->d_name).c_str(), RTLD_NOW | RTLD_GLOBAL);
 				char const* dlerr_cstr = dlerror();
 				std::string dlerr;
 				if (dlerr_cstr) {
@@ -95,10 +95,23 @@ void DynamicObjectLoader::LoadPlugins() {
 				*/
 
 				// Processor Function Loading
+				bool validmanifest = true;
+				if (validmanifest) {
+					plugin.CRESTA_PrintManifest =
+					  reinterpret_cast<CRESTA_PrintManifest_ptr>(dlsym(dlobj, "CRESTA_PrintManifest"));
+					dlerr = "";
+					dlerr_cstr = dlerror();
+					if (dlerr_cstr) {
+						dlerr = dlerr_cstr;
+					}
+					if (dlerr.length()) { validmanifest = false; }
+				}
+
+				// Processor Function Loading
 				bool validprocessor = true;
 				if (validprocessor) {
 					plugin.CRESTA_ConstructProcessor =
-					    reinterpret_cast<CRESTA_ConstructProcessor_ptr>(dlsym(dlobj, "CRESTA_ConstructProcessor"));
+					  reinterpret_cast<CRESTA_ConstructProcessor_ptr>(dlsym(dlobj, "CRESTA_ConstructProcessor"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -123,7 +136,7 @@ void DynamicObjectLoader::LoadPlugins() {
 				bool validdetector = true;
 				if (validdetector) {
 					plugin.CRESTA_ConstructDetector =
-					    reinterpret_cast<CRESTA_ConstructDetector_ptr>(dlsym(dlobj, "CRESTA_ConstructDetector"));
+					  reinterpret_cast<CRESTA_ConstructDetector_ptr>(dlsym(dlobj, "CRESTA_ConstructDetector"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -148,7 +161,7 @@ void DynamicObjectLoader::LoadPlugins() {
 				bool validgeometry = true;
 				if (validgeometry) {
 					plugin.CRESTA_ConstructGeometry =
-					    reinterpret_cast<CRESTA_ConstructGeometry_ptr>(dlsym(dlobj, "CRESTA_ConstructGeometry"));
+					  reinterpret_cast<CRESTA_ConstructGeometry_ptr>(dlsym(dlobj, "CRESTA_ConstructGeometry"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -174,7 +187,7 @@ void DynamicObjectLoader::LoadPlugins() {
 				bool validgenerator = true;
 				if (validgenerator) {
 					plugin.CRESTA_LoadFluxGenerator =
-					    reinterpret_cast<CRESTA_LoadFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_LoadFluxGenerator"));
+					  reinterpret_cast<CRESTA_LoadFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_LoadFluxGenerator"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -195,15 +208,24 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				*/
 
+
 				// Print loading summary
-				if (validgenerator || validgeometry || validdetector || validprocessor){
-				  std::cout << "\tSuccessfully loaded dynamic processor manifest: "
-					    << plugin.soloc << "." << std::endl;
-				  Manifests.push_back(plugin);
-				  std::cout << "Added : " << plugin.soloc << " manifest." << std::endl;
-				  NManifests++;
+				if (validgenerator || validgeometry || validdetector || validprocessor) {
+					std::string manifestname = (*(plugin.CRESTA_PrintManifest))();
+
+					if (std::find(fLoadedManifests.begin(), fLoadedManifests.end(), manifestname) == fLoadedManifests.end()) {
+
+						std::cout << "\tSuccessfully loaded dynamic processor manifest: "
+						          << plugin.soloc << "." << std::endl;
+						Manifests.push_back(plugin);
+						fLoadedManifests.push_back(manifestname);
+						std::cout << "Added : " << plugin.soloc << " manifest." << std::endl;
+						NManifests++;
+					} else {
+						dlclose(dlobj);
+					}
 				} else {
-				  dlclose(dlobj);
+					dlclose(dlobj);
 				}
 			}
 		}
@@ -241,15 +263,9 @@ GeoObject* DynamicObjectLoader::ConstructDynamicGeometry(DBTable tbl) {
 	GeoObject* geo = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
 		if (Manifests[i].CRESTA_ConstructGeometry == NULL) continue;
-		std::cout << "Attempting to get dyn geometry" << std::endl;
 		geo = (*(Manifests[i].CRESTA_ConstructGeometry))(&tbl);
-		std::cout << "Got dyn geometry : " << geo << std::endl;
-		if (geo) {
-			std::cout << "Exitting, no need to search more" << std::endl;
-			break;
-		}
+		if (geo) { break; }
 	}
-	std::cout << "Returning dynamic geometry " << geo << std::endl;
 	return geo;
 }
 
@@ -259,7 +275,7 @@ DynamicObjectLoader::LoadDynamicFluxGenerator(std::string type) {
 	G4VUserPrimaryGeneratorAction* vd = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
 		if (Manifests[i].CRESTA_LoadFluxGenerator == NULL) continue;
-		G4VUserPrimaryGeneratorAction* vd = (*(Manifests[i].CRESTA_LoadFluxGenerator))(type);
+		vd = (*(Manifests[i].CRESTA_LoadFluxGenerator))(type);
 		if (vd) break;
 	}
 	return vd;

@@ -21,12 +21,12 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CRESTAActionInitialization.hh"
+#include "action/OpticalActionInitialization.hh"
 
 // CRESTA Headers
 #include "action/CRESTARunAction.hh"
 #include "action/CRESTAStackingAction.hh"
-#include "action/CRESTASteppingAction.hh"
+#include "action/OpticalSteppingAction.hh"
 #include "flux/FluxFactory.hh"
 #include "physics/PhysicsFactory.hh"
 #include "sd/DetectorConstruction.hh"
@@ -34,40 +34,40 @@
 // namespace CRESTA
 using namespace CRESTA;
 
-CRESTAActionInitialization::CRESTAActionInitialization()
+OpticalActionInitialization::OpticalActionInitialization()
   : G4VUserActionInitialization()
 {}
 
-CRESTAActionInitialization::~CRESTAActionInitialization()
+OpticalActionInitialization::~OpticalActionInitialization()
 {}
 
-void CRESTAActionInitialization::BuildForMaster() const
+void OpticalActionInitialization::BuildForMaster() const
 {
   // Set run action from factory
   G4UserRunAction* run = new CRESTARunAction();
   if (run) SetUserAction(run);
   else {
-  	std::cout << "No run loaded in master!" << std::endl;
-  	throw;
+    std::cout << "No run loaded in master!" << std::endl;
+    throw;
   }
 }
 
-void CRESTAActionInitialization::Build() const
+void OpticalActionInitialization::Build() const
 {
   // Set flux action from factory
   G4VUserPrimaryGeneratorAction* gen = FluxFactory::LoadFluxGenerator();
   if (gen) { SetUserAction(gen); }
   else {
-  	std::cout << "No generator loaded in master!" << std::endl;
-  	throw;
+    std::cout << "No generator loaded in master!" << std::endl;
+    throw;
   }
 
   // Set run action from factory
   G4UserRunAction* run = new CRESTARunAction();
   if (run) { SetUserAction(run); }
   else {
-  	std::cout << "No run loaded in slave!" << std::endl;
-  	throw;
+    std::cout << "No run loaded in slave!" << std::endl;
+    throw;
   }
 
   // Set event action from factory
@@ -83,8 +83,8 @@ void CRESTAActionInitialization::Build() const
   //  if (track) { SetUserAction(track); }
 
   // Set stepping action from factory
-  //  G4UserSteppingAction* step = new CRESTASteppingAction(); 
-  //  if (step) { SetUserAction(step); }
+  G4UserSteppingAction* step = new OpticalSteppingAction();
+  if (step) { SetUserAction(step); }
 
 }
 

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+export @PROJECT_NAME@="@PROJECT_BINARY_DIR@/"
+export @PROJECT_NAME@_LIB_DIR="@PROJECT_BINARY_DIR@/"
+export @PROJECT_NAME@_INC_DIR="@PROJECT_BINARY_DIR@/include/"
+export PATH="$@PROJECT_NAME@/bin/:$PATH"
+export @PROJECT_NAME@_DATA_PATH="@PROJECT_SOURCE_DIR@/data/"
+export LD_LIBRARY_PATH="$@PROJECT_NAME@/lib/:$LD_LIBRARY_PATH"
+export CRESTA_OBJECTS_PATH="$@PROJECT_NAME@/lib/:$CRESTA_OBJECTS_PATH"
+
+if [ ! -f "$@PROJECT_NAME@/lib/lib@PROJECT_NAME@.cresta" ]
+then
+    echo "Cannot find CRESTA dynamic symlink. Making one now..."
+    cd $@PROJECT_NAME@/lib/
+    if [ -f "lib@PROJECT_NAME@.so" ]
+    then
+        ln -sfv lib@PROJECT_NAME@.so lib@PROJECT_NAME@.cresta
+    fi
+    if [ -f "lib@PROJECT_NAME@.dylib" ]
+    then
+        ln -sfv lib@PROJECT_NAME@.dylib lib@PROJECT_NAME@.cresta
+    fi
+    if [ -f "lib@PROJECT_NAME@.dll" ]
+    then
+        ln -sfv lib@PROJECT_NAME@.dll lib@PROJECT_NAME@.cresta
+    fi
+    cd -
+fi
+

@@ -40,7 +40,6 @@ SimpleScintillatorSD::SimpleScintillatorSD(std::string name, std::string id,
 
     // Set initial state
     ResetState();
-
     // By default also include the auto processor
     if (autoprocess) {
         Analysis::Get()->RegisterProcessor(new SimpleScintillatorProcessor(this, autosave));

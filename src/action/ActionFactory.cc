@@ -15,13 +15,14 @@
 #include "action/CRESTAStackingAction.hh"
 #include "action/CRESTASteppingAction.hh"
 
+#include "action/OpticalActionInitialization.hh"
+#include "action/OpticalSteppingAction.hh"
+
 using namespace CRESTA;
-
-
 
 G4VUserActionInitialization* ActionFactory::ConstructActionInitialization() {
 	// Get global definition table
-	DBTable table = DB::Get()->GetTable("GLOBAL","config");
+	DBTable table = DB::Get()->GetTable("GLOBAL", "config");
 	return ConstructActionInitialization(table);
 }
 
@@ -29,6 +30,7 @@ G4VUserActionInitialization* ActionFactory::ConstructActionInitialization(DBTabl
 	// Get the action type from the config table
 	std::string type = table.GetS("action_initialization");
 	if (type.compare("cresta") == 0) return new CRESTAActionInitialization();
+	else if (type.compare("optical") == 0) return new OpticalActionInitialization();
 
 	// Check we didn't get to here and fail string comparison
 	std::cout << "Failed to create action initialization : " << type << std::endl;
@@ -73,6 +75,7 @@ G4UserSteppingAction* ActionFactory::ConstructSteppingAction(DBTable table) {
 	// Get the action type from the config table
 	std::string type = table.GetS("stepping_action");
 	if (type.compare("cresta") == 0) return new CRESTASteppingAction();
+	else if (type.compare("optical") == 0) return new OpticalSteppingAction();
 
 	// Check we didn't get to here and fail string comparison
 	std::cout << "Failed to create action initialization : " << type << std::endl;

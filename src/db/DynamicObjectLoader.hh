@@ -23,6 +23,7 @@ public:
 	static DynamicObjectLoader* Get();
 
 	// Available functions that can be found in the working area
+	typedef std::string (*CRESTA_PrintManifest_ptr)(void);
 	typedef VProcessor* (*CRESTA_ConstructProcessor_ptr)(DBTable*);
 	typedef VDetector* (*CRESTA_ConstructDetector_ptr)(DBTable*);
 	typedef GeoObject* (*CRESTA_ConstructGeometry_ptr)(DBTable*);
@@ -33,6 +34,7 @@ public:
 		void* dllib;
 		std::string soloc;
 
+		CRESTA_PrintManifest_ptr CRESTA_PrintManifest;
 		CRESTA_ConstructProcessor_ptr CRESTA_ConstructProcessor;
 		CRESTA_ConstructDetector_ptr CRESTA_ConstructDetector;
 		CRESTA_ConstructGeometry_ptr CRESTA_ConstructGeometry;
@@ -42,7 +44,7 @@ public:
 	};
 
 	std::vector<PluginManifest> Manifests;
-
+	std::vector<std::string> fLoadedManifests;
 	size_t NObjects;
 	size_t NManifests;
 

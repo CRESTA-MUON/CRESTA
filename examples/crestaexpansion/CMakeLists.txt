@@ -1,34 +1,67 @@
 #----------------------------------------------------------------------------
 # Setup the project
 
-message(STATUS "CRESTA CMAKE Build Generator ")
+message(STATUS "CRESTA EXPANSION CMAKE Build Generator ")
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(CRESTA)
+project(EXPANSION)
 
 #----------------------------------------------------------------------------
 # Set the build flags
+
+message(STATUS "Setting Build Flags")
+SET(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -Wno-shadow -Wno-reorder -O3 -Wno-unused-function -rdynamic")
+SET(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -Wno-shadow -Wno-reorder -rdynamic")
+
+if (CMAKE_BUILD_TYPE MATCHES RELEASE)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
+else()
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+endif()
 SET( BUILD_SHARED_LIBS "ON" )
+
+
+#----------------------------------------------------------------------------
+# Main EXPANSION Setup
+
+message(STATUS "Loading Main EXPANSION Files")
+file(GLOB headers ${PROJECT_SOURCE_DIR}/src/*.hh ${PROJECT_SOURCE_DIR}/src/*/*.hh)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*/*.cc)
+file(GLOB expansion_include ${PROJECT_SOURCE_DIR}/src/* ${PROJECT_SOURCE_DIR}/src/*/* ${PROJECT_SOURCE_DIR}/src/ )
+
+include_directories(${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/)
+
+set(CUSTOM_PROJECT_DIRS "-L${PROJECT_BINARY_DIR}/")
+set(CUSTOM_PROJECT_INCS "-I${PROJECT_BINARY_DIR}/ -I${PROJECT_SOURCE_DIR}/src/")
+set(CUSTOM_PROJECT_LIBS "${PROJECT_NAME}")
+
 
 #----------------------------------------------------------------------------
 # Main CRESTA Setup
 
-message(STATUS "Loading Main Cresta Files")
-file(GLOB headers ${PROJECT_SOURCE_DIR}/src/*/*.hh ${PROJECT_SOURCE_DIR}/src/geo/*/*.hh)
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*/*.cc ${PROJECT_SOURCE_DIR}/src/geo/*/*.cc)
-file(GLOB cresta_include ${PROJECT_SOURCE_DIR}/src/*/ ${PROJECT_SOURCE_DIR}/src/*/*/ ${PROJECT_SOURCE_DIR}/src/ )
+message(STATUS "Loading CRESTA")
+SET(CRESTA $ENV{CRESTA})
+SET(CRESTA_LIB_DIR $ENV{CRESTA_LIB_DIR})
+SET(CRESTA_INC_DIR $ENV{CRESTA_INC_DIR})
+SET(CRESTA_INC_FLAGS $ENV{CRESTA_INC_FLAGS})
+SET(CRESTA_DIRS "-L${CRESTA_LIB_DIR}")
+SET(CRESTA_INCS "${CRESTA_INC_FLAGS}")
+SET(CRESTA_LIBS ";CRESTA")
 
-include_directories(${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/geo/)
+string(REPLACE " -I"  ";" CRESTA_INC_STR "${CRESTA_INC_FLAGS}")
+string(REPLACE "-I"  ";" CRESTA_INC_STR "${CRESTA_INC_STR}")
+include_directories(${CRESTA_INC_STR})
 
-set(CRESTA_DIRS "-L${PROJECT_BINARY_DIR}/lib/")
-set(CRESTA_INCS "-I${PROJECT_BINARY_DIR}/ -I${PROJECT_SOURCE_DIR}/src/")
-set(CRESTA_LIBS "${PROJECT_NAME}")
+message(STATUS "INCLUDE DIRS : ${INCLUDE_DIRECTORIES} ${CRESTA_INC_STR}")
 
-
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "dir='${dir}'")
+endforeach()
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 
-message(STATUS "Loading Geant4")
+message(STATUS " Loading Geant4")
 add_definitions(-DG4ANALYSIS_USE_ROOT)
 find_package(Geant4 REQUIRED ui_all vis_all)
 include(${Geant4_USE_FILE})
@@ -67,47 +100,9 @@ string(REPLACE " -l"  " "    ROOTSYS_LIBS_STR  "${ROOTSYS_LIBS_STR}")
 string(REPLACE "  "  " "    ROOTSYS_LIBS_STR  "${ROOTSYS_LIBS_STR}")
 string(STRIP "${ROOTSYS_LIBS_STR}" ROOTSYS_LIBS_STR)
 string(REPLACE " "  ";"    ROOTSYS_LIBS_STR  "${ROOTSYS_LIBS_STR}")
-SET(ROOTSYS_LIBS "${ROOTSYS_LIBS_STR}")
+SET(ROOTSYS_LIBS "${ROOTSYS_LIBS_STR};Minuit2")
 include_directories(${ROOT_INCLUDE_DIR})
 
-
-#----------------------------------------------------------------------------
-# USE CADMESH
-SET(CADMESH_DIRS "")
-SET(CADMESH_INCS "")
-SET(CADMESH_LIBS "")
-
-if(USE_CADMESH)
-  message(STATUS "Loading CADMESH : [-DUSE_CADMESH=1]")
-  find_package(cadmesh)
-
-  # Look for CADMESH_DIR
-  if(CADMESH_DIR) 
-    message(STATUS "--> CADMESH_DIR=${CADMESH_DIR}")
-  else()
-    message(STATUS "BRROW2 Searching for CADMESH in 'cresta/external/cadmesh/install/'")
-    message(STATUS "BRROW2 To overwrite directory, use [-DCADMESH_DIR=...]")
-    set(CADMESH_DIR "${PROJECT_SOURCE_DIR}/external/cadmesh/install/")
-  endif()
-
-  # Check it exists
-  if(EXISTS ${CADMESH_DIR})
-  else()
-    message(STATUS "BRROW2 Need CADMESH build to build with -DUSE_CADMESH=1")
-    message(FATAL_ERROR "BRROW2 Scripts to download and build CADMESH are in cresta/external.")
-  endif()
-
-  # Add libraries and headers if so.
-  add_definitions(-D__USE_CADMESH__=1)
-  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${CADMESH_DIR}/lib/")
-  set(CADMESH_DIRS "-L${CADMESH_DIR}/lib/")
-  set(CADMESH_INCS "-I${CADMESH_DIR}/include/")
-  SET(CADMESH_LIBS ";assimp;cadmesh;tet")
-  include_directories(${CADMESH_DIR}/include/)
-
-else()
-  message(STATUS "No CADMESH Support : [-DUSE_CADMESH=0]")
-endif()
 
 
 #----------------------------------------------------------------------------
@@ -137,58 +132,38 @@ else()
  message(STATUS "No GPerf Support : [-DUSE_GPERF=0]")
 endif()
 
-
-#----------------------------------------------------------------------------
-# USE PUMAS FLAG
-#set(pumas_sources "")
-#set(pumas_headers "")
-#if(USE_PUMAS)
-#  message(STATUS "Including PUMAS in build.")
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__USE_PUMAS__=1")
-#  file(GLOB pumas_sources ${PROJECT_SOURCE_DIR}/src/pumas/*.c ${PROJECT_SOURCE_DIR}/src/pumas/*.cc)
-#  file(GLOB pumas_headers ${PROJECT_SOURCE_DIR}/src/pumas/*.h ${PROJECT_SOURCE_DIR}/src/pumas/*.hh)
-#add_library (pumas ${pumas_sources} ${pumas_headers})
-#set(DEPEND_LIBS "${DEPEND_LIBS} pumas")
-#endif()
-
-
-
 #----------------------------------------------------------------------------
 message(STATUS "Consolidating variables.")
 
-SET(DEPEND_DIRS_STR "${CRESTA_DIRS} ${GEANT4_DIRS} ${ROOTSYS_DIRS} ${CADMESH_DIRS} ${GPERF_DIRS}")
-string(STRIP "${DEPEND_DIRS_STR}" DEPEND_DIRS_STR)
+SET(DEPEND_DIRS_STR "${CUSTOM_PROJECT_DIRS} ${CRESTA_DIRS} ${GEANT4_DIRS} ${ROOTSYS_DIRS} ${CADMESH_DIRS} ${GPERF_DIRS}")
 
-SET(DEPEND_LIBS "${GEANT4_LIBS} ${ROOTSYS_LIBS} ${CADMESH_LIBS} ${GPERF_LIBS}")
+SET(DEPEND_LIBS "${CRESTA_LIBS} ${GEANT4_LIBS} ${ROOTSYS_LIBS} ${CADMESH_LIBS} ${GPERF_LIBS}")
 string(REPLACE ";"  " "    DEPEND_LIBS  "${DEPEND_LIBS}")
 string(REPLACE "  "  " "   DEPEND_LIBS  "${DEPEND_LIBS}")
 string(STRIP "${DEPEND_LIBS}" DEPEND_LIBS)
 string(REPLACE " "  ";"    DEPEND_LIBS  "${DEPEND_LIBS}")
 string(REPLACE ";"   " -l" DEPEND_LIBS_STR ";${DEPEND_LIBS}")
-string(STRIP "${DEPEND_LIBS}" DEPEND_LIBS)
-string(STRIP "${DEPEND_LIBS_STR}" DEPEND_LIBS_STR)
 
-SET(DEPEND_INCS_STR "${CRESTA_INCS} ${GEANT4_INCS} ${ROOTSYS_INCS} ${CADMESH_INCS} ${GPERF_INCS}")
+SET(DEPEND_INCS_STR "${CUSTOM_PROJECT_INCS} ${CRESTA_INCS} ${GEANT4_INCS} ${ROOTSYS_INCS} ${CADMESH_INCS} ${GPERF_INCS}")
 
 message(STATUS "--> DEPEND_DIRS = ${DEPEND_DIRS_STR}")
 message(STATUS "--> DEPEND_LIBS = ${DEPEND_LIBS}")
 message(STATUS "--> DEPEND_LIBS_STR = ${DEPEND_LIBS_STR}")
 message(STATUS "--> DEPEND_INCS = ${DEPEND_INCS_STR}")
 
-SET(BUILDER_DIRS_STR "${CRESTA_DIRS} ${GEANT4_DIRS} ${ROOTSYS_DIRS} ${CADMESH_DIRS} ${GPERF_DIRS}")
+SET(BUILDER_DIRS_STR "${CUSTOM_PROJECT_DIRS} ${CRESTA_DIRS} ${GEANT4_DIRS} ${ROOTSYS_DIRS} ${CADMESH_DIRS} ${GPERF_DIRS}")
 
-SET(BUILDER_LIBS "${CRESTA_LIBS} ${GEANT4_LIBS} ${ROOTSYS_LINKS} ${CADMESH_LIBS} ${GPERF_LIBS}")
+SET(BUILDER_LIBS "${CUSTOM_PROJECT_LIBS} ${CRESTA_LIBS} ${GEANT4_LIBS} ${ROOTSYS_LINKS} ${CADMESH_LIBS} ${GPERF_LIBS}")
 string(REPLACE ";"  " "    BUILDER_LIBS  "${BUILDER_LIBS}")
 string(REPLACE "  "  " "   BUILDER_LIBS  "${BUILDER_LIBS}")
 string(STRIP "${BUILDER_LIBS}" BUILDER_LIBS)
 string(REPLACE " "  ";"    BUILDER_LIBS  "${BUILDER_LIBS}")
 string(REPLACE ";"   " -l" BUILDER_LIBS_STR ";${BUILDER_LIBS}")
-string(STRIP "${BUILDER_LIBS_STR}" BUILDER_LIBS_STR)
-message(STATUS "BUILDER LIBS STR: ${BUILDER_LIBS_STR}")
 
-#string(REPLACE ";"  " -I"    BUILDER_SOURCES  ";${sources}")
-#string(REPLACE ";"  " -I"    BUILDER_HEADERS  ";${headers}")
-SET(BUILDER_INCS_STR "${BUILDER_HEADERS} ${CRESTA_INCS} ${GEANT4_INCS} ${ROOTSYS_INCS} ${CADMESH_INCS} ${GPERF_INCS}")
+
+string(REPLACE ";"  " -I"    BUILDER_SOURCES  ";${sources}")
+string(REPLACE ";"  " -I"    BUILDER_HEADERS  ";${headers}")
+SET(BUILDER_INCS_STR "${BUILDER_HEADERS} ${CUSTOM_PROJECT_INCS} ${CRESTA_INCS} ${GEANT4_INCS} ${ROOTSYS_INCS} ${CADMESH_INCS} ${GPERF_INCS}")
 
 
 #----------------------------------------------------------------------------
@@ -210,18 +185,10 @@ message(STATUS "Generating Setup Script")
 configure_file(cmake/setup.sh.in
   "${PROJECT_BINARY_DIR}/setup.sh" @ONLY)
 
-
 #----------------------------------------------------------------------------
-message(STATUS "Generating Dynamic Builder Script")
-file(MAKE_DIRECTORY  ${PROJECT_BINARY_DIR}/bin)
+# Build the EXPANSION Library
+message(STATUS "Building EXPANSION Library")
 
-configure_file(cmake/cresta_buildlib.in
-  "${PROJECT_BINARY_DIR}/bin/cresta_buildlib" @ONLY)
-
-
-#----------------------------------------------------------------------------
-# Build the CRESTA Library
-message(STATUS "Building CRESTA Library")
 file(MAKE_DIRECTORY  ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
@@ -230,28 +197,13 @@ target_link_libraries(${PROJECT_NAME} ${DEPEND_DIRS_STR} ${DEPEND_LIBS})
 
 #----------------------------------------------------------------------------
 # Add the executables, and link them to the libraries
-message(STATUS "Building CRESTA Applications")
+message(STATUS "Building EXPANSION Applications")
 
+file(MAKE_DIRECTORY  ${PROJECT_BINARY_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
-add_executable(cosmicraysim ${PROJECT_SOURCE_DIR}/app/standard/cosmicraysim.cc)
-target_link_libraries(cosmicraysim ${DEPEND_DIRS_STR} ${DEPEND_LIBS} ${CRESTA_LIBS})
-
-#if(USE_PUMAS)
-#add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)
-#target_DEPEND_LIBS(pumas_example  ${DEPEND_DIRS} ${DEPEND_LIBS} ${PROJECT_NAME})
-#endif()
-
-#----------------------------------------------------------------------------
-# Install headers and libraries to sub folder
-if (CMAKE_INSTALL_PREFIX STREQUAL "" OR CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
-  set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/")
-elseif(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/")
-endif()
-
-INSTALL(DIRECTORY DESTINATION include)
-INSTALL(FILES ${headers} DESTINATION include)
+add_executable(expansion_g4sim ${PROJECT_SOURCE_DIR}/app/expansion_g4sim.cc)
+target_link_libraries(expansion_g4sim ${DEPEND_DIRS_STR} ${DEPEND_LIBS} ${CUSTOM_PROJECT_LIBS})
 
 #----------------------------------------------------------------------------
 # Finito
