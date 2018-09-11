@@ -21,14 +21,14 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CRESTAActionInitialization_hh__
-#define __COSMIC_CRESTAActionInitialization_hh__
+#ifndef __CRESTA_CRESTAActionInitialization_hh__
+#define __CRESTA_CRESTAActionInitialization_hh__
 
 // G4 Headers
 #include "G4VUserActionInitialization.hh"
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// Action initialization class.
 class CRESTAActionInitialization : public G4VUserActionInitialization
@@ -49,7 +49,7 @@ public:
 
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 
 

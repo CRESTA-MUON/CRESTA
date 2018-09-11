@@ -31,8 +31,8 @@
 #include "physics/PhysicsFactory.hh"
 #include "sd/DetectorConstruction.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 CRESTAActionInitialization::CRESTAActionInitialization()
   : G4VUserActionInitialization()

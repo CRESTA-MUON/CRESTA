@@ -36,7 +36,7 @@
 #include "G4LogicalVolume.hh"
 #include "analysis/VDetector.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 CRESTASteppingAction::CRESTASteppingAction()
   : G4UserSteppingAction()

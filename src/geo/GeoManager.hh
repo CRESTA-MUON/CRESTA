@@ -26,7 +26,7 @@
 #include "db/DBTable.hh"
 #include "geo/GeoObject.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 class GeoManager {
 public:

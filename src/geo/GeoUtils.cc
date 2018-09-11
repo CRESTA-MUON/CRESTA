@@ -1,6 +1,6 @@
 #include "GeoUtils.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 namespace GEO {
 
 G4VSolid* GetSolidFromStore(std::string name, bool verbose) {
@@ -149,4 +149,4 @@ void BuildMCMapFromCurrentGEO() {
 
 
 } // - namespace GEO
-} // - namespace COSMIC
+} // - namespace CRESTA

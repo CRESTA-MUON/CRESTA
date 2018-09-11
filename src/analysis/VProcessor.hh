@@ -21,16 +21,16 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VProcessor_hh__
-#define __COSMIC_VProcessor_hh__
+#ifndef __CRESTA_VProcessor_hh__
+#define __CRESTA_VProcessor_hh__
 
 // G4 Headers
 #include "G4SystemOfUnits.hh"
 #include "G4Event.hh"
 #include "G4Run.hh"
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// Virtual Processor Template Class.
 /// Used as a template for processors that convert
@@ -88,5 +88,5 @@ protected:
 
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

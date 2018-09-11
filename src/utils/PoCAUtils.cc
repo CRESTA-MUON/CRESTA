@@ -1,6 +1,6 @@
 #include "PoCAUtils.hh"
 
-namespace COSMIC{
+namespace CRESTA{
 
 void PoCAUtils::GetPoCAFromTracks(G4ThreeVector& poca, G4double& angle, G4double& distance,
                                   G4ThreeVector posA, G4ThreeVector momA,
@@ -26,4 +26,4 @@ void PoCAUtils::GetPoCAFromTracks(G4ThreeVector& poca, G4double& angle, G4double
     return;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

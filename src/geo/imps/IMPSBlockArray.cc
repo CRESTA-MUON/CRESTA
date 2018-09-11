@@ -39,7 +39,7 @@
 #include "sd/LongDriftSD.hh"
 #include "IMPSNeutronBlock.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // --------------------------------------------------------------------------
 void IMPSBlockArray::Construct(DBTable table) {
@@ -103,4 +103,4 @@ void IMPSBlockArray::Construct(DBTable table) {
 // --------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------
-} // namespace COSMIC
+} // namespace CRESTA

@@ -4,7 +4,7 @@
 #include "analysis/Analysis.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 //---------------------------------------------------------------------------------
 LOSPrimaryGenerator::LOSPrimaryGenerator()
@@ -470,4 +470,4 @@ bool LOSPrimaryFluxProcessor::ProcessEvent(const G4Event* event) {
 
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA

@@ -5,7 +5,7 @@
 
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoCADMesh::GeoCADMesh(DBTable table) {
   Construct(table);
@@ -39,5 +39,5 @@ G4VSolid* GeoCADMesh::ConstructSolidVolume(DBTable tbl) {
   return geo_solid;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif // __USE_CADMESH__

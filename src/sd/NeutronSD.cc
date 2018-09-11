@@ -21,7 +21,7 @@
 #include "G4Polyline.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 NeutronSD::NeutronSD(DBTable tbl):
@@ -272,4 +272,4 @@ void NeutronProcessor::DrawEvent(){
   // }
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

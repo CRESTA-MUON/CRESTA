@@ -16,7 +16,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4ios.hh"
 #include "G4Box.hh"
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 LongDriftSD::LongDriftSD(DBTable tbl):
@@ -421,4 +421,4 @@ void LongDriftProcessor::Reset() {
 }
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA

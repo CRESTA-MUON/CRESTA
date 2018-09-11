@@ -4,7 +4,7 @@
 #include "db/DB.hh"
 #include "ScintillatorHit.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 GridScintillatorSD::GridScintillatorSD(DBTable tbl):
@@ -162,4 +162,4 @@ void GridScintillatorProcessor::Reset() {
 }
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA

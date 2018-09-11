@@ -15,7 +15,7 @@
 #include "LineOfSightSD.hh"
 #include "PhotonSD.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 VDetector* DetectorFactory::CreateSD(DBTable tbl) {
 
@@ -42,4 +42,4 @@ VDetector* DetectorFactory::CreateSD(DBTable tbl) {
   return 0;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

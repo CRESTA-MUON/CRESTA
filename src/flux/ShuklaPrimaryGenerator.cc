@@ -1,7 +1,7 @@
 #include "ShuklaPrimaryGenerator.hh"
 #include "db/DB.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //---------------------------------------------------------------------------------
 ShuklaPrimaryGenerator::ShuklaPrimaryGenerator()
@@ -511,4 +511,4 @@ G4double ShuklaPrimaryFluxProcessor::GetExposureTime() {
 }
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA

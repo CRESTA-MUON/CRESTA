@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VTrigger_hh__
-#define __COSMIC_VTrigger_hh__
+#ifndef __CRESTA_VTrigger_hh__
+#define __CRESTA_VTrigger_hh__
 
 // System Headers
 #include <iostream>
@@ -31,8 +31,8 @@
 #include "G4Event.hh"
 #include "G4Run.hh"
 
-// namspace COSMIC
-namespace COSMIC {
+// namspace CRESTA
+namespace CRESTA {
 
 /// Virtual Trigger template class
 /// Classes that inherit from this should
@@ -77,5 +77,5 @@ protected:
 
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

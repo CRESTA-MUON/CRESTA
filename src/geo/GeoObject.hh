@@ -7,7 +7,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSensitiveDetector;
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Virtual GeoObject Template defining functions to
 /// return each of the physical/logical volume pointers.
@@ -86,5 +86,5 @@ protected:
 
 };
 
-} // namespace COSMIC
+} // namespace CRESTA
 #endif

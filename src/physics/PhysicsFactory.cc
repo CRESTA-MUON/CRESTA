@@ -7,7 +7,7 @@
 #include "G4PhysListFactory.hh"
 #include "ScintillatorPhysicsList.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 G4VUserPhysicsList* PhysicsFactory::LoadPhysicsList() {
   DBTable table = DB::Get()->GetTable("GLOBAL", "config");
   return LoadPhysicsList(table);

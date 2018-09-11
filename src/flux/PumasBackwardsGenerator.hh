@@ -8,8 +8,8 @@
 // 1.00 JMV, LLNL, JAN-2007:  First version.
 //******************************************************************************
 //
-#ifndef __COSMIC_PumasBackwardsGenerator_HH__
-#define __COSMIC_PumasBackwardsGenerator_HH__ 1
+#ifndef __CRESTA_PumasBackwardsGenerator_HH__
+#define __CRESTA_PumasBackwardsGenerator_HH__ 1
 
 #include <iomanip>
 #include "vector"
@@ -42,7 +42,7 @@
 // Forward Declarations
 class G4Event;
 
-namespace COSMIC {
+namespace CRESTA {
 
 
 //---------------------------------------------------------------------------------
@@ -167,6 +167,6 @@ protected:
 
 };
 //---------------------------------------------------------------------------------
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif __USE_PUMAS__
 #endif

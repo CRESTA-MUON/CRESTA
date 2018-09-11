@@ -20,7 +20,7 @@
 #include "G4Polyline.hh"
 #include "utils/PoCAUtils.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 TargetMuonInOutTracker::TargetMuonInOutTracker(DBTable tbl):
@@ -272,4 +272,4 @@ void TargetMuonInOutProcessor::DrawEvent() {
   }
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

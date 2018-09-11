@@ -5,7 +5,7 @@
 #include "analysis/Analysis.hh"
 #include "db/DB.hh"
 #include "db/DynamicObjectLoader.hh"
-namespace COSMIC {
+namespace CRESTA {
 
 VProcessor* ProcessorFactory::Construct(DBTable tbl) {
 
@@ -54,4 +54,4 @@ void ProcessorFactory::ConstructProcessors() {
 }
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA

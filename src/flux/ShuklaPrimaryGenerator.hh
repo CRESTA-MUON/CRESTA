@@ -7,8 +7,8 @@
 // 1.00 JMV, LLNL, JAN-2007:  First version.
 //******************************************************************************
 //
-#ifndef __COSMIC_ShuklaPrimaryGenerator_HH__
-#define __COSMIC_ShuklaPrimaryGenerator_HH__
+#ifndef __CRESTA_ShuklaPrimaryGenerator_HH__
+#define __CRESTA_ShuklaPrimaryGenerator_HH__
 
 #include <vector>
 #include <cmath>
@@ -37,7 +37,7 @@
 #include "analysis/VFluxProcessor.hh"
 #include "geo/simple/GeoBox.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Self Contained Mutex for locking threads and avoiding non threadsafe issues.
 namespace { G4Mutex myMutex = G4MUTEX_INITIALIZER; }
@@ -178,5 +178,5 @@ protected:
 };
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

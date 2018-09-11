@@ -8,7 +8,7 @@
 #include "analysis/VProcessor.hh"
 #include "analysis/Analysis.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 CoincidenceTrigger::CoincidenceTrigger(DBTable tbl)
   : VTrigger(tbl.GetIndexName())
@@ -87,4 +87,4 @@ bool CoincidenceTrigger::ProcessTrigger(const G4Event* /*event*/) {
 
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA

@@ -16,7 +16,7 @@
 #include "G4TransportationManager.hh"
 
 #include "db/DB.hh"
-namespace COSMIC {
+namespace CRESTA {
 
 /// GEO Utils namespace
 namespace GEO {
@@ -34,6 +34,6 @@ G4LogicalVolume* GetMotherLogicalFromStore(DBTable tb, bool verbose = true);
 void BuildMCMapFromCurrentGEO();
 
 } // - namespace GEO
-} // - namespace COSMIC
+} // - namespace CRESTA
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "G4ThreeVector.hh"
 
-namespace COSMIC{
+namespace CRESTA{
 namespace PoCAUtils {
 
 	// Given two muon tracks and positions get the poca. 
@@ -13,5 +13,5 @@ namespace PoCAUtils {
 
 
 }
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

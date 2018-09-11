@@ -35,11 +35,11 @@
 #include "G4Pow.hh"
 #include "G4NistManager.hh"
 
-// COSMIC Headers
+// CRESTA Headers
 #include "db/DB.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 G4Element* MaterialsFactory::GetElement(std::string name) {
 

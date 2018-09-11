@@ -27,7 +27,7 @@
 #include "analysis/VDetector.hh"
 #include "PhotonHit.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;

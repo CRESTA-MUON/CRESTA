@@ -20,7 +20,7 @@
 #include "G4Polyline.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 TrueMuonPoCAProcessor::TrueMuonPoCAProcessor(DBTable tbl) :
@@ -142,4 +142,4 @@ void TrueMuonPoCAProcessor::DrawEvent(){
 
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA

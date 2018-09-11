@@ -22,7 +22,7 @@
 #include "G4Polyline.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 LineOfSightSD::LineOfSightSD(DBTable tbl):
@@ -205,4 +205,4 @@ void LineOfSightProcessor::DrawEvent(){
   }
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

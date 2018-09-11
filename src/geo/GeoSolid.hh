@@ -24,7 +24,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Solid geometry object, building on the GeoObject template.
 /// Contains all functions to produce logical and physical volumes
@@ -66,5 +66,5 @@ protected:
 
 };
 
-} // namespace COSMIC
+} // namespace CRESTA
 #endif

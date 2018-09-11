@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_DB_HH__
-#define __COSMIC_DB_HH__
+#ifndef __CRESTA_DB_HH__
+#define __CRESTA_DB_HH__
 
 // System Headers
 #include <string>
@@ -39,7 +39,7 @@
 // Cosmic Headers
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 class DB {
 public:
@@ -99,5 +99,5 @@ protected:
 // DB* CRESTA_DBInstance();
 
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

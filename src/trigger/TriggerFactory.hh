@@ -1,7 +1,7 @@
 #ifndef __TRIGGER_FACTORY_HH__
 #define __TRIGGER_FACTORY_HH__
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declaration
 class VTrigger;
@@ -17,5 +17,5 @@ VTrigger* Construct(DBTable table);
 void ConstructTriggers();
 
 } // - namespace TriggerFactory
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

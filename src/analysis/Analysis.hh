@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_Analysis_hh__
-#define __COSMIC_Analysis_hh__
+#ifndef __CRESTA_Analysis_hh__
+#define __CRESTA_Analysis_hh__
 
 // G4 Headers
 #include "g4root.hh"
@@ -36,8 +36,8 @@
 #include "analysis/VFluxProcessor.hh"
 #include "geo/GeoUtils.hh"
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 // Forward Declarations
 class VProcessor;
@@ -256,6 +256,6 @@ protected:
 
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 

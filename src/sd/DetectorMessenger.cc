@@ -43,7 +43,7 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "db/ReadFile.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 DetectorMessenger::DetectorMessenger(DetectorConstruction* /*dc_in*/) 
@@ -87,7 +87,7 @@ void DetectorMessenger::SetNewValue(G4UIcommand* /*command*/, G4String /*newValu
 
 void DetectorMessenger::UpdateGeoTable(G4String newValue) {
 
-  std::vector<std::string> parsedvals = COSMIC::DBUtils::ParseToStr(newValue);
+  std::vector<std::string> parsedvals = CRESTA::DBUtils::ParseToStr(newValue);
   std::string index = parsedvals[0];
   std::string remai = "{ " + newValue.erase(newValue.find(index), index.size()) + " }";
 

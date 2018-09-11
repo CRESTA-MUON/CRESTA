@@ -15,7 +15,7 @@
 #include "db/json.hh"
 #include "db/ReadFile.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // ---------------------------------------------------------------------------
 /// Database Table Class. A wrapper around the json table reader
@@ -163,7 +163,7 @@ public:
   std::string field;
 };
 // ---------------------------------------------------------------------------
-} // - namespace COSMIC
+} // - namespace CRESTA
 
 
 // ---------------------------------------------------------------------------

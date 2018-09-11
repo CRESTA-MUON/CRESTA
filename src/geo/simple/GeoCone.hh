@@ -6,7 +6,7 @@
 #include "db/DBTable.hh"
 #include "geo/GeoSolid.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Simple solid cone geometry object
 class GeoCone : public GeoSolid {
@@ -18,6 +18,6 @@ public:
   G4VSolid *ConstructSolidVolume(DBTable table);
 };
 
-} // namespace COSMIC
+} // namespace CRESTA
 #endif
 

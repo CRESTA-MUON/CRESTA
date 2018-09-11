@@ -22,7 +22,7 @@
 #include "G4OpticalPhoton.hh"
 #include "PhotonHit.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 PhotonSD::PhotonSD(DBTable tbl):
@@ -117,4 +117,4 @@ bool PhotonProcessor::ProcessEvent(const G4Event* event) {
   return fHasInfo;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

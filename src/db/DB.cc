@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "DBTable.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 DB::DB()
 {

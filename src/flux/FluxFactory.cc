@@ -10,7 +10,7 @@
 #include "flux/PrimaryGeneratorROOT.hh"
 #include "flux/IsotropicSphereSource.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 G4VUserPrimaryGeneratorAction* FluxFactory::LoadFluxGenerator() {
   // Get default config if requested
@@ -47,5 +47,5 @@ G4VUserPrimaryGeneratorAction* FluxFactory::LoadFluxGenerator(DBTable table) {
   // Return NULL generator
   return 0;
 }
-} // - namespace COSMIC
+} // - namespace CRESTA
 

@@ -41,7 +41,7 @@
 #include "db/DB.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 DBEvaluator::DBEvaluator()
 {
@@ -320,4 +320,4 @@ G4String DBEvaluator::ConvertToString(G4double dval)
   return vl;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

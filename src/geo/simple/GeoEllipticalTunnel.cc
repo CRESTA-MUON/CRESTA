@@ -4,7 +4,7 @@
 #include "G4Box.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoEllipticalTunnel::GeoEllipticalTunnel(DBTable table) {
   Construct(table);
@@ -31,4 +31,4 @@ G4VSolid* GeoEllipticalTunnel::ConstructSolidVolume(DBTable tbl) {
   return tunnel;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

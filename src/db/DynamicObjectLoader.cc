@@ -5,7 +5,7 @@
 #include "db/DBTable.hh"
 #include "db/DB.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 DynamicObjectLoader::DynamicObjectLoader() : NObjects(0), NManifests(0) {
 	LoadPlugins();

@@ -2,7 +2,7 @@
 #include "db/ReadFile.hh"
 #include "db/DBEvaluator.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // ---------------------------------------------------------------------------
 DBTable::DBTable() {
@@ -550,4 +550,4 @@ DBTable DBJSONParser::convertTablevals(json::Value &jsonDoc)
   return DBTable(jsonDoc);
 }
 // ---------------------------------------------------------------------------
-} // - namespace COSMIC
+} // - namespace CRESTA

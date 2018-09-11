@@ -1,7 +1,7 @@
 #include "GeoBox.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoBox::GeoBox(DBTable table) {
   Construct(table);
@@ -21,4 +21,4 @@ G4VSolid* GeoBox::ConstructSolidVolume(DBTable tbl) {
   return geo_solid;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

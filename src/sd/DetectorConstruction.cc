@@ -35,7 +35,7 @@
 #include "analysis/Analysis.hh"
 #include "DetectorMessenger.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 DetectorConstruction::DetectorConstruction()
   : G4VUserDetectorConstruction()

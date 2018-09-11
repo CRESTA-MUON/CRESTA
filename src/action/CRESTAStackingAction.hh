@@ -21,15 +21,15 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CRESTAStackingAction_hh__
-#define __COSMIC_CRESTAStackingAction_hh__
+#ifndef __CRESTA_CRESTAStackingAction_hh__
+#define __CRESTA_CRESTAStackingAction_hh__
 
 // G4 Headers
 #include "G4UserStackingAction.hh"
 #include "globals.hh"
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// Stacking action class : manage the newly generated particles
 class CRESTAStackingAction : public G4UserStackingAction
@@ -45,6 +45,6 @@ public:
   virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 

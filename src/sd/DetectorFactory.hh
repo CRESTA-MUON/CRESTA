@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;
@@ -16,5 +16,5 @@ namespace DetectorFactory {
 VDetector* CreateSD(DBTable tbl);
 
 } // - namespace DetectorFactory
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

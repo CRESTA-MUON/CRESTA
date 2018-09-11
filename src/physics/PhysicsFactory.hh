@@ -6,7 +6,7 @@
 #include "db/DB.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC{
+namespace CRESTA{
 /// Physics List Creator Name Space
 namespace PhysicsFactory{
   /// Function to return a given physics list by table definition
@@ -21,6 +21,6 @@ namespace PhysicsFactory{
   G4ProductionCuts* LoadProductionCuts(std::string cutname);
 
 } // - namespace PhysicsFactory
-} // - namespace COSMIC
+} // - namespace CRESTA
 
 #endif

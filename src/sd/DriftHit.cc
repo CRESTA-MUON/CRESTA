@@ -121,7 +121,7 @@ std::vector<G4AttValue>* DriftChamberHit::CreateAttValues() const
 
 void DriftChamberHit::Draw()
 {
-    G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
+    G4VVisManager* pVVisManager = CRESTA::Analysis::Get()->GetVisManager();
     if (pVVisManager)
     {
         if (fDrawOption == 0) {

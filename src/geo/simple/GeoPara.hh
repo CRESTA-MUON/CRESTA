@@ -6,7 +6,7 @@
 #include "db/DBTable.hh"
 #include "geo/GeoSolid.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Simple solid box geometry object
 class GeoPara : public GeoSolid {

@@ -4,7 +4,7 @@
 #include <iostream>
 #include "analysis/VProcessor.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;
@@ -21,5 +21,5 @@ void ConstructProcessors();
 
 
 } // - namespace PROCESSOR FACTORY
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

@@ -1,7 +1,7 @@
 #include "GeoEllipticalTube.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoEllipticalTube::GeoEllipticalTube(DBTable table) {
   Construct(table);
@@ -21,4 +21,4 @@ G4VSolid* GeoEllipticalTube::ConstructSolidVolume(DBTable tbl) {
   return geo_solid;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

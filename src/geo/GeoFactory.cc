@@ -12,7 +12,7 @@
 
 #include "cadmesh/GeoCADMesh.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 GeoObject* GeoFactory::ConstructGeometry(DBTable table) {
 

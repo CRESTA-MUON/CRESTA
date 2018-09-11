@@ -21,13 +21,13 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_VDetector_hh_
-#define __COSMIC_VDetector_hh_
+#ifndef __CRESTA_VDetector_hh_
+#define __CRESTA_VDetector_hh_
 
 #include "G4VSensitiveDetector.hh"
 #include "G4Event.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Template detector class for use in the analysis.
 /// Uses most of the sensitive detector functionality,

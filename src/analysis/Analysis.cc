@@ -40,8 +40,8 @@
 #include "db/DB.hh"
 #include "db/ROOTHeaders.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 
 // ---------------------------------------------------------

@@ -20,7 +20,7 @@
 #include "G4Polyline.hh"
 #include "utils/PoCAUtils.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 TrueInAbsorber::TrueInAbsorber(DBTable tbl):
@@ -123,4 +123,4 @@ bool TrueInProcessor::ProcessEvent(const G4Event* /*event*/) {
   return fHasInfo;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

@@ -41,7 +41,7 @@
 class G4VPhysicalVolume;
 class G4LogicalVolume;
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {

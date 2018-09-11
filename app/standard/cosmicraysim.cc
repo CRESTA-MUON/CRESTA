@@ -69,7 +69,7 @@
 #include "action/ActionFactory.hh"
 
 using namespace std;
-using namespace COSMIC;
+using namespace CRESTA;
 
 
 // Run Inputs

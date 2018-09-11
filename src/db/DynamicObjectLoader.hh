@@ -6,7 +6,7 @@
 #include "geo/GeoObject.hh"
 #include "G4VUserPrimaryGeneratorAction.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;
@@ -78,6 +78,6 @@ public:
 	GeoObject* ConstructDynamicGeometry(DBTable tbl);
 
 }; // - class DYNAMIC PROCESSOR FACTORY
-}; // - namespace COSMIC
+}; // - namespace CRESTA
 #endif
 

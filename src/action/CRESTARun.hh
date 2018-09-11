@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CRESTARun_hh__
-#define __COSMIC_CRESTARun_hh__
+#ifndef __CRESTA_CRESTARun_hh__
+#define __CRESTA_CRESTARun_hh__
 
 // G4 Headers
 #include "G4Run.hh"
@@ -31,8 +31,8 @@
 class G4Event;
 class G4Run;
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// Main CRESTARun class used for event recording and generation
 class CRESTARun : public G4Run
@@ -55,7 +55,7 @@ protected:
     long int fCurTime; ///< End Time of this Run
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 
 

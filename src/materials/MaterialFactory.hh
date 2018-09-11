@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_MaterialsFactory_hh__
-#define __COSMIC_MaterialsFactory_hh__
+#ifndef __CRESTA_MaterialsFactory_hh__
+#define __CRESTA_MaterialsFactory_hh__
 
 // System Headers
 #include <iostream>
@@ -35,8 +35,8 @@ class G4Material;
 class G4Element;
 class G4VisAttributes;
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 
 /// Detector Factory used to create SD from tables
@@ -63,6 +63,6 @@ G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
 
 
 } // - namespace MaterialsFactory
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 

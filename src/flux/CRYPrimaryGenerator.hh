@@ -7,8 +7,8 @@
 // 1.00 JMV, LLNL, JAN-2007:  First version.
 //******************************************************************************
 //
-#ifndef __COSMIC_CRYPrimaryGenerator_HH__
-#define __COSMIC_CRYPrimaryGenerator_HH__ 1
+#ifndef __CRESTA_CRYPrimaryGenerator_HH__
+#define __CRESTA_CRYPrimaryGenerator_HH__ 1
 
 #include <iomanip>
 #include "vector"
@@ -47,7 +47,7 @@
 // Forward Declarations
 class G4Event;
 
-namespace COSMIC {
+namespace CRESTA {
 
 //---------------------------------------------------------------------------------
 /// CRY Flux Generator, derived from example given in CRY Library
@@ -190,5 +190,5 @@ protected:
 };
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

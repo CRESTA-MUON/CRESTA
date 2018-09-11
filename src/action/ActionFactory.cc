@@ -15,7 +15,7 @@
 #include "action/CRESTAStackingAction.hh"
 #include "action/CRESTASteppingAction.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 
 

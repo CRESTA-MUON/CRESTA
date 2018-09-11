@@ -40,8 +40,8 @@
 #include "sd/DetectorFactory.hh"
 #include "sd/DetectorFactory.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 CRESTARunAction::CRESTARunAction() : G4UserRunAction(), fCurrentRun(0)
 {

@@ -29,7 +29,7 @@
 #include "analysis/VDetector.hh"
 #include "G4EmCalculator.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;

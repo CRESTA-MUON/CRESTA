@@ -3,7 +3,7 @@
 #include "G4UnionSolid.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 IMPSNeutronBlock::IMPSNeutronBlock(DBTable table) {
   Construct(table);
@@ -46,4 +46,4 @@ G4VSolid* IMPSNeutronBlock::ConstructSolidVolume(DBTable tbl) {
   return geo_solid3;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

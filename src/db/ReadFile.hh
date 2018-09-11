@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_ReadFile_hh__
-#define __COSMIC_ReadFile_hh__
+#ifndef __CRESTA_ReadFile_hh__
+#define __CRESTA_ReadFile_hh__
 
 // System Header
 #include <string>
@@ -58,8 +58,8 @@
 #include <string>
 #include <vector>
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// Utils namespace for any simple I/O, like parsing strings/files.
 namespace DBUtils {
@@ -74,5 +74,5 @@ std::vector<std::string> Expand(std::string);
 std::vector<std::string> ParseToStr(std::string input, const char* del=" ");
 
 } // - namespace DBUtils
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

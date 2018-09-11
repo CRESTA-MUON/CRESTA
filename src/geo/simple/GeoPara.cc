@@ -1,7 +1,7 @@
 #include "GeoPara.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoPara::GeoPara(DBTable table) {
   Construct(table);
@@ -31,4 +31,4 @@ G4VSolid* GeoPara::ConstructSolidVolume(DBTable tbl) {
   return geo_solid;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

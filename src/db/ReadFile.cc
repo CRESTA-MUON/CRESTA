@@ -22,11 +22,11 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 
-// COSMIC Header
+// CRESTA Header
 #include <db/ReadFile.hh>
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 int DBUtils::ReadFile(const std::string &filename, std::string &filecontents)
 {

@@ -1,7 +1,7 @@
 #include "IsotropicSphereSource.hh"
 #include "db/DB.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //---------------------------------------------------------------------------------
 IsotropicSphereGenerator::IsotropicSphereGenerator()
@@ -459,4 +459,4 @@ G4double IsotropicSphereFluxProcessor::GetExposureTime() {
 }
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA

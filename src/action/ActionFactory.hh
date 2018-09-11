@@ -1,5 +1,5 @@
-#ifndef __COSMIC_ActionFactory_HH__
-#define __COSMIC_ActionFactory_HH__
+#ifndef __CRESTA_ActionFactory_HH__
+#define __CRESTA_ActionFactory_HH__
 
 #include "G4UserRunAction.hh"
 #include "G4Run.hh"
@@ -15,7 +15,7 @@
 #include "action/CRESTAStackingAction.hh"
 #include "action/CRESTASteppingAction.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Globally accessible Factory for producing actions.
 namespace ActionFactory {
@@ -39,5 +39,5 @@ G4UserStackingAction* ConstructStackingAction(DBTable table);
 G4UserSteppingAction* ConstructSteppingAction(DBTable table);
 
 } // - namespace ActionFactory
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

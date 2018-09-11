@@ -30,7 +30,7 @@
 
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// True Muon Tracker Detector Object :
 /// Saves the highest momentrum muon track

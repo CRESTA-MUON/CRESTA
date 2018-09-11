@@ -40,7 +40,7 @@
 #include "db/DBTable.hh"
 #include "analysis/Analysis.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 G4ThreadLocal G4Allocator<PhotonHit>* PhotonHitAllocator = 0;
 
@@ -67,7 +67,7 @@ G4int PhotonHit::operator==(const PhotonHit &right) const {
 }
 
 void PhotonHit::Draw() {
-  G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
+  G4VVisManager* pVVisManager = CRESTA::Analysis::Get()->GetVisManager();
   if (pVVisManager)
   {
     G4Square square(fPos);

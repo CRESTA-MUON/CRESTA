@@ -1,7 +1,7 @@
 #include "PrimaryGeneratorROOT.hh"
 #include "db/DB.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //---------------------------------------------------------------------------------
 PrimaryGeneratorROOT::PrimaryGeneratorROOT()
@@ -224,4 +224,4 @@ G4double ROOTPrimaryFluxProcessor::GetExposureTime() {
 }
 //---------------------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA

@@ -40,7 +40,7 @@
 #include "G4RotationMatrix.hh"
 #include "G4ParticleDefinition.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 //----------------------------------------------------------------------------//
 CRYPrimaryGenerator::CRYPrimaryGenerator() :
@@ -547,4 +547,4 @@ double CRYPrimaryFluxProcessor::GetEventRate() {
 
 //------------------------------------------------------------------
 
-} // - namespace COSMIC
+} // - namespace CRESTA

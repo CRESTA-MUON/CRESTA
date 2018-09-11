@@ -38,7 +38,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-namespace COSMIC {
+namespace CRESTA {
 
 // double inheritance, super dodgy!
 class IMPSBlockArray : public GeoObject {
@@ -54,5 +54,5 @@ protected:
 
 };
 
-} // namespace COSMIC
+} // namespace CRESTA
 #endif

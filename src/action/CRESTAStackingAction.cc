@@ -30,8 +30,8 @@
 #include "G4Positron.hh"
 #include "G4Gamma.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 CRESTAStackingAction::CRESTAStackingAction() {
 }

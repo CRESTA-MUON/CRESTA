@@ -6,7 +6,7 @@
 
 #include "analysis/VTrigger.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward declarations
 class DBTable;
@@ -41,5 +41,5 @@ protected:
   G4double fTimeThreshold; ///< Maximum time window between active processors
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

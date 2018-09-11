@@ -44,8 +44,8 @@
 #include "sd/DetectorFactory.hh"
 #include "trigger/TriggerFactory.hh"
 
-// namespace COSMIC
-using namespace COSMIC;
+// namespace CRESTA
+using namespace CRESTA;
 
 CRESTARun::CRESTARun()
   : G4Run()

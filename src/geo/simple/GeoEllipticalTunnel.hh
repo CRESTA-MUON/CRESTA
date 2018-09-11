@@ -6,7 +6,7 @@
 
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// Simple solid box geometry object
 class GeoEllipticalTunnel : public GeoSolid {

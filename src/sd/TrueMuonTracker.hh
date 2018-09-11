@@ -26,7 +26,7 @@
 #include "analysis/VProcessor.hh"
 #include "analysis/VDetector.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward Declarations
 class DBTable;

@@ -21,8 +21,8 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CRESTARunAction_hh__
-#define __COSMIC_CRESTARunAction_hh__
+#ifndef __CRESTA_CRESTARunAction_hh__
+#define __CRESTA_CRESTARunAction_hh__
 
 // G4 Headers
 #include "G4UserRunAction.hh"
@@ -31,8 +31,8 @@
 // Forward Declarations
 class G4Run;
 
-// namespace COSMIC
-namespace COSMIC {
+// namespace CRESTA
+namespace CRESTA {
 
 /// User's CRESTARunAction class. this class implements all the user actions to be executed at each run.
 class CRESTARunAction : public G4UserRunAction
@@ -56,6 +56,6 @@ protected:
   int fCurrentRun; ///< Index of current run
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif
 

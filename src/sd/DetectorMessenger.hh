@@ -45,7 +45,7 @@ class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWith3Vector;
 class DetectorConstruction;
 
-namespace COSMIC {
+namespace CRESTA {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class DetectorMessenger: public G4UImessenger

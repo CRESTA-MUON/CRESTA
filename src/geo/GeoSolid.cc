@@ -26,7 +26,7 @@
 
 #include "materials/MaterialsFactory.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoSolid::GeoSolid()
 {
@@ -270,4 +270,4 @@ G4VSensitiveDetector* GeoSolid::ConstructSensitiveDetector(DBTable table, G4Logi
   return sd;
 }
 
-} // namespace COSMIC
+} // namespace CRESTA

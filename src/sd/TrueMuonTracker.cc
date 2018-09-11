@@ -21,7 +21,7 @@
 #include "analysis/Analysis.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 //------------------------------------------------------------------
 TrueMuonTracker::TrueMuonTracker(DBTable tbl):
@@ -189,4 +189,4 @@ void TrueMuonProcessor::DrawEvent(){
   }
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

@@ -7,7 +7,7 @@
 #include "SimpleTrigger.hh"
 #include "CoincidenceTrigger.hh"
 
-using namespace COSMIC;
+using namespace CRESTA;
 
 VTrigger* TriggerFactory::Construct(DBTable table) {
 

@@ -7,7 +7,7 @@
 #include "analysis/VTrigger.hh"
 #include "Randomize.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 // Forward declarations
 class DBTable;
@@ -45,5 +45,5 @@ protected:
   
 };
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif

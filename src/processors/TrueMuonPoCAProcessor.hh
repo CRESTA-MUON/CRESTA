@@ -28,7 +28,7 @@
 #include "sd/TrueMuonTracker.hh"
 #include "db/DBTable.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 /// True Muon Processor Object :
 /// By default this is created alongside the true muon

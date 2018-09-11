@@ -50,7 +50,7 @@
 #include "pumas/pumas.h"
 using namespace PUMASInterface;
 
-namespace COSMIC {
+namespace CRESTA {
 
 
 // PUMAS CLASS should consist of all the static functions we just showed
@@ -245,5 +245,5 @@ bool PumasBackwardsProcessor::ProcessEvent(const G4Event* /*event*/) {
   return true;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA
 #endif // __USE_PUMAS__

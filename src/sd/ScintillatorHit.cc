@@ -87,7 +87,7 @@ int ScintillatorHit::operator==(const ScintillatorHit &/*right*/) const
 
 void ScintillatorHit::Draw()
 {
-    G4VVisManager* pVVisManager = COSMIC::Analysis::Get()->GetVisManager();
+    G4VVisManager* pVVisManager = CRESTA::Analysis::Get()->GetVisManager();
     if (pVVisManager)
     {
         G4Square square(fPos);

@@ -8,7 +8,7 @@
 #include "analysis/VProcessor.hh"
 #include "analysis/Analysis.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 SimpleTrigger::SimpleTrigger(DBTable tbl)
   : VTrigger(tbl.GetIndexName())
@@ -70,4 +70,4 @@ bool SimpleTrigger::ProcessTrigger(const G4Event* /*event*/) {
   return complete_trig;
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

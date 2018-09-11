@@ -3,7 +3,7 @@
 #include "geo/GeoSolid.hh"
 #include "G4Box.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoTubs::GeoTubs(DBTable table)
 {
@@ -23,4 +23,4 @@ G4VSolid* GeoTubs::ConstructSolidVolume(DBTable tbl) {
                     phi_start, phi_delta);
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

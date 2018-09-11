@@ -3,7 +3,7 @@
 #include "geo/GeoSolid.hh"
 
 
-namespace COSMIC {
+namespace CRESTA {
 
 GeoCone::GeoCone(DBTable table)
 {
@@ -31,4 +31,4 @@ G4VSolid* GeoCone::ConstructSolidVolume(DBTable tbl) {
 		    phi_delta);
 }
 
-} // - namespace COSMIC
+} // - namespace CRESTA

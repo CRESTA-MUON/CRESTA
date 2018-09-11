@@ -44,7 +44,7 @@
 
 #include "G4Evaluator.hh"
 
-namespace COSMIC {
+namespace CRESTA {
 
 class DBEvaluator
 {
