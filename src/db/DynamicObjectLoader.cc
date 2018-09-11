@@ -67,10 +67,10 @@ void DynamicObjectLoader::LoadPlugins() {
 				PluginManifest plugin;
 				plugin.dllib = dlobj;
 				plugin.soloc = (dirpath + ent->d_name);
-
-				std::cout << "Searching DSF_NDynamicObjects" << std::endl;
-				plugin.DSF_NDynamicObjects =
-				    reinterpret_cast<DSF_NDynamicObjects_ptr>(dlsym(dlobj, "DSF_NDynamicObjects"));
+				/*
+				std::cout << "Searching CRESTA_NDynamicObjects" << std::endl;
+				plugin.CRESTA_NDynamicObjects =
+				    reinterpret_cast<CRESTA_NDynamicObjects_ptr>(dlsym(dlobj, "CRESTA_NDynamicObjects"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
 				if (dlerr_cstr) {
@@ -81,8 +81,8 @@ void DynamicObjectLoader::LoadPlugins() {
 					continue;
 				}
 
-				plugin.DSF_GetDynamicObjectName =
-				    reinterpret_cast<DSF_GetDynamicObjectName_ptr>(dlsym(dlobj, "DSF_GetDynamicObjectName"));
+				plugin.CRESTA_GetDynamicObjectName =
+				    reinterpret_cast<CRESTA_GetDynamicObjectName_ptr>(dlsym(dlobj, "CRESTA_GetDynamicObjectName"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
 				if (dlerr_cstr) {
@@ -92,12 +92,13 @@ void DynamicObjectLoader::LoadPlugins() {
 					dlclose(dlobj);
 					continue;
 				}
+				*/
 
 				// Processor Function Loading
 				bool validprocessor = true;
 				if (validprocessor) {
-					plugin.DSF_ConstructProcessor =
-					    reinterpret_cast<DSF_ConstructProcessor_ptr>(dlsym(dlobj, "DSF_ConstructProcessor"));
+					plugin.CRESTA_ConstructProcessor =
+					    reinterpret_cast<CRESTA_ConstructProcessor_ptr>(dlsym(dlobj, "CRESTA_ConstructProcessor"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -105,9 +106,10 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validprocessor = false; }
 				}
+				/*
 				if (validprocessor) {
-					plugin.DSF_DestroyProcessor =
-					    reinterpret_cast<DSF_DestroyProcessor_ptr>(dlsym(dlobj, "DSF_DestroyProcessor"));
+					plugin.CRESTA_DestroyProcessor =
+					    reinterpret_cast<CRESTA_DestroyProcessor_ptr>(dlsym(dlobj, "CRESTA_DestroyProcessor"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -115,12 +117,13 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validprocessor = false; }
 				}
+				*/
 
 				// Detector Function Loading
 				bool validdetector = true;
 				if (validdetector) {
-					plugin.DSF_ConstructDetector =
-					    reinterpret_cast<DSF_ConstructDetector_ptr>(dlsym(dlobj, "DSF_ConstructDetector"));
+					plugin.CRESTA_ConstructDetector =
+					    reinterpret_cast<CRESTA_ConstructDetector_ptr>(dlsym(dlobj, "CRESTA_ConstructDetector"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -128,9 +131,10 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validdetector = false; }
 				}
+				/*
 				if (validdetector) {
-					plugin.DSF_DestroyDetector =
-					    reinterpret_cast<DSF_DestroyDetector_ptr>(dlsym(dlobj, "DSF_DestroyDetector"));
+					plugin.CRESTA_DestroyDetector =
+					    reinterpret_cast<CRESTA_DestroyDetector_ptr>(dlsym(dlobj, "CRESTA_DestroyDetector"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -138,12 +142,13 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validdetector = false; }
 				}
+				*/
 
 				// Detector Function Loading
 				bool validgeometry = true;
 				if (validgeometry) {
-					plugin.DSF_ConstructGeometry =
-					    reinterpret_cast<DSF_ConstructGeometry_ptr>(dlsym(dlobj, "DSF_ConstructGeometry"));
+					plugin.CRESTA_ConstructGeometry =
+					    reinterpret_cast<CRESTA_ConstructGeometry_ptr>(dlsym(dlobj, "CRESTA_ConstructGeometry"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -151,9 +156,10 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validgeometry = false; }
 				}
+				/*
 				if (validgeometry) {
-					plugin.DSF_DestroyGeometry =
-					    reinterpret_cast<DSF_DestroyGeometry_ptr>(dlsym(dlobj, "DSF_DestroyGeometry"));
+					plugin.CRESTA_DestroyGeometry =
+					    reinterpret_cast<CRESTA_DestroyGeometry_ptr>(dlsym(dlobj, "CRESTA_DestroyGeometry"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -161,12 +167,14 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validgeometry = false; }
 				}
+				*/
+
 
 				// Detector Function Loading
 				bool validgenerator = true;
 				if (validgenerator) {
-					plugin.DSF_LoadFluxGenerator =
-					    reinterpret_cast<DSF_LoadFluxGenerator_ptr>(dlsym(dlobj, "DSF_LoadFluxGenerator"));
+					plugin.CRESTA_LoadFluxGenerator =
+					    reinterpret_cast<CRESTA_LoadFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_LoadFluxGenerator"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -174,9 +182,10 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validgenerator = false; }
 				}
+				/*
 				if (validgenerator) {
-					plugin.DSF_DestroyFluxGenerator =
-					    reinterpret_cast<DSF_DestroyFluxGenerator_ptr>(dlsym(dlobj, "DSF_DestroyFluxGenerator"));
+					plugin.CRESTA_DestroyFluxGenerator =
+					    reinterpret_cast<CRESTA_DestroyFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_DestroyFluxGenerator"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
 					if (dlerr_cstr) {
@@ -184,19 +193,17 @@ void DynamicObjectLoader::LoadPlugins() {
 					}
 					if (dlerr.length()) { validgenerator = false; }
 				}
+				*/
 
 				// Print loading summary
-				plugin.NObjects = (*(plugin.DSF_NDynamicObjects))();
-				std::cout << "\tSuccessfully loaded dynamic processor manifest: "
-				          << plugin.soloc << ". Contains " << plugin.NObjects
-				          << " Objects." << std::endl;
-
-				if (plugin.NObjects) {
-					Manifests.push_back(plugin);
-					std::cout << "Added : " << plugin.soloc << " manifest." << std::endl;
-					NManifests++;
+				if (validgenerator || validgeometry || validdetector || validprocessor){
+				  std::cout << "\tSuccessfully loaded dynamic processor manifest: "
+					    << plugin.soloc << "." << std::endl;
+				  Manifests.push_back(plugin);
+				  std::cout << "Added : " << plugin.soloc << " manifest." << std::endl;
+				  NManifests++;
 				} else {
-					dlclose(dlobj);
+				  dlclose(dlobj);
 				}
 			}
 		}
@@ -213,8 +220,8 @@ DynamicObjectLoader* DynamicObjectLoader::Get() {
 VProcessor* DynamicObjectLoader::ConstructDynamicProcessor(DBTable tbl) {
 	VProcessor* vp = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
-		if (Manifests[i].DSF_ConstructProcessor == NULL) continue;
-		vp = (*(Manifests[i].DSF_ConstructProcessor))(&tbl);
+		if (Manifests[i].CRESTA_ConstructProcessor == NULL) continue;
+		vp = (*(Manifests[i].CRESTA_ConstructProcessor))(&tbl);
 		if (vp) break;
 	}
 	return vp;
@@ -223,8 +230,8 @@ VProcessor* DynamicObjectLoader::ConstructDynamicProcessor(DBTable tbl) {
 VDetector* DynamicObjectLoader::ConstructDynamicDetector(DBTable tbl) {
 	VDetector* vd = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
-		if (Manifests[i].DSF_ConstructDetector == NULL) continue;
-		vd = (*(Manifests[i].DSF_ConstructDetector))(&tbl);
+		if (Manifests[i].CRESTA_ConstructDetector == NULL) continue;
+		vd = (*(Manifests[i].CRESTA_ConstructDetector))(&tbl);
 		if (vd) break;
 	}
 	return vd;
@@ -233,9 +240,9 @@ VDetector* DynamicObjectLoader::ConstructDynamicDetector(DBTable tbl) {
 GeoObject* DynamicObjectLoader::ConstructDynamicGeometry(DBTable tbl) {
 	GeoObject* geo = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
-		if (Manifests[i].DSF_ConstructGeometry == NULL) continue;
+		if (Manifests[i].CRESTA_ConstructGeometry == NULL) continue;
 		std::cout << "Attempting to get dyn geometry" << std::endl;
-		geo = (*(Manifests[i].DSF_ConstructGeometry))(&tbl);
+		geo = (*(Manifests[i].CRESTA_ConstructGeometry))(&tbl);
 		std::cout << "Got dyn geometry : " << geo << std::endl;
 		if (geo) {
 			std::cout << "Exitting, no need to search more" << std::endl;
@@ -251,8 +258,8 @@ G4VUserPrimaryGeneratorAction*
 DynamicObjectLoader::LoadDynamicFluxGenerator(std::string type) {
 	G4VUserPrimaryGeneratorAction* vd = NULL;
 	for (int i = 0; i < Manifests.size(); i++) {
-		if (Manifests[i].DSF_LoadFluxGenerator == NULL) continue;
-		G4VUserPrimaryGeneratorAction* vd = (*(Manifests[i].DSF_LoadFluxGenerator))(type);
+		if (Manifests[i].CRESTA_LoadFluxGenerator == NULL) continue;
+		G4VUserPrimaryGeneratorAction* vd = (*(Manifests[i].CRESTA_LoadFluxGenerator))(type);
 		if (vd) break;
 	}
 	return vd;
