@@ -269,11 +269,32 @@ std::vector<double> DB::RedColor(){
 
 
 void DB::PrintSplashScreen() {
-  std::cout << "=========================================" << std::endl;
-  std::cout << "\n CRESTA : Cosmic Rays Simulation Package" << std::endl;
-  std::cout << "\n\n Authors: Chris Steer, Patrick Stowell, Lee Thompson" << std::endl;
-  std::cout << " contact : p.stowell@sheffield.ac.uk" << std::endl;
-  std::cout << "\n=========================================" << std::endl;
+  std::cout << "|====================================================|" << std::endl;
+  std::cout << "|                                                    |" << std::endl;
+  std::cout << "|                                 `-``.`....```````  |" << std::endl;
+  std::cout << "|                                `.````..```-`````.  |" << std::endl;
+  std::cout << "|        +s/    -ss              ..`````````...``.   |" << std::endl;
+  std::cout << "|       `NM-    hMy              -.``````````` `     |" << std::endl;
+  std::cout << "|       oMh    .MM-             .``````..``.`        |" << std::endl;
+  std::cout << "|      `NM:    yMh              ` ````   `           |" << std::endl;
+  std::cout << "|      +Mm   `+MM-           `                       |" << std::endl;
+  std::cout << "|      mMd../s+MN.-/        .+`      `/`             |" << std::endl;
+  std::cout << "|     /Mssso/``shs+-       -o+`      `++.            |" << std::endl;
+  std::cout << "|     mM.                 :+++`      `/++:           |" << std::endl;
+  std::cout << "|    :MM                `/ooo+`      `+ooo/`         |" << std::endl;
+  std::cout << "|    `--               .+o++++`      `/+o+o+`        |" << std::endl;
+  std::cout << "|                     -oooooo+`      `+oooooo.       |" << std::endl;
+  std::cout << "|                  `-+oo+oo+o+`      `/++oo+oo:      |" << std::endl;
+  std::cout << "|             ...-:++ooooooo++````````/+o+o++++/     |" << std::endl;
+  std::cout << "|       `...:++oo++++++ooooo+/````````/+oooooo+++`   |" << std::endl;
+  std::cout << "| /--//++o+ooooo++o+oooooooo/-````````-/oo+oooo+o+/+ |" << std::endl;
+  std::cout << "| ++++ooooo+++oooooo+++ooo+/````````````:o++++oooo++ |" << std::endl;
+  std::cout << "|                                                    |" << std::endl;
+  std::cout << "|====================================================|" << std::endl;
+  std::cout << "| CRESTA : Cosmic Rays Simulation Package            |" << std::endl;
+  std::cout << "| Chris Steer, Patrick Stowell, Lee Thompson         |" << std::endl;
+  std::cout << "| contact : p.stowell@sheffield.ac.uk                |" << std::endl;
+  std::cout << "|====================================================|" << std::endl;
 }
 
 std::vector<std::string> DB::GetDynamicLibraryPath(){
