@@ -21,67 +21,39 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CosmicRun.hh"
-
-// System Headers
-#include <ctime>
-#include <math.h>
-#include <stdio.h>
+#include "action/CRESTAStackingAction.hh"
 
 // G4 Headers
-#include "globals.hh"
-#include "G4Event.hh"
-#include "G4HCofThisEvent.hh"
-#include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4SDManager.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4THitsMap.hh"
-
-// Cosmic Headers
-#include "analysis/Analysis.hh"
-#include "geo/GeoManager.hh"
-#include "sd/DetectorManager.hh"
-#include "sd/DetectorManager.hh"
-#include "trigger/TriggerManager.hh"
+#include "G4Track.hh"
+#include "G4NeutrinoE.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
+#include "G4Gamma.hh"
 
 // namespace COSMIC
 using namespace COSMIC;
 
-CosmicRun::CosmicRun()
-  : G4Run()
-{
-  // Start a counter for this run
-  Analysis::Get()->StartTheClock();
+CRESTAStackingAction::CRESTAStackingAction() {
 }
 
-CosmicRun::~CosmicRun()
-{
+CRESTAStackingAction::~CRESTAStackingAction() {
 }
 
-void CosmicRun::RecordEvent(const G4Event* event)
+G4ClassificationOfNewTrack CRESTAStackingAction::ClassifyNewTrack(const G4Track* track)
 {
 
-  // Print progress
-  int eventid = event->GetEventID();
-  Analysis::Get()->PrintProgress(eventid, numberOfEventToBeProcessed);
+  // kill secondary neutrino
+  if (track->GetParentID() > 0) {
+    if (track->GetDefinition() == G4NeutrinoE::NeutrinoE() ||
+        track->GetDefinition() == G4Electron::Electron() ||
+        track->GetDefinition() == G4Positron::Positron() || 
+        track->GetDefinition() == G4Gamma::Gamma()) {
+      return fKill;
+    }
+  }
+  if (track->GetDefinition() == G4Gamma::Gamma()) return fKill;
 
-  // Do all processing loops
-  Analysis::Get()->ProcessEvent(event);
+  // otherwise, return what Geant4 would have returned by itself
+  return G4UserStackingAction::ClassifyNewTrack(track);
 
-  // Reset analysis state for next event.
-  Analysis::Get()->BeginOfEventAction();
-
-  // Check Abort State
-  Analysis::Get()->CheckAbortState();
-
-}
-
-void CosmicRun::Merge(const G4Run* aRun)
-{
-  // Uncomment this if local run processing needed at a later date
-  // const CosmicRun* localRun = static_cast<const CosmicRun*>(aRun);
-
-  // Merge the normal runs
-  G4Run::Merge(aRun);
 }

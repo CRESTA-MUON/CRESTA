@@ -18,7 +18,7 @@
 #include "G4Box.hh"
 #include "db/ROOTHeaders.hh"
 #include "G4Polyline.hh"
-#include "tomography/PoCAUtils.hh"
+#include "utils/PoCAUtils.hh"
 #include "G4OpticalPhoton.hh"
 #include "PhotonHit.hh"
 

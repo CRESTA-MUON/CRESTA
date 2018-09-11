@@ -1,3 +1,4 @@
+//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -21,44 +22,33 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_MaterialManager_hh__
-#define __COSMIC_MaterialManager_hh__
+//
+// $Id: CRESTASteppingAction.hh 74483 2013-10-09 13:37:06Z gcosmo $
+//
+/// \file CRESTASteppingAction.hh
+/// \brief Definition of the CRESTASteppingAction class
 
-// System Headers
-#include <iostream>
+#ifndef CRESTASteppingAction_h
+#define CRESTASteppingAction_h 1
 
-// Cosmic Headers
-#include "db/DBTable.hh"
+#include "G4UserSteppingAction.hh"
+#include "globals.hh"
 
-// Forward Declarations
-class G4Material;
-class G4Element;
-class G4VisAttributes;
+class G4LogicalVolume;
 
-namespace COSMIC {
+/// Stepping action class
+/// 
 
-/// Detector Factory used to create SD from tables
-namespace MaterialFactory {
+class CRESTASteppingAction : public G4UserSteppingAction
+{
+  public:
+    CRESTASteppingAction();
+    virtual ~CRESTASteppingAction();
 
-/// Get Element from string
-G4Element* GetElement(std::string name);
+    // method from the base class
+    virtual void UserSteppingAction(const G4Step*);
+};
 
-/// Function to create detector objects from tables
-G4Material* GetMaterial(std::string name);
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-/// Get some logical visualisation attributes depending on
-/// material defaults
-G4VisAttributes* GetVisForMaterial(DBTable table);
-
-/// Get vis just based on material database name
-G4VisAttributes* GetVisForMaterial(std::string name);
-
-/// Get the material properties
-G4MaterialPropertiesTable* GetMaterialPropertiesTable(std::string name);
-G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
-
-
-} // - namespace MaterialFactory
-} // - namespace COSMIC
 #endif
-

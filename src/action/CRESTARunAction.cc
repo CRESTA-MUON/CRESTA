@@ -22,33 +22,67 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicSteppingAction.hh 74483 2013-10-09 13:37:06Z gcosmo $
-//
-/// \file CosmicSteppingAction.hh
-/// \brief Definition of the CosmicSteppingAction class
+#include "action/CRESTARunAction.hh"
 
-#ifndef CosmicSteppingAction_h
-#define CosmicSteppingAction_h 1
+// G4 Headers
+#include "G4Event.hh"
+#include "G4HCofThisEvent.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4SDManager.hh"
+#include "G4THitsMap.hh"
+#include "G4UnitsTable.hh"
 
-#include "G4UserSteppingAction.hh"
-#include "globals.hh"
+// CRESTA Headers
+#include "analysis/Analysis.hh"
+#include "action/CRESTARun.hh"
+#include "sd/DetectorFactory.hh"
+#include "sd/DetectorFactory.hh"
 
-class G4LogicalVolume;
+// namespace COSMIC
+using namespace COSMIC;
 
-/// Stepping action class
-/// 
-
-class CosmicSteppingAction : public G4UserSteppingAction
+CRESTARunAction::CRESTARunAction() : G4UserRunAction(), fCurrentRun(0)
 {
-  public:
-    CosmicSteppingAction();
-    virtual ~CosmicSteppingAction();
+}
 
-    // method from the base class
-    virtual void UserSteppingAction(const G4Step*);
-};
+CRESTARunAction::~CRESTARunAction()
+{
+  delete G4AnalysisManager::Instance();
+}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+G4Run* CRESTARunAction::GenerateRun()
+{
+  return new CRESTARun;
+}
 
-#endif
+void CRESTARunAction::BeginOfRunAction(const G4Run* run)
+{
+  // Logging Info
+  std::cout << "=========================================" << std::endl;
+  std::cout << "ACT: Beginning Run : " << fCurrentRun << std::endl;
+
+  // Do start analysis processing
+  Analysis::Get()->BeginOfRunAction(run);
+}
+
+void CRESTARunAction::EndOfRunAction(const G4Run* run)
+{
+  // Do any run processing
+  Analysis::Get()->EndOfRunAction(run);
+
+  // Add to the current counters
+  fCurrentRun++;
+  Analysis::Get()->IncrementSubRun();
+
+  // Logging Info
+  std::cout << "ACT: Finished Run. "
+            << "Events : " << Analysis::Get()->GetNEvents()
+            << ", Triggered : " << Analysis::Get()->GetNSavedEvents()
+            << ", Exposure : " << Analysis::Get()->GetExposureTime() << " s" << std::endl;
+  std::cout << "=========================================" << std::endl;
+
+  // Check exposure/trigger limits
+  Analysis::Get()->CheckAbortState();
+}

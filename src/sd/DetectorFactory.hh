@@ -1,5 +1,5 @@
-#ifndef __DETECTOR_MANAGER_HH__
-#define __DETECTOR_MANAGER_HH__
+#ifndef __DetectorFactory_HH__
+#define __DetectorFactory_HH__
 
 #include <iostream>
 
@@ -10,11 +10,11 @@ class DBTable;
 class VDetector;
 
 /// Detector Factory used to create SD from tables
-namespace DetectorObjectFactory {
+namespace DetectorFactory {
 
 /// Function to create detector objects from tables
 VDetector* CreateSD(DBTable tbl);
 
-} // - namespace DetectorObjectFactory
+} // - namespace DetectorFactory
 } // - namespace COSMIC
 #endif

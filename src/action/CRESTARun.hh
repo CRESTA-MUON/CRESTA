@@ -21,41 +21,41 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CosmicRunAction_hh__
-#define __COSMIC_CosmicRunAction_hh__
+#ifndef __COSMIC_CRESTARun_hh__
+#define __COSMIC_CRESTARun_hh__
 
 // G4 Headers
-#include "G4UserRunAction.hh"
-#include "globals.hh"
+#include "G4Run.hh"
 
 // Forward Declarations
+class G4Event;
 class G4Run;
 
 // namespace COSMIC
 namespace COSMIC {
 
-/// User's CosmicRunAction class. this class implements all the user actions to be executed at each run.
-class CosmicRunAction : public G4UserRunAction
+/// Main CRESTARun class used for event recording and generation
+class CRESTARun : public G4Run
 {
 public:
+    /// Constructor
+    CRESTARun();
+    /// Destructor
+    virtual ~CRESTARun();
 
-  /// constructor
-  CosmicRunAction();
-  /// destructor
-  virtual ~CosmicRunAction();
+    /// Process to register the event
+    virtual void RecordEvent(const G4Event*);
 
-  /// Create a new run
-  virtual G4Run* GenerateRun();
-
-  /// Called at the beginning of each run
-  virtual void BeginOfRunAction(const G4Run*);
-  /// Called at the end of each run
-  virtual void   EndOfRunAction(const G4Run*);
+    /// Merges run outputs between slave jobs
+    virtual void Merge(const G4Run*);
 
 protected:
-  int fCurrentRun; ///< Index of current run
+    int fPrintSize; ///< Counter to check processing size is sufficient
+    long int fStartTime; ///< Start Time of this Run
+    long int fCurTime; ///< End Time of this Run
 };
 
 } // - namespace COSMIC
 #endif
+
 

@@ -1,6 +1,0 @@
-{
-  name: "TRACKFIT",
-  index: "config"
-
-
-}

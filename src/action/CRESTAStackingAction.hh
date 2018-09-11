@@ -1,4 +1,3 @@
-//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -22,46 +21,30 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-// $Id: CosmicSteppingAction.cc 74483 2013-10-09 13:37:06Z gcosmo $
-//
-/// \file CosmicSteppingAction.cc
-/// \brief Implementation of the CosmicSteppingAction class
+#ifndef __COSMIC_CRESTAStackingAction_hh__
+#define __COSMIC_CRESTAStackingAction_hh__
 
-#include "CosmicSteppingAction.hh"
+// G4 Headers
+#include "G4UserStackingAction.hh"
+#include "globals.hh"
 
-#include "G4Step.hh"
-#include "G4Event.hh"
-#include "G4RunManager.hh"
-#include "G4LogicalVolume.hh"
-#include "analysis/VDetector.hh"
+// namespace COSMIC
+namespace COSMIC {
 
-using namespace COSMIC;
-
-CosmicSteppingAction::CosmicSteppingAction()
-  : G4UserSteppingAction()
-{}
-
-CosmicSteppingAction::~CosmicSteppingAction()
-{}
-
-void CosmicSteppingAction::UserSteppingAction(const G4Step* step)
+/// Stacking action class : manage the newly generated particles
+class CRESTAStackingAction : public G4UserStackingAction
 {
-  // If there is a step for the current volume, check if it
-  G4StepPoint* posstep = step->GetPostStepPoint();
-  G4VSensitiveDetector* postsd = posstep->GetSensitiveDetector();
-  VDetector* det = NULL;
-  if (postsd) {
-    det = static_cast<VDetector*>(postsd);
-  }
-  if (det) {
-      G4Track* track = step->GetTrack();
-    G4TrackStatus trackstatus = det->ManuallyProcessHits(step, NULL);
-    if (trackstatus != track->GetTrackStatus()) {
-      track->SetTrackStatus(trackstatus);
-    }
-  }
+public:
 
-  return;
-}
+  /// Constructor
+  CRESTAStackingAction();
+  /// Destructor
+  virtual ~CRESTAStackingAction();
+
+  /// Return classification status of new track
+  virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
+};
+
+} // - namespace COSMIC
+#endif
 

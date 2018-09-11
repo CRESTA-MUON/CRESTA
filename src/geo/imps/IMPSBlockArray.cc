@@ -35,7 +35,7 @@
 #include "geo/GeoUtils.hh"
 #include "geo/simple/GeoBox.hh"
 #include "geo/simple/GeoTubs.hh"
-#include "sd/DetectorManager.hh"
+#include "sd/DetectorFactory.hh"
 #include "sd/LongDriftSD.hh"
 #include "IMPSNeutronBlock.hh"
 

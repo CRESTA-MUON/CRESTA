@@ -15,6 +15,14 @@ DB::DB()
   fDefaultTables = &(fAllTables["default"]);
 }
 
+// DB* CRESTA_DBInstance(){
+//   static DB* singletonInstance = new DB();
+//   return singletonInstance;
+// }
+
+DB* DB::Get() { 
+  return fPrimary == 0 ? fPrimary = new DB() : fPrimary; };
+
 DB::~DB()
 {
 }
@@ -230,11 +238,15 @@ void DB::AddTable(DBTable tbl) {
 }
 
 
-DB *DB::fPrimary(0);
+DB* DB::fPrimary = NULL;
 
-std::string DB::GetDataPath() {
-  std::string datadir = std::string(getenv("GLG4DATA"));
-  return datadir;
+std::string DB::GetDataPath(std::string dbtype) {
+  std::cout << "getting : " << dbtype << "_DATA_PATH" << std::endl;
+  
+  const char* chars = getenv((dbtype + "_DATA_PATH").c_str());
+  std::string data = std::string(chars);
+  std::cout << "DATA : " << data << std::endl;
+  return data;
 }
 
 std::vector<double> DB::BlueColor(){
@@ -263,3 +275,18 @@ void DB::PrintSplashScreen() {
   std::cout << " contact : p.stowell@sheffield.ac.uk" << std::endl;
   std::cout << "\n=========================================" << std::endl;
 }
+
+std::vector<std::string> DB::GetDynamicLibraryPath(){
+  std::vector<std::string> dynamicdirs;
+
+  char const* envPath = getenv("CRESTA_OBJECTS_PATH");
+  if (envPath) {
+    std::vector<std::string> paths = DBUtils::ParseToStr(std::string(envPath));
+    for (int i = 0; i < paths.size(); i++){
+      dynamicdirs.push_back(paths[i]);
+    }
+  }
+  dynamicdirs.push_back("./");
+  return dynamicdirs;
+}
+

@@ -29,7 +29,7 @@
 #
 # Draw geometry:
 /vis/drawVolume
-/vis/viewer/set/background white
+/vis/viewer/set/background black
 #
 # Specify view angle:
 /vis/viewer/set/viewpointThetaPhi 45. 35.

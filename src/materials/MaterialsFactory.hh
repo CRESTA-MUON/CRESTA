@@ -21,35 +21,49 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#ifndef __COSMIC_CosmicActionInitialization_hh__
-#define __COSMIC_CosmicActionInitialization_hh__
+#ifndef __COSMIC_MaterialsFactory_hh__
+#define __COSMIC_MaterialsFactory_hh__
 
-// G4 Headers
-#include "G4VUserActionInitialization.hh"
+// System Headers
+#include <iostream>
+
+// Cosmic Headers
+#include "db/DBTable.hh"
+
+// Forward Declarations
+class G4Material;
+class G4Element;
+class G4VisAttributes;
+class G4MaterialPropertiesTable;
 
 // namespace COSMIC
 namespace COSMIC {
 
-/// Action initialization class.
-class CosmicActionInitialization : public G4VUserActionInitialization
-{
-public:
 
-  ///Constructor
-  CosmicActionInitialization();
-  ///Destructor
-  virtual ~CosmicActionInitialization();
+/// Detector Factory used to create SD from tables
+namespace MaterialsFactory {
+
+/// Get Element from string
+G4Element* GetElement(std::string name);
+
+/// Function to create detector objects from tables
+G4Material* GetMaterial(std::string name);
+
+/// Get some logical visualisation attributes depending on
+/// material defaults
+G4VisAttributes* GetVisForMaterial(DBTable table);
+
+/// Get vis just based on material database name
+G4VisAttributes* GetVisForMaterial(std::string name);
+
+/// Get the material properties from its name
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(std::string name);
+
+/// Build Material Properties from JSON table
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
 
 
-  ///Registers User Actions for the master (only Run Action)
-  virtual void BuildForMaster() const;
-
-  ///Register User Actions for the workers
-  virtual void Build() const;
-
-};
-
+} // - namespace MaterialsFactory
 } // - namespace COSMIC
 #endif
-
 

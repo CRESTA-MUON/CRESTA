@@ -21,38 +21,48 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CosmicActionInitialization.hh"
+#ifndef __COSMIC_MaterialsFactory_hh__
+#define __COSMIC_MaterialsFactory_hh__
+
+// System Headers
+#include <iostream>
 
 // Cosmic Headers
-#include "action/CosmicRunAction.hh"
-#include "action/CosmicStackingAction.hh"
-#include "flux/PrimaryGeneratorFactory.hh"
-#include "physics/PhysicsFactory.hh"
-#include "sd/DetectorConstruction.hh"
-#include "action/CosmicSteppingAction.hh"
+#include "db/DBTable.hh"
+
+// Forward Declarations
+class G4Material;
+class G4Element;
+class G4VisAttributes;
 
 // namespace COSMIC
-using namespace COSMIC;
+namespace COSMIC {
 
-CosmicActionInitialization::CosmicActionInitialization()
-  : G4VUserActionInitialization()
-{}
 
-CosmicActionInitialization::~CosmicActionInitialization()
-{}
+/// Detector Factory used to create SD from tables
+namespace MaterialsFactory {
 
-void CosmicActionInitialization::BuildForMaster() const
-{
-  // Define our standard cosmic actions
-  SetUserAction(new CosmicRunAction);
-}
+/// Get Element from string
+G4Element* GetElement(std::string name);
 
-void CosmicActionInitialization::Build() const
-{
-  // Build extra with generator and stacker for slave nodes
-  SetUserAction(PrimaryGeneratorFactory::LoadGenerator());
-  SetUserAction(new CosmicRunAction);
-  SetUserAction(new CosmicStackingAction);
-  SetUserAction(new CosmicSteppingAction);
-}
+/// Function to create detector objects from tables
+G4Material* GetMaterial(std::string name);
+
+/// Get some logical visualisation attributes depending on
+/// material defaults
+G4VisAttributes* GetVisForMaterial(DBTable table);
+
+/// Get vis just based on material database name
+G4VisAttributes* GetVisForMaterial(std::string name);
+
+/// Get the material properties from its name
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(std::string name);
+
+/// Build Material Properties from JSON table
+G4MaterialPropertiesTable* GetMaterialPropertiesTable(DBTable table);
+
+
+} // - namespace MaterialsFactory
+} // - namespace COSMIC
+#endif
 

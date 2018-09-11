@@ -16,11 +16,10 @@
 #include "G4VisAttributes.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+#include "db/DB.hh"
+#include "db/DBTable.hh"
 #include "GeoObject.hh"
 #include "GeoUtils.hh"
-#include "db/DBTable.hh"
-#include "db/DB.hh"
-#include "materials/MaterialManager.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;

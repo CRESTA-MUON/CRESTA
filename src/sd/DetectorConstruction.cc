@@ -19,22 +19,21 @@
 #include <map>
 #include "geo/GeoManager.hh"
 #include "G4VUserDetectorConstruction.hh"
-
-
-#include "db/DB.hh"
-#include "db/DBTable.hh"
-#include "geo/GeoManager.hh"
-#include "sd/DetectorManager.hh"
-#include "geo/GeoManager.hh"
-#include "trigger/TriggerManager.hh"
-#include "processors/ProcessorFactory.hh"
-#include "analysis/Analysis.hh"
 #include "G4GeometryManager.hh"
 #include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
-#include "DetectorMessenger.hh"
 #include "G4RunManager.hh"
+
+#include "db/DB.hh"
+#include "db/DBTable.hh"
+#include "geo/GeoManager.hh"
+#include "sd/DetectorFactory.hh"
+#include "geo/GeoManager.hh"
+#include "trigger/TriggerFactory.hh"
+#include "processors/ProcessorFactory.hh"
+#include "analysis/Analysis.hh"
+#include "DetectorMessenger.hh"
 
 using namespace COSMIC;
 
@@ -75,6 +74,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     // Create the triggers/processors
     ProcessorFactory::ConstructProcessors();
+    
     TriggerFactory::ConstructTriggers();
     G4RunManager::GetRunManager()->GeometryHasBeenModified();
     return world;

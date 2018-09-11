@@ -21,7 +21,7 @@
 
 #include "db/DB.hh"
 #include "sd/DetectorConstruction.hh"
-#include "action/CosmicActionInitialization.hh"
+#include "action/CRESTAActionInitialization.hh"
 #include "physics/PhysicsFactory.hh"
 #include <TStopwatch.h>
 #include <TRandom.h>
@@ -46,7 +46,7 @@
 #include "G4UIExecutive.hh"
 #endif
 #include "globals.hh"
-#include "action/CosmicRun.hh"
+#include "action/CRESTARun.hh"
 
 #include "G4Run.hh"
 #include "G4RunManager.hh"
@@ -66,6 +66,7 @@
 #include "G4UserRunAction.hh"
 #include "globals.hh"
 #include "analysis/Analysis.hh"
+#include "action/ActionFactory.hh"
 
 using namespace std;
 using namespace COSMIC;
@@ -231,9 +232,7 @@ int main(int argc, char** argv) {
   std::cout << "========================================= " << std::endl;
   std::cout << "APP: Loading Default Database " << std::endl;
   DB *rdb = DB::Get();
-  if ( getenv("GLG4DATA") != NULL ) rdb->Load(string(getenv("GLG4DATA")));
-  else rdb->Load(string("data"));
-
+  rdb->Load(DB::GetDataPath());
   if (gGeomtryFiles.size() > 0) {
     for (uint i = 0; i < gGeomtryFiles.size(); i++) {
       std::cout << "APP: Loading Geometry file : " << gGeomtryFiles[i] << std::endl;
@@ -259,7 +258,7 @@ int main(int argc, char** argv) {
 // Set mandatory initialization classes
   runManager->SetUserInitialization(new DetectorConstruction);
   runManager->SetUserInitialization(PhysicsFactory::LoadPhysicsList());
-  runManager->SetUserInitialization(new CosmicActionInitialization());
+  runManager->SetUserInitialization(ActionFactory::ConstructActionInitialization());
 
 // Initialize G4 kernel
   runManager->Initialize();

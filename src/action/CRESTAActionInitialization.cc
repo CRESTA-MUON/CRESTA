@@ -1,4 +1,3 @@
-//
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -22,67 +21,70 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CosmicRunAction.hh"
+#include "action/CRESTAActionInitialization.hh"
 
-// G4 Headers
-#include "G4Event.hh"
-#include "G4HCofThisEvent.hh"
-#include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4SDManager.hh"
-#include "G4THitsMap.hh"
-#include "G4UnitsTable.hh"
-
-// Cosmic Headers
-#include "analysis/Analysis.hh"
-#include "action/CosmicRun.hh"
-#include "sd/DetectorManager.hh"
-#include "sd/DetectorManager.hh"
+// CRESTA Headers
+#include "action/CRESTARunAction.hh"
+#include "action/CRESTAStackingAction.hh"
+#include "action/CRESTASteppingAction.hh"
+#include "flux/FluxFactory.hh"
+#include "physics/PhysicsFactory.hh"
+#include "sd/DetectorConstruction.hh"
 
 // namespace COSMIC
 using namespace COSMIC;
 
-CosmicRunAction::CosmicRunAction() : G4UserRunAction(), fCurrentRun(0)
+CRESTAActionInitialization::CRESTAActionInitialization()
+  : G4VUserActionInitialization()
+{}
+
+CRESTAActionInitialization::~CRESTAActionInitialization()
+{}
+
+void CRESTAActionInitialization::BuildForMaster() const
 {
+  // Set run action from factory
+  G4UserRunAction* run = new CRESTARunAction();
+  if (run) SetUserAction(run);
+  else {
+  	std::cout << "No run loaded in master!" << std::endl;
+  	throw;
+  }
 }
 
-CosmicRunAction::~CosmicRunAction()
+void CRESTAActionInitialization::Build() const
 {
-  delete G4AnalysisManager::Instance();
+  // Set flux action from factory
+  G4VUserPrimaryGeneratorAction* gen = FluxFactory::LoadFluxGenerator();
+  if (gen) { SetUserAction(gen); }
+  else {
+  	std::cout << "No generator loaded in master!" << std::endl;
+  	throw;
+  }
+
+  // Set run action from factory
+  G4UserRunAction* run = new CRESTARunAction();
+  if (run) { SetUserAction(run); }
+  else {
+  	std::cout << "No run loaded in slave!" << std::endl;
+  	throw;
+  }
+
+  // Set event action from factory
+  G4UserEventAction* event = NULL;
+  if (event) { SetUserAction(event); }
+
+  // Set stacking action from factory
+  G4UserStackingAction* stack = new CRESTAStackingAction();
+  if (stack) { SetUserAction(stack); }
+
+  // Set tracking action from factory
+  //  G4UserTrackingAction* track = NULL;
+  //  if (track) { SetUserAction(track); }
+
+  // Set stepping action from factory
+  //  G4UserSteppingAction* step = new CRESTASteppingAction(); 
+  //  if (step) { SetUserAction(step); }
+
 }
 
-G4Run* CosmicRunAction::GenerateRun()
-{
-  return new CosmicRun;
-}
-
-void CosmicRunAction::BeginOfRunAction(const G4Run* run)
-{
-  // Logging Info
-  std::cout << "=========================================" << std::endl;
-  std::cout << "ACT: Beginning Run : " << fCurrentRun << std::endl;
-
-  // Do start analysis processing
-  Analysis::Get()->BeginOfRunAction(run);
-}
-
-void CosmicRunAction::EndOfRunAction(const G4Run* run)
-{
-  // Do any run processing
-  Analysis::Get()->EndOfRunAction(run);
-
-  // Add to the current counters
-  fCurrentRun++;
-  Analysis::Get()->IncrementSubRun();
-
-  // Logging Info
-  std::cout << "ACT: Finished Run. "
-            << "Events : " << Analysis::Get()->GetNEvents()
-            << ", Triggered : " << Analysis::Get()->GetNSavedEvents()
-            << ", Exposure : " << Analysis::Get()->GetExposureTime() << " s" << std::endl;
-  std::cout << "=========================================" << std::endl;
-
-  // Check exposure/trigger limits
-  Analysis::Get()->CheckAbortState();
-}

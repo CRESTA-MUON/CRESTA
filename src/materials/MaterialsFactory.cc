@@ -21,7 +21,7 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "MaterialManager.hh"
+#include "MaterialsFactory.hh"
 
 // G4 Headers
 #include "G4NistManager.hh"
@@ -41,7 +41,7 @@
 // namespace COSMIC
 using namespace COSMIC;
 
-G4Element* MaterialFactory::GetElement(std::string name) {
+G4Element* MaterialsFactory::GetElement(std::string name) {
 
   // Get the material manager
   G4NistManager* nist = G4NistManager::Instance();
@@ -62,7 +62,7 @@ G4Element* MaterialFactory::GetElement(std::string name) {
   return mat;
 }
 
-G4Material* MaterialFactory::GetMaterial(std::string name) {
+G4Material* MaterialsFactory::GetMaterial(std::string name) {
 
   // Get the Material Manager
   G4NistManager* nist = G4NistManager::Instance();
@@ -106,7 +106,7 @@ G4Material* MaterialFactory::GetMaterial(std::string name) {
 }
 
 
-G4VisAttributes* MaterialFactory::GetVisForMaterial(DBTable table) {
+G4VisAttributes* MaterialsFactory::GetVisForMaterial(DBTable table) {
 
   // Make new vis attributes
   G4VisAttributes* vis = NULL;
@@ -150,7 +150,7 @@ G4VisAttributes* MaterialFactory::GetVisForMaterial(DBTable table) {
   return vis;
 }
 
-G4VisAttributes* MaterialFactory::GetVisForMaterial(std::string name) {
+G4VisAttributes* MaterialsFactory::GetVisForMaterial(std::string name) {
 
   // Get the vis table for this material. If none found return NULL
   if (!DB::Get()->HasTable("MATERIAL", name)) return NULL;
@@ -163,7 +163,7 @@ G4VisAttributes* MaterialFactory::GetVisForMaterial(std::string name) {
   return vis;
 }
 
-G4MaterialPropertiesTable* MaterialFactory::GetMaterialPropertiesTable(std::string name) {
+G4MaterialPropertiesTable* MaterialsFactory::GetMaterialPropertiesTable(std::string name) {
 
   G4MaterialPropertiesTable* mat = NULL;
 
@@ -182,7 +182,7 @@ G4MaterialPropertiesTable* MaterialFactory::GetMaterialPropertiesTable(std::stri
   return mat;
 }
 
-G4MaterialPropertiesTable* MaterialFactory::GetMaterialPropertiesTable(DBTable table) {
+G4MaterialPropertiesTable* MaterialsFactory::GetMaterialPropertiesTable(DBTable table) {
 
   G4MaterialPropertiesTable* mat = new G4MaterialPropertiesTable();
   std::vector<std::string> allowed_properties;

@@ -17,14 +17,14 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "GeoUtils.hh"
-#include "sd/DetectorManager.hh"
+#include "sd/DetectorFactory.hh"
 #include "analysis/VDetector.hh"
 #include "analysis/Analysis.hh"
 #include "db/DB.hh"
 #include "db/DBTable.hh"
 #include "physics/PhysicsFactory.hh"
 
-#include "materials/MaterialManager.hh"
+#include "materials/MaterialsFactory.hh"
 
 namespace COSMIC {
 
@@ -61,7 +61,7 @@ G4LogicalVolume* GeoSolid::ConstructLogicalVolume(DBTable table, G4VSolid* solid
   G4Material* geo_material = NULL;
   if (table.Has("material")) {
     std::string geo_matname = table.GetS("material");
-    geo_material = MaterialFactory::GetMaterial(geo_matname);
+    geo_material = MaterialsFactory::GetMaterial(geo_matname);
   }
   G4LogicalVolume* geo_logic = new G4LogicalVolume(solid, geo_material, name);
 
@@ -73,7 +73,7 @@ G4LogicalVolume* GeoSolid::ConstructLogicalVolume(DBTable table, G4VSolid* solid
     if (optimize == 0) geo_logic->SetOptimisation(false);
   }
 
-  G4VisAttributes* vis = MaterialFactory::GetVisForMaterial(table);
+  G4VisAttributes* vis = MaterialsFactory::GetVisForMaterial(table);
   geo_logic->SetVisAttributes(vis);
 
   // Check for invisible flag last
@@ -259,7 +259,7 @@ G4VSensitiveDetector* GeoSolid::ConstructSensitiveDetector(DBTable table, G4Logi
   if (!sd){
     DBTable sdtbl = DB::Get()->GetTable("DETECTOR", sensitive);
     sdtbl.SetIndexName(sdname);
-    sd = DetectorObjectFactory::CreateSD(sdtbl);
+    sd = DetectorFactory::CreateSD(sdtbl);
     Analysis::Get()->RegisterDetector(sd);
   }
 

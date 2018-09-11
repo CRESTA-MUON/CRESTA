@@ -1,9 +1,7 @@
 #include "geo/GeoManager.hh"
+
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
-#include "db/DB.hh"
-#include "db/DBTable.hh"
-
 #include "G4NistManager.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
@@ -23,63 +21,11 @@
 #include "db/DB.hh"
 #include "db/DBTable.hh"
 
-#include "simple/GeoBox.hh"
-#include "simple/GeoTubs.hh"
-#include "simple/GeoCone.hh"
-#include "simple/GeoEllipticalTube.hh"
-#include "simple/GeoEllipticalTunnel.hh"
-
-#include "nuclearwaste/DryStorageCask_VSC24.hh"
-#include "nuclearwaste/SmallSteelDrum.hh"
-#include "nuclearwaste/LargeSteelDrum.hh"
-
-
-#include "chance/HybridMuonTomographyDetector.hh"
-#include "chance/AWEDriftChamber.hh"
-
-#include "cadmesh/GeoCADMesh.hh"
-
-#include "iso/ISOSpacingTest.hh"
-#include "imps/IMPSNeutronBlock.hh"
-#include "imps/IMPSBlockArray.hh"
-
+#include "geo/GeoFactory.hh"
 
 #include <map>
 
 namespace COSMIC{
-
-
-GeoObject* GeoObjectFactory::Construct(DBTable table){
-
-  std::string type = table.GetS("type");
-
-  std::cout << "GEO: Constructing " << type << " : " << table.GetIndexName() <<  std::endl;
-  if (type.compare("box")==0) return new GeoBox(table);
-  else if (type.compare("tubs")==0) return new GeoTubs(table);
-  else if (type.compare("cons")==0) return new GeoCone(table);
-  else if (type.compare("eliptube")==0) return new GeoEllipticalTube(table);
-  else if (type.compare("eliptunnel")==0) return new GeoEllipticalTunnel(table);
-  else if (type.compare("DSC_VSC24") == 0) return new DryStorageCask_VSC24(table);
-  else if (type.compare("hybrid_muontom") == 0) return new HybridMuonTomographyDetector(table);
-  else if (type.compare("awe_drift") == 0) return new AWEDriftChamber(table);
-  else if (type.compare("smallsteeldrum") == 0) return new SmallSteelDrum(table);
-  else if (type.compare("largesteeldrum") == 0) return new LargeSteelDrum(table);
-  else if (type.compare("isospacingtest") == 0) return new ISOSpacingTest(table);
-  else if (type.compare("impsneutronblock") == 0) return new IMPSNeutronBlock(table);
-  else if (type.compare("impsblockarray") == 0) return new IMPSBlockArray(table);
-  #ifdef __USE_CADMESH__
-  else if (type.compare("cadmesh") == 0) return new GeoCADMesh(table);
-  #endif
-  
-  //  else if (type.compare("bristol_rpc") == 0) return new BristolRPC(table);
-
-  std::cout << "Failed to Construct Geometry" << std::endl;
-  throw;
-  return 0;
-}
-
-
-
 
 
 //----------------------------------------------------------
@@ -120,7 +66,7 @@ G4VPhysicalVolume* GeoManager::ConstructAll(){
         continue; // If it hasn't skip for now
       }
 
-      GeoObject* geo_obj = GeoObjectFactory::Construct(geo_tab);
+      GeoObject* geo_obj = GeoFactory::ConstructGeometry(geo_tab);
       fGeoObjects[geo_id] = geo_obj;
       fGeoIDs.push_back(geo_id);
 

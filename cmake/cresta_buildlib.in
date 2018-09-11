@@ -1,0 +1,38 @@
+# Copyright 2016 L. Pickering, P Stowell, R. Terri, C. Wilkinson, C. Wret
+
+################################################################################
+#    This file is part of NUISANCE.
+#
+#    NUISANCE is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    NUISANCE is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with NUISANCE.  If not, see <http://www.gnu.org/licenses/>.
+################################################################################
+
+#!/bin/bash
+
+outputfile=${1}.cresta
+if [ -e "${1}" ]
+then
+	echo "First argument should be library name!, not an existing file!"
+	exit
+fi
+
+inputfiles=${@:2}
+
+BUILD_CXX_FLAGS="@CMAKE_CXX_FLAGS@ @CMAKE_CXX_FLAGS@"
+BUILD_INCLUDES="@BUILDER_INCS_STR@"
+BUILD_LIBRARIES="@BUILDER_DIRS_STR@ @BUILDER_LIBS_STR@"
+
+echo "g++ ${DYNSAMPLE_EXTRA_BUILD_FLAGS} $inputfiles -shared -o $outputfile -Wl -fPIC ${BUILD_CXX_FLAGS} ${BUILD_LIBRARIES} ${BUILD_INCLUDES} "
+g++ ${DYNSAMPLE_EXTRA_BUILD_FLAGS} $inputfiles -shared -o $outputfile -Wl -fPIC ${BUILD_CXX_FLAGS} ${BUILD_INCLUDES} ${BUILD_LIBRARIES}
+
+

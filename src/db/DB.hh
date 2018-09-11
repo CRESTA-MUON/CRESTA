@@ -45,15 +45,14 @@ class DB {
 public:
 
   // Make a static way to access the DB
-  static inline DB *Get()
-  { return fPrimary == 0 ? fPrimary = new DB : fPrimary; };
+  static DB *Get();
   static DB *fPrimary;
 
   DB();
   ~DB();
   DB(std::string filename);
 
-  static std::string GetDataPath();
+  static std::string GetDataPath(std::string dbtype="CRESTA");
   static void PrintSplashScreen();
 
   void CreateDataBase(std::string dataid);
@@ -83,6 +82,7 @@ public:
 
   static std::vector<double> RedColor();
   static std::vector<double> BlueColor();
+  std::vector<std::string> GetDynamicLibraryPath();
 
 
 protected:
@@ -95,5 +95,9 @@ protected:
   int fDataBaseCalls;
 
 };
+
+// DB* CRESTA_DBInstance();
+
+
 } // - namespace COSMIC
 #endif

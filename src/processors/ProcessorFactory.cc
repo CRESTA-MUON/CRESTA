@@ -4,7 +4,7 @@
 #include "TrueMuonPoCAProcessor.hh"
 #include "analysis/Analysis.hh"
 #include "db/DB.hh"
-
+#include "db/DynamicObjectLoader.hh"
 namespace COSMIC {
 
 VProcessor* ProcessorFactory::Construct(DBTable tbl) {
@@ -15,9 +15,9 @@ VProcessor* ProcessorFactory::Construct(DBTable tbl) {
   // Now Search for different types
   if (type.compare("truemuonpoca") == 0) return new TrueMuonPoCAProcessor(tbl);
 
-  // Check we didn't get to here
-  std::cout << "Failed to Create Processor : " << type << std::endl;
-  throw;
+  VProcessor* proc = DynamicObjectLoader::Get()->ConstructDynamicProcessor(tbl);
+  if (proc) return proc;
+
   return 0;
 }
 
@@ -34,13 +34,21 @@ void ProcessorFactory::ConstructProcessors() {
     DBTable trg_tab = (*trg_iter);
     std::string trg_id = trg_tab.GetIndexName();
 
-    VProcessor* trg_obj = Analysis::Get()->GetProcessor(trg_id);
+    VProcessor* trg_obj = NULL; //Analysis::Get()->GetProcessor(trg_id);
+    if (trg_obj) continue;
+
+    // Create and register to analysis manager
+    trg_obj = ProcessorFactory::Construct(trg_tab);
+
+
     if (!trg_obj) {
-      // Create and register to analysis manager
-      trg_obj = ProcessorFactory::Construct(trg_tab);
-      Analysis::Get()->RegisterProcessor(trg_obj);
+      std::cout << "Failed to construct a processor!" << std::endl;
+      throw;
     }
+
+    Analysis::Get()->RegisterProcessor(trg_obj);
   }
+
 
   return;
 }

@@ -36,26 +36,19 @@ public:
   G4LogicalVolume* GetMother(DBTable geo_tab);
 
   G4VPhysicalVolume* ConstructAll();
-  G4VPhysicalVolume* GetWorldVolume(){ return fWorldVolume; };
+  G4VPhysicalVolume* GetWorldVolume() { return fWorldVolume; };
   G4VPhysicalVolume* fWorldVolume;
 
-  //  std::vector<DBTable> fGeoTables;
   std::map<std::string, GeoObject*> fGeoObjects;
   int MotherStatus(DBTable geo_tab);
   bool HasGeoObject(std::string name);
 
-  // void ConstructSensitive();
   std::vector<std::string> fGeoIDs;
   static inline GeoManager *Get()
   { return fPrimary == 0 ? fPrimary = new GeoManager : fPrimary; };
   static GeoManager *fPrimary;
 
 };
-
-
-namespace GeoObjectFactory {
-GeoObject* Construct(DBTable table);
-}
 
 }
 #endif

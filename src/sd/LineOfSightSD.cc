@@ -122,7 +122,7 @@ G4bool LineOfSightSD::ProcessHits(G4Step* step, G4TouchableHistory* /*touch*/) {
   //                 * CLHEP::twopi
   //                 * LOS_gen->GetVerticalRate();
   // }// End if
-
+  return false;
 }// End function
 
 

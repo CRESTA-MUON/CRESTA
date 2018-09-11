@@ -1,5 +1,5 @@
-#ifndef __TRIGGER_MANAGER_HH__
-#define __TRIGGER_MANAGER_HH__
+#ifndef __TRIGGER_FACTORY_HH__
+#define __TRIGGER_FACTORY_HH__
 
 namespace COSMIC {
 

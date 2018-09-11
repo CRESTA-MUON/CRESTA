@@ -1,13 +1,13 @@
-#include "TriggerManager.hh"
+#include "TriggerFactory.hh"
+
 #include "db/DB.hh"
 #include "db/DBTable.hh"
 #include "analysis/VTrigger.hh"
 #include "analysis/Analysis.hh"
-
 #include "SimpleTrigger.hh"
 #include "CoincidenceTrigger.hh"
 
-namespace COSMIC {
+using namespace COSMIC;
 
 VTrigger* TriggerFactory::Construct(DBTable table) {
 
@@ -57,4 +57,3 @@ void TriggerFactory::ConstructTriggers() {
   return;
 }
 
-} // - namespace COSMIC

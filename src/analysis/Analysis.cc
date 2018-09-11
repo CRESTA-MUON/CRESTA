@@ -99,7 +99,7 @@ double Analysis::GetEventRate() {
 void Analysis::PrintProgress(int curcount, int totalcount) {
 
   // Only print every 1000 events regardless
-  if (curcount % 1000 != 0 or curcount == 0) return;
+  if (curcount % 1000 != 0) return;
 
   std::cout << "Generated : " << curcount << std::endl;
   return;

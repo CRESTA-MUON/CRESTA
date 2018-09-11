@@ -21,39 +21,66 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-#include "action/CosmicStackingAction.hh"
+#include "action/CRESTARun.hh"
+
+// System Headers
+#include <ctime>
+#include <math.h>
+#include <stdio.h>
 
 // G4 Headers
-#include "G4Track.hh"
-#include "G4NeutrinoE.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
-#include "G4Gamma.hh"
+#include "globals.hh"
+#include "G4Event.hh"
+#include "G4HCofThisEvent.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
+#include "G4SDManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4THitsMap.hh"
+
+// CRESTA Headers
+#include "analysis/Analysis.hh"
+#include "geo/GeoManager.hh"
+#include "sd/DetectorFactory.hh"
+#include "trigger/TriggerFactory.hh"
 
 // namespace COSMIC
 using namespace COSMIC;
 
-CosmicStackingAction::CosmicStackingAction() {
+CRESTARun::CRESTARun()
+  : G4Run()
+{
+  // Start a counter for this run
+  Analysis::Get()->StartTheClock();
 }
 
-CosmicStackingAction::~CosmicStackingAction() {
+CRESTARun::~CRESTARun()
+{
 }
 
-G4ClassificationOfNewTrack CosmicStackingAction::ClassifyNewTrack(const G4Track* track)
+void CRESTARun::RecordEvent(const G4Event* event)
 {
 
-  // kill secondary neutrino
-  if (track->GetParentID() > 0) {
-    if (track->GetDefinition() == G4NeutrinoE::NeutrinoE() ||
-        track->GetDefinition() == G4Electron::Electron() ||
-        track->GetDefinition() == G4Positron::Positron() || 
-        track->GetDefinition() == G4Gamma::Gamma()) {
-      return fKill;
-    }
-  }
-  if (track->GetDefinition() == G4Gamma::Gamma()) return fKill;
+  // Print progress
+  int eventid = event->GetEventID();
+  Analysis::Get()->PrintProgress(eventid, numberOfEventToBeProcessed);
 
-  // otherwise, return what Geant4 would have returned by itself
-  return G4UserStackingAction::ClassifyNewTrack(track);
+  // Do all processing loops
+  Analysis::Get()->ProcessEvent(event);
 
+  // Reset analysis state for next event.
+  Analysis::Get()->BeginOfEventAction();
+
+  // Check Abort State
+  Analysis::Get()->CheckAbortState();
+
+}
+
+void CRESTARun::Merge(const G4Run* aRun)
+{
+  // Uncomment this if local run processing needed at a later date
+  // const CRESTARun* localRun = static_cast<const CRESTARun*>(aRun);
+
+  // Merge the normal runs
+  G4Run::Merge(aRun);
 }
