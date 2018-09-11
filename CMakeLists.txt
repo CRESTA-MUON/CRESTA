@@ -19,16 +19,16 @@ file(GLOB cresta_include ${PROJECT_SOURCE_DIR}/src/*/ ${PROJECT_SOURCE_DIR}/src/
 
 include_directories(${PROJECT_SOURCE_DIR}/src/ ${PROJECT_SOURCE_DIR}/geo/)
 
-set(CRESTA_DIRS "-L${PROJECT_BINARY_DIR}/")
+set(CRESTA_DIRS "-L${PROJECT_BINARY_DIR}/lib/")
 set(CRESTA_INCS "-I${PROJECT_BINARY_DIR}/ -I${PROJECT_SOURCE_DIR}/src/")
-set(CRESTA_LIBS "cresta")
+set(CRESTA_LIBS "${PROJECT_NAME}")
 
 
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 
-message(STATUS " Loading Geant4")
+message(STATUS "Loading Geant4")
 add_definitions(-DG4ANALYSIS_USE_ROOT)
 find_package(Geant4 REQUIRED ui_all vis_all)
 include(${Geant4_USE_FILE})
@@ -209,25 +209,33 @@ configure_file(cmake/setup.sh.in
 
 #----------------------------------------------------------------------------
 message(STATUS "Generating Dynamic Builder Script")
+file(MAKE_DIRECTORY  ${PROJECT_BINARY_DIR}/bin)
+
 configure_file(cmake/cresta_buildlib.in
-  "${PROJECT_BINARY_DIR}/cresta_buildlib" @ONLY)
+  "${PROJECT_BINARY_DIR}/bin/cresta_buildlib" @ONLY)
 
 
 #----------------------------------------------------------------------------
 # Build the CRESTA Library
 message(STATUS "Building CRESTA Library")
-add_library(cresta SHARED ${sources} ${headers})
-target_link_libraries(cresta ${DEPEND_DIRS_STR} ${DEPEND_LIBS})
+file(MAKE_DIRECTORY  ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+
+add_library(${PROJECT_NAME} SHARED ${sources} ${headers})
+target_link_libraries(${PROJECT_NAME} ${DEPEND_DIRS_STR} ${DEPEND_LIBS})
 
 #----------------------------------------------------------------------------
 # Add the executables, and link them to the libraries
 message(STATUS "Building CRESTA Applications")
+
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+
 add_executable(cosmicraysim ${PROJECT_SOURCE_DIR}/app/standard/cosmicraysim.cc)
 target_link_libraries(cosmicraysim ${DEPEND_DIRS_STR} ${DEPEND_LIBS})
 
 #if(USE_PUMAS)
 #add_executable(pumas_example ${PROJECT_SOURCE_DIR}/app/pumas/pumas_example.cc)
-#target_DEPEND_LIBS(pumas_example  ${DEPEND_DIRS} ${DEPEND_LIBS} cresta)
+#target_DEPEND_LIBS(pumas_example  ${DEPEND_DIRS} ${DEPEND_LIBS} ${PROJECT_NAME})
 #endif()
 
 #----------------------------------------------------------------------------

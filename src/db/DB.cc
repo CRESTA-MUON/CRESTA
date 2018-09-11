@@ -302,9 +302,11 @@ std::vector<std::string> DB::GetDynamicLibraryPath(){
 
   char const* envPath = getenv("CRESTA_OBJECTS_PATH");
   if (envPath) {
-    std::vector<std::string> paths = DBUtils::ParseToStr(std::string(envPath));
+    std::vector<std::string> paths = DBUtils::ParseToStr(std::string(envPath),":");
     for (int i = 0; i < paths.size(); i++){
-      dynamicdirs.push_back(paths[i]);
+      if (paths[i].length()){
+	dynamicdirs.push_back(paths[i]);
+      }
     }
   }
   dynamicdirs.push_back("./");
