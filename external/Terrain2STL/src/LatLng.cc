@@ -1,10 +1,16 @@
-//LatLng.cpp:
-//Defines a latitude-longitude coordinates point
 #include "LatLng.hh"
-#include "Vector.hh"
+
+// System Includes
 #include <iostream>
 #include <cmath>
 
+// Terrain Includes
+#include "Vector.hh"
+
+// namespace TERRAIN
+using namespace TERRAIN;
+
+// Global Definitions
 const float  PI=3.14159265358979f;
 const float d2r = PI/180;
 
