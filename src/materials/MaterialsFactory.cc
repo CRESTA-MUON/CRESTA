@@ -82,6 +82,19 @@ G4Material* MaterialsFactory::GetMaterial(std::string name) {
     // Create the material
     std::cout << "MAT: Creating : " << name << std::endl;
     mat = new G4Material(name, density, counts.size());
+
+    double totalcounts = 0.0;
+    for (int i = 0; i < counts.size(); i++){
+      totalcounts += counts[i];
+    }
+    if (totalcounts != 1.0){
+      std::cout << "MAT: --> Total Counts : " << totalcounts << std::endl;
+      std::cout << "MAT: --> Rescaling total counts by " << 1.0/totalcounts << " to get unity!" << std::endl;
+      for (int i = 0; i < counts.size(); i++){
+	counts[i] = counts[i] / totalcounts;
+      }
+    }
+
     for (uint j = 0; j < counts.size(); j++) {
       std::cout << "MAT: --> Element : " << elements[j] << std::endl;
       G4Element* ele = GetElement(elements[j]);
