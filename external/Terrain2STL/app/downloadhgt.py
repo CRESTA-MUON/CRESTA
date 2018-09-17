@@ -67,7 +67,7 @@ while(lat < higlat):
 for name in tilelist:
     print "Downloading : ", name
     if os.path.isfile(name[0] + ".zip"): call(["rm",name[0] + ".zip"])
-    wgetresult = call(["wget","https://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Eurasia/" + name[0] + ".zip"])
+    wgetresult = call(["wget","https://dds.cr.usgs.gov/srtm/version2_1/SRTM3/South_America/" + name[0] + ".zip"])
 
     if wgetresult == 8:
         print "--> Cannot find file on server. Adding to blacklist!"

@@ -21,7 +21,7 @@ std::vector<float> getElevations(double lat, double lng,
                                      double yrangelow, double yrangehigh,
                                      double resolution);
 
-bool checkTileBlackList(std::string tileName);
+bool checkTileBlackList(std::string tileName, std::string folder, std::string recomm);
 
 } // - namespace TERRAIN
 #endif

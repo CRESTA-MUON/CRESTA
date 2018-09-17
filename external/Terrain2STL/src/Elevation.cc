@@ -9,7 +9,7 @@
 
 // namespace std (BAD)
 using namespace std;
-const float  PI=3.14159265358979f;
+const float  PI = 3.14159265358979f;
 
 
 string TERRAIN::getTile(float lat, float lng) {
@@ -42,13 +42,11 @@ int TERRAIN::getTileIndex(float lat, float lng) {
 	return (int)floor(lat) * 360 + (int)floor(lng);
 }
 
-bool TERRAIN::checkTileBlackList(std::string tileName) {
-
-	// clog << " CANNOT FIND FILE : " << tileName << std::endl;
+bool TERRAIN::checkTileBlackList(std::string tileName, std::string folder, std::string recomm) {
 
 	std::string listitem;
 	ifstream iFile;
-	iFile.open("../hgt_files/blacklist.txt"); //Opens file
+	iFile.open(folder + "/blacklist.txt"); //Opens file
 	while (iFile >> listitem) //While the file is copying into the first and last names
 	{
 		if (listitem.compare(tileName.c_str()) == 0) {
@@ -58,6 +56,8 @@ bool TERRAIN::checkTileBlackList(std::string tileName) {
 	}
 
 	clog << " Cannot find a file but it is not blacklisted! : " << tileName << std::endl;
+	clog << "Use following command to grab files!" << std::endl;
+	clog << "terraindownload " + recomm << std::endl;
 	throw;
 	return false;
 }
@@ -72,7 +72,12 @@ vector<float> TERRAIN::getElevations(double lat, double lng,
 	int tileNumber = 0;
 	string tileName = "";
 	ifstream file;
-	file.open("../hgt_files/N44W070.hgt");
+	char const* envPath = getenv("TERRAIN_DATA_PATH");
+	std::string folder = "./";
+	if (envPath) {
+		folder = std::string(envPath);
+	}
+	file.open(folder + "/N44W070.hgt");
 
 	// Choose first tile index
 	int t = getTileIndex(lat, lng);
@@ -82,17 +87,44 @@ vector<float> TERRAIN::getElevations(double lat, double lng,
 	int h;
 	char number [2];
 	int stepSize = 1;
-	int baseHeight = 5;
-	double waterDrop = 2;
-	double vscale = 0.01;
+	int baseHeight = 10;
+	double waterDrop = 0;
+	double vscale = 1;
 
 	// Determine the step sizes
-	int nx = int((xrangehigh - xrangelow) / resolution);
-	int ny = int((yrangehigh - yrangelow) / resolution);
+	int nx = int((xrangehigh - xrangelow) / resolution) + 1;
+	int ny = int((yrangehigh - yrangelow) / resolution) + 1;
 	clog << "NVALS : " << nx << " " << ny << std::endl;
-	
+
 	// Make list
 	vector<float> outList(nx * ny);
+
+	// Determine the min and max lat/long
+	double minlat = -1;
+	double maxlat = -1;
+	double minlng = -1;
+	double maxlng = -1;
+
+	for (int x = 0; x < nx; x++) {
+		for (int y = 0; y < ny; y++) {
+
+			double xpos = xrangelow + resolution * x;
+			double ypos = yrangelow + resolution * y;
+
+			double latpos = lat + (ypos / r_earth) * (180 / PI);
+			double lngpos = lng + (xpos / r_earth) * (180 / PI) / cos(lat * PI / 180);
+
+			if (minlat == -1 || latpos < minlat) minlat = latpos;
+			if (minlng == -1 || lngpos < minlng) minlng = lngpos;
+			if (maxlat == -1 || latpos > maxlat) maxlat = latpos;
+			if (maxlng == -1 || lngpos > maxlng) maxlng = lngpos;
+		}
+	}
+
+	std::string recomm = (std::to_string(floor(minlat) - 1) + " " +
+	                      std::to_string(floor(minlng) - 1) + " " +
+	                      std::to_string(ceil(minlat) + 1) + " " +
+	                      std::to_string(ceil(minlng) + 1)    );
 
 	for (int x = 0; x < nx; x++) {
 		for (int y = 0; y < ny; y++) {
@@ -116,11 +148,11 @@ vector<float> TERRAIN::getElevations(double lat, double lng,
 					if (getTileIndex(intlat, intlng) != tileNumber) {
 						tileNumber = getTileIndex(intlat, intlng);
 						tileName = getTile(intlat, intlng);
-						std::string tilePath = "../hgt_files/" + tileName;
+						std::string tilePath = folder + "/" + tileName;
 						file.close();
 						file.open(tilePath.c_str(), ios::in | ios::binary);
 						if (!file.good()) {
-							blacklisted = checkTileBlackList(tileName);
+							blacklisted = checkTileBlackList(tileName, folder, recomm);
 						}
 					}
 
@@ -155,11 +187,11 @@ vector<float> TERRAIN::getElevations(double lat, double lng,
 
 			// Get the height from four way interpolation
 			double intHeight = westLng * (1 - fracLng) + eastLng * fracLng;
-			intHeight = elevations[0][0];
+			// intHeight = elevations[0][0];
 			// if (intHeight > 0) clog << latpos << " : " << lngpos << " : " << intHeight << std::endl;
 
 			// Save to a list
-			outList.at(y * nx + x) = intHeight * vscale + baseHeight;
+			outList.at(y * nx + x) = intHeight;
 		}
 	}
 	file.close();

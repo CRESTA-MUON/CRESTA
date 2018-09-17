@@ -21,7 +21,7 @@ triangle createTriangle(const Vector&, const Vector&, const Vector&);
 void addTriangle(triangle t);
 
 /// Takes a height array of variable length and turns it into an STL file
-void writeSTLfromArray(const std::vector<float>&, int, int, float);
+void writeSTLfromArray(std::vector<float>&, int, int, float);
 
 } // - namespace TERRAIN
 #endif

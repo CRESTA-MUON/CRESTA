@@ -47,13 +47,13 @@ int main(int argc, char **argv)			//lat, long, width, height, verticalscale, rot
 	clog << "Long/Lat High : "   << lathigh << " : " << lnghigh << std::endl;
 	clog << "Long/Lat Low : "    << latlow  << " : " << lnglow << std::endl;
 
-	int nx = int((xrangehigh - xrangelow)/resolution);
-	int ny = int((yrangehigh - yrangelow)/resolution);
+	int nx = int((xrangehigh - xrangelow)/resolution)+1;
+	int ny = int((yrangehigh - yrangelow)/resolution)+1;
 
 	hList.resize(nx*ny,0);
 
 	hList = TERRAIN::getElevations(lat, lng, xrangelow, xrangehigh, yrangelow, yrangehigh, resolution);
-	writeSTLfromArray(hList,nx, ny, 3.1415926*lat/180);
+	writeSTLfromArray(hList,nx, ny, resolution);
 
 
 	// clog << "STARTING PATRICKS PROJECT" << std::endl;

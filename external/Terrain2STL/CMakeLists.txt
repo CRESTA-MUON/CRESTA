@@ -82,6 +82,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_executable(terrain2stl ${PROJECT_SOURCE_DIR}/app/terrain2stl.cc)
 target_link_libraries(terrain2stl ${DEPEND_DIRS_STR} ${DEPEND_LIBS} ${TERRAIN2STL_LIBS})
 
+configure_file(app/downloadhgt.py
+  "${PROJECT_BINARY_DIR}/bin/downloadhgt.py" @ONLY)
+
+configure_file(app/terraindownload.sh
+  "${PROJECT_BINARY_DIR}/bin/terraindownload" @ONLY)
+
 #----------------------------------------------------------------------------
 # Install headers and libraries to sub folder
 if (CMAKE_INSTALL_PREFIX STREQUAL "" OR CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
