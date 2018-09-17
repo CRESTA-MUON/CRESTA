@@ -39,7 +39,7 @@ public:
 		CRESTA_ConstructDetector_ptr CRESTA_ConstructDetector;
 		CRESTA_ConstructGeometry_ptr CRESTA_ConstructGeometry;
 		CRESTA_LoadFluxGenerator_ptr CRESTA_LoadFluxGenerator;
-
+	  PluginManifest();
 		~PluginManifest();
 	};
 

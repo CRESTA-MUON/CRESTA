@@ -15,6 +15,15 @@ DynamicObjectLoader::DynamicObjectLoader() : NObjects(0), NManifests(0) {
 }
 DynamicObjectLoader* DynamicObjectLoader::glblDSF = NULL;
 
+DynamicObjectLoader::PluginManifest::PluginManifest() {
+  dllib = NULL;
+  CRESTA_PrintManifest = NULL;
+  CRESTA_ConstructDetector = NULL;
+  CRESTA_ConstructGeometry = NULL;
+  CRESTA_LoadFluxGenerator = NULL;
+  soloc = "";
+}
+
 DynamicObjectLoader::PluginManifest::~PluginManifest() {
 	std::cout << "Deleting a plugin manifest : " << soloc << std::endl;
 
@@ -41,6 +50,8 @@ std::string EnsureTrailingSlash(std::string const& inp) {
 void DynamicObjectLoader::LoadPlugins() {
 
 	std::vector<std::string> SearchDirectories = DB::Get()->GetDynamicLibraryPath();
+
+	fLoadedManifests.clear();
 
 	for (size_t sp_it = 0; sp_it < SearchDirectories.size(); ++sp_it) {
 		std::cout << "New Directory" << std::endl;
@@ -74,12 +85,12 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 
 				// Create a new generic plugin manifest
-				PluginManifest* plugin = new PluginManifest();
-				plugin->dllib = dlobj;
-				plugin->soloc = (dirpath + ent->d_name);
+				PluginManifest plugin = PluginManifest();
+				plugin.dllib = dlobj;
+				plugin.soloc = (dirpath + ent->d_name);
 				/*
 				std::cout << "Searching CRESTA_NDynamicObjects" << std::endl;
-				plugin->CRESTA_NDynamicObjects =
+				plugin.CRESTA_NDynamicObjects =
 				    reinterpret_cast<CRESTA_NDynamicObjects_ptr>(dlsym(dlobj, "CRESTA_NDynamicObjects"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -91,7 +102,7 @@ void DynamicObjectLoader::LoadPlugins() {
 					continue;
 				}
 
-				plugin->CRESTA_GetDynamicObjectName =
+				plugin.CRESTA_GetDynamicObjectName =
 				    reinterpret_cast<CRESTA_GetDynamicObjectName_ptr>(dlsym(dlobj, "CRESTA_GetDynamicObjectName"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -106,7 +117,7 @@ void DynamicObjectLoader::LoadPlugins() {
 
 				// Processor Function Loading
 				bool validmanifest = true;
-				plugin->CRESTA_PrintManifest =
+				plugin.CRESTA_PrintManifest =
 				    reinterpret_cast<CRESTA_PrintManifest_ptr>(dlsym(dlobj, "CRESTA_PrintManifest"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -115,14 +126,14 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validmanifest = false;
-					plugin->CRESTA_PrintManifest = NULL;
-					dlclose(dlobj);
-					continue;
+					//plugin.CRESTA_PrintManifest = NULL;
+					//		dlclose(dlobj);
+					//continue;
 				}
 
 				// Processor Function Loading
 				bool validprocessor = true;
-				plugin->CRESTA_ConstructProcessor =
+				plugin.CRESTA_ConstructProcessor =
 				    reinterpret_cast<CRESTA_ConstructProcessor_ptr>(dlsym(dlobj, "CRESTA_ConstructProcessor"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -131,11 +142,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validprocessor = false;
-					plugin->CRESTA_ConstructProcessor = NULL;
+					//plugin.CRESTA_ConstructProcessor = NULL;
 				}
 				/*
 				if (validprocessor) {
-					plugin->CRESTA_DestroyProcessor =
+					plugin.CRESTA_DestroyProcessor =
 					    reinterpret_cast<CRESTA_DestroyProcessor_ptr>(dlsym(dlobj, "CRESTA_DestroyProcessor"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
@@ -148,7 +159,7 @@ void DynamicObjectLoader::LoadPlugins() {
 
 				// Detector Function Loading
 				bool validdetector = true;
-				plugin->CRESTA_ConstructDetector =
+				plugin.CRESTA_ConstructDetector =
 				    reinterpret_cast<CRESTA_ConstructDetector_ptr>(dlsym(dlobj, "CRESTA_ConstructDetector"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -157,12 +168,12 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validdetector = false;
-					plugin->CRESTA_ConstructDetector = NULL;
+					//plugin.CRESTA_ConstructDetector = NULL;
 				}
 
 				/*
 				if (validdetector) {
-					plugin->CRESTA_DestroyDetector =
+					plugin.CRESTA_DestroyDetector =
 					    reinterpret_cast<CRESTA_DestroyDetector_ptr>(dlsym(dlobj, "CRESTA_DestroyDetector"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
@@ -175,7 +186,7 @@ void DynamicObjectLoader::LoadPlugins() {
 
 				// Detector Function Loading
 				bool validgeometry = true;
-				plugin->CRESTA_ConstructGeometry =
+				plugin.CRESTA_ConstructGeometry =
 				    reinterpret_cast<CRESTA_ConstructGeometry_ptr>(dlsym(dlobj, "CRESTA_ConstructGeometry"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -184,11 +195,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validgeometry = false;
-					plugin->CRESTA_ConstructGeometry = NULL;
+					//plugin.CRESTA_ConstructGeometry = NULL;
 				}
 				/*
 				if (validgeometry) {
-					plugin->CRESTA_DestroyGeometry =
+					plugin.CRESTA_DestroyGeometry =
 					    reinterpret_cast<CRESTA_DestroyGeometry_ptr>(dlsym(dlobj, "CRESTA_DestroyGeometry"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
@@ -202,7 +213,7 @@ void DynamicObjectLoader::LoadPlugins() {
 
 				// Detector Function Loading
 				bool validgenerator = true;
-				plugin->CRESTA_LoadFluxGenerator =
+				plugin.CRESTA_LoadFluxGenerator =
 				    reinterpret_cast<CRESTA_LoadFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_LoadFluxGenerator"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -211,11 +222,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validgenerator = false;
-					plugin->CRESTA_LoadFluxGenerator = NULL;
+					//plugin.CRESTA_LoadFluxGenerator = NULL;
 				}
 				/*
 				if (validgenerator) {
-					plugin->CRESTA_DestroyFluxGenerator =
+					plugin.CRESTA_DestroyFluxGenerator =
 					    reinterpret_cast<CRESTA_DestroyFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_DestroyFluxGenerator"));
 					dlerr = "";
 					dlerr_cstr = dlerror();
@@ -230,26 +241,44 @@ void DynamicObjectLoader::LoadPlugins() {
 				// Print loading summary
 
 				if (validmanifest && (validgenerator || validgeometry || validdetector || validprocessor)) {
-					std::string manifestname = (*(plugin->CRESTA_PrintManifest))();
-
-					if (std::find(fLoadedManifests.begin(), fLoadedManifests.end(), manifestname) == fLoadedManifests.end()) {
-
-						std::cout << "\tSuccessfully loaded dynamic processor manifest: "
-						          << plugin->soloc << "." << std::endl;
-						Manifests.push_back(*plugin);
-						fLoadedManifests.push_back(manifestname);
-						NManifests++;
-
-					} else {
-						dlclose(dlobj);
-					}
+				  
+				  if ((plugin.CRESTA_PrintManifest)){
+				    //				    std::cout << plugin << " -> " << (*(plugin.CRESTA_PrintManifest)) << std::endl;
+				    std::string manifestname = (*(plugin.CRESTA_PrintManifest))();
+				    
+				    if (std::find(fLoadedManifests.begin(), fLoadedManifests.end(), manifestname) == fLoadedManifests.end()) {
+				      
+				      
+				      std::cout << "\tSuccessfully loaded dynamic processor manifest: "
+						<< plugin.soloc << "." << std::endl;
+				      Manifests.push_back(plugin);
+				      std::cout << "Registering name" << std::endl;
+				      fLoadedManifests.push_back(manifestname);
+				      std::cout << "Adding to manifest count"<< std::endl;
+				      NManifests++;
+				      std::cout << "Finished if else statement" << std::endl;
+				    } else {
+				      std::cout << "Skipping duplicate plugin" << std::endl;
+				      //				      dlclose(dlobj);
+				    }
+				    std::cout << "Out of plugin check" << std::endl;
+				  } else {
+				    std::cout << "Skipping dodgy plugin" << std::endl;
+				    //				    dlclose(dlobj);
+				  }
+				  std::cout << "End of manifest name reading" << std::endl;
+				  
 				} else {
-					dlclose(dlobj);
-					delete plugin;
+				  std::cout << "Closing plugin" << std::endl;
+				  //				  dlclose(dlobj);
+				  //				  delete plugin;
 				}
+				std::cout << "End of checks" << std::endl;
 
 			}
+			std::cout << "Skipping to next object" << std::endl;
 		}
+		std::cout << "Closing DIR" << std::endl;
 		closedir(dir);
 	}
 	std::cout << "Loaded all plugins!" << std::endl;
