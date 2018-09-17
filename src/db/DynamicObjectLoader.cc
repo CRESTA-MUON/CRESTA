@@ -236,30 +236,20 @@ void DynamicObjectLoader::LoadPlugins() {
 
 						std::cout << "\tSuccessfully loaded dynamic processor manifest: "
 						          << plugin->soloc << "." << std::endl;
-						std::cout << "Pushing Back" << std::endl;
 						Manifests.push_back(*plugin);
-						std::cout << "Adding loaded Manifest" << std::endl;
 						fLoadedManifests.push_back(manifestname);
-						std::cout << "Added : " << plugin->soloc << " manifest." << std::endl;
 						NManifests++;
-						std::cout << " End of if statement" << std::endl;
 
 					} else {
-						std::cout << "Closing object as we already have it." << std::endl;
 						dlclose(dlobj);
 					}
-					std::cout << "End of valid manifest" << std::endl;
 				} else {
-					std::cout << "Closing object" << std::endl;
 					dlclose(dlobj);
 					delete plugin;
 				}
-				std::cout << "End of pointer checking" << std::endl;
 
 			}
-			std::cout << "End of readdir" << std::endl;
 		}
-		std::cout << "Closing directory" << std::endl;
 		closedir(dir);
 	}
 	std::cout << "Loaded all plugins!" << std::endl;
