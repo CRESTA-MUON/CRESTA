@@ -9,6 +9,7 @@
 
 // namespace std (BAD)
 using namespace std;
+const float  PI=3.14159265358979f;
 
 
 string TERRAIN::getTile(float lat, float lng) {
@@ -48,10 +49,10 @@ bool TERRAIN::checkTileBlackList(std::string tileName) {
 	std::string listitem;
 	ifstream iFile;
 	iFile.open("../hgt_files/blacklist.txt"); //Opens file
-	while (iFile >> listitem) //While the file is copying into the first and last names 
+	while (iFile >> listitem) //While the file is copying into the first and last names
 	{
-		if (listitem.compare(tileName.c_str()) == 0){
-			// clog << tileName << " --> FILE BLACKLISTED " << std::endl;
+		if (listitem.compare(tileName.c_str()) == 0) {
+			clog << tileName << " --> FILE BLACKLISTED " << std::endl;
 			return true;
 		}
 	}
@@ -62,8 +63,10 @@ bool TERRAIN::checkTileBlackList(std::string tileName) {
 }
 
 
-vector<float> TERRAIN::getElevations(float _lat2, float _lng, float _lat, float _lng2, int _latn, int _lngn) {
-	clog << "Getting elevations" << std::endl;
+vector<float> TERRAIN::getElevations(double lat, double lng,
+                                     double xrangelow, double xrangehigh,
+                                     double yrangelow, double yrangehigh,
+                                     double resolution) {
 
 	// Initialise Tile Loader
 	int tileNumber = 0;
@@ -72,38 +75,42 @@ vector<float> TERRAIN::getElevations(float _lat2, float _lng, float _lat, float 
 	file.open("../hgt_files/N44W070.hgt");
 
 	// Choose first tile index
-	int t = getTileIndex(_lat, _lng);
+	int t = getTileIndex(lat, lng);
+	double r_earth = 6371e3; // metres
 
 	// Initialise temp vars
 	int h;
 	char number [2];
 	int stepSize = 1;
 	int baseHeight = 5;
-	float waterDrop = 2;
-	float vscale = 0.01;
-
+	double waterDrop = 2;
+	double vscale = 0.01;
 
 	// Determine the step sizes
-	double latstep = (_lat2 - _lat) / double(_latn);
-	double lngstep = (_lng2 - _lng) / double(_lngn);
-
+	int nx = int((xrangehigh - xrangelow) / resolution);
+	int ny = int((yrangehigh - yrangelow) / resolution);
+	clog << "NVALS : " << nx << " " << ny << std::endl;
+	
 	// Make list
-	vector<float> outList(_latn * _lngn);
+	vector<float> outList(nx * ny);
 
-	for (int ilat = 0; ilat < _latn; ilat++) {
-		for (int ilng = 0; ilng < _lngn; ilng++) {
+	for (int x = 0; x < nx; x++) {
+		for (int y = 0; y < ny; y++) {
 
-			float lat = _lat + ilat * latstep;
-			float lng = _lng + ilng * lngstep;
+			double xpos = xrangelow + resolution * x;
+			double ypos = yrangelow + resolution * y;
 
-			float elevations[2][2];
-			float height = 0.0;
+			double latpos = lat + (ypos / r_earth) * (180 / PI);
+			double lngpos = lng + (xpos / r_earth) * (180 / PI) / cos(lat * PI / 180);
+
+			double elevations[2][2];
+			double height = 0.0;
 			for (int a = 0; a < 2; a++) {
 				for (int b = 0; b < 2; b++) {
 
 
-					float intlat = floor(lat * 1200 + b) / 1200.0 + 0.000598907;
-					float intlng = floor(lng * 1200 + a) / 1200.0;
+					double intlat = floor(latpos * 1200 + b) / 1200.0 + 0.000598907;
+					double intlng = floor(lngpos * 1200 + a) / 1200.0;
 					bool blacklisted = false;
 
 					if (getTileIndex(intlat, intlng) != tileNumber) {
@@ -131,30 +138,28 @@ vector<float> TERRAIN::getElevations(float _lat2, float _lng, float _lat, float 
 						if (h == 0) {
 							h -= waterDrop / vscale;
 						}
-						elevations[a][b] = (float)h;
+						elevations[a][b] = (double)h;
 					} else {
 						elevations[a][b] = waterDrop / vscale;
 					}
-
 				}
 			}
-			// height = elevations[0][0];
-			// clog << "Lat Long : " << lat << " " << lng << " " << height << std::endl;
+
 			// Interpolate between our 4 longitude points
-			float fracLat = lat - floor(lat * 1200) / 1200;
-			float fracLng = lng - floor(lng * 1200) / 1200;
+			double fracLat = latpos - floor(latpos * 1200) / 1200;
+			double fracLng = lngpos - floor(lngpos * 1200) / 1200;
 			fracLat *= 1200;
 			fracLng *= 1200;
-			float westLng = elevations[0][0] * (1 - fracLat)  +  elevations[0][1] * fracLat;
-			float eastLng = elevations[1][0] * (1 - fracLat)  +  elevations[1][1] * fracLat;
+			double westLng = elevations[0][0] * (1 - fracLat)  +  elevations[0][1] * fracLat;
+			double eastLng = elevations[1][0] * (1 - fracLat)  +  elevations[1][1] * fracLat;
 
 			// Get the height from four way interpolation
-			float intHeight = westLng * (1 - fracLng) + eastLng * fracLng;
+			double intHeight = westLng * (1 - fracLng) + eastLng * fracLng;
 			intHeight = elevations[0][0];
-			// clog << lat << " : " << lng << " : " << intHeight << std::endl;
+			// if (intHeight > 0) clog << latpos << " : " << lngpos << " : " << intHeight << std::endl;
 
 			// Save to a list
-			outList.at(ilng * _latn + ilat) = intHeight * vscale + baseHeight;
+			outList.at(y * nx + x) = intHeight * vscale + baseHeight;
 		}
 	}
 	file.close();

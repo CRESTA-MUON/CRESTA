@@ -16,7 +16,10 @@ std::string getTile(float, float);
 int getTileIndex(float lat, float lng);
 
 /// width and heigth are in 'pixels'
-std::vector<float> getElevations(float _lat, float _lng, float _lat2, float _lng2, int _latn, int _lngn);
+std::vector<float> getElevations(double lat, double lng,
+                                     double xrangelow, double xrangehigh,
+                                     double yrangelow, double yrangehigh,
+                                     double resolution);
 
 bool checkTileBlackList(std::string tileName);
 
