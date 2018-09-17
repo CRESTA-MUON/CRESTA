@@ -1,1 +1,1 @@
-cosmicraysim -g protonmodule.geo
+cosmicraysim -g protonmodule.geo -i
