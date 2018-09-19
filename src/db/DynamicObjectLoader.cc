@@ -16,12 +16,12 @@ DynamicObjectLoader::DynamicObjectLoader() : NObjects(0), NManifests(0) {
 DynamicObjectLoader* DynamicObjectLoader::glblDSF = NULL;
 
 DynamicObjectLoader::PluginManifest::PluginManifest() {
-  dllib = NULL;
-  CRESTA_PrintManifest = NULL;
-  CRESTA_ConstructDetector = NULL;
-  CRESTA_ConstructGeometry = NULL;
-  CRESTA_LoadFluxGenerator = NULL;
-  soloc = "";
+	dllib = NULL;
+	CRESTA_PrintManifest = NULL;
+	CRESTA_ConstructDetector = NULL;
+	CRESTA_ConstructGeometry = NULL;
+	CRESTA_LoadFluxGenerator = NULL;
+	soloc = "";
 }
 
 DynamicObjectLoader::PluginManifest::~PluginManifest() {
@@ -78,47 +78,13 @@ void DynamicObjectLoader::LoadPlugins() {
 				if (dlerr_cstr) {
 					dlerr = dlerr_cstr;
 				}
-
 				if (dlerr.length()) {
-					// ERROR(WRN, "\tDL Load Error: " << dlerr);
 					continue;
 				}
-
-				// Create a new generic plugin manifest
-				PluginManifest plugin = PluginManifest();
-				plugin.dllib = dlobj;
-				plugin.soloc = (dirpath + ent->d_name);
-				/*
-				std::cout << "Searching CRESTA_NDynamicObjects" << std::endl;
-				plugin.CRESTA_NDynamicObjects =
-				    reinterpret_cast<CRESTA_NDynamicObjects_ptr>(dlsym(dlobj, "CRESTA_NDynamicObjects"));
-				dlerr = "";
-				dlerr_cstr = dlerror();
-				if (dlerr_cstr) {
-					dlerr = dlerr_cstr;
-				}
-				if (dlerr.length()) {
-					dlclose(dlobj);
-					continue;
-				}
-
-				plugin.CRESTA_GetDynamicObjectName =
-				    reinterpret_cast<CRESTA_GetDynamicObjectName_ptr>(dlsym(dlobj, "CRESTA_GetDynamicObjectName"));
-				dlerr = "";
-				dlerr_cstr = dlerror();
-				if (dlerr_cstr) {
-					dlerr = dlerr_cstr;
-				}
-				if (dlerr.length()) {
-					dlclose(dlobj);
-					continue;
-				}
-				*/
 
 				// Processor Function Loading
 				bool validmanifest = true;
-				plugin.CRESTA_PrintManifest =
-				    reinterpret_cast<CRESTA_PrintManifest_ptr>(dlsym(dlobj, "CRESTA_PrintManifest"));
+				CRESTA_PrintManifest_ptr printmanifest = reinterpret_cast<CRESTA_PrintManifest_ptr>(dlsym(dlobj, "CRESTA_PrintManifest"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
 				if (dlerr_cstr) {
@@ -126,14 +92,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validmanifest = false;
-					//plugin.CRESTA_PrintManifest = NULL;
-					//		dlclose(dlobj);
-					//continue;
 				}
 
 				// Processor Function Loading
 				bool validprocessor = true;
-				plugin.CRESTA_ConstructProcessor =
+				CRESTA_ConstructProcessor_ptr processor =
 				    reinterpret_cast<CRESTA_ConstructProcessor_ptr>(dlsym(dlobj, "CRESTA_ConstructProcessor"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -142,24 +105,13 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validprocessor = false;
-					//plugin.CRESTA_ConstructProcessor = NULL;
 				}
-				/*
-				if (validprocessor) {
-					plugin.CRESTA_DestroyProcessor =
-					    reinterpret_cast<CRESTA_DestroyProcessor_ptr>(dlsym(dlobj, "CRESTA_DestroyProcessor"));
-					dlerr = "";
-					dlerr_cstr = dlerror();
-					if (dlerr_cstr) {
-						dlerr = dlerr_cstr;
-					}
-					if (dlerr.length()) { validprocessor = false; }
-				}
-				*/
+
+
 
 				// Detector Function Loading
 				bool validdetector = true;
-				plugin.CRESTA_ConstructDetector =
+				CRESTA_ConstructDetector_ptr detector =
 				    reinterpret_cast<CRESTA_ConstructDetector_ptr>(dlsym(dlobj, "CRESTA_ConstructDetector"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -168,25 +120,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validdetector = false;
-					//plugin.CRESTA_ConstructDetector = NULL;
 				}
-
-				/*
-				if (validdetector) {
-					plugin.CRESTA_DestroyDetector =
-					    reinterpret_cast<CRESTA_DestroyDetector_ptr>(dlsym(dlobj, "CRESTA_DestroyDetector"));
-					dlerr = "";
-					dlerr_cstr = dlerror();
-					if (dlerr_cstr) {
-						dlerr = dlerr_cstr;
-					}
-					if (dlerr.length()) { validdetector = false; }
-				}
-				*/
 
 				// Detector Function Loading
 				bool validgeometry = true;
-				plugin.CRESTA_ConstructGeometry =
+				CRESTA_ConstructGeometry_ptr geometry =
 				    reinterpret_cast<CRESTA_ConstructGeometry_ptr>(dlsym(dlobj, "CRESTA_ConstructGeometry"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -195,25 +133,11 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validgeometry = false;
-					//plugin.CRESTA_ConstructGeometry = NULL;
 				}
-				/*
-				if (validgeometry) {
-					plugin.CRESTA_DestroyGeometry =
-					    reinterpret_cast<CRESTA_DestroyGeometry_ptr>(dlsym(dlobj, "CRESTA_DestroyGeometry"));
-					dlerr = "";
-					dlerr_cstr = dlerror();
-					if (dlerr_cstr) {
-						dlerr = dlerr_cstr;
-					}
-					if (dlerr.length()) { validgeometry = false; }
-				}
-				*/
-
 
 				// Detector Function Loading
 				bool validgenerator = true;
-				plugin.CRESTA_LoadFluxGenerator =
+				CRESTA_LoadFluxGenerator_ptr generator =
 				    reinterpret_cast<CRESTA_LoadFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_LoadFluxGenerator"));
 				dlerr = "";
 				dlerr_cstr = dlerror();
@@ -222,56 +146,38 @@ void DynamicObjectLoader::LoadPlugins() {
 				}
 				if (dlerr.length()) {
 					validgenerator = false;
-					//plugin.CRESTA_LoadFluxGenerator = NULL;
 				}
-				/*
-				if (validgenerator) {
-					plugin.CRESTA_DestroyFluxGenerator =
-					    reinterpret_cast<CRESTA_DestroyFluxGenerator_ptr>(dlsym(dlobj, "CRESTA_DestroyFluxGenerator"));
-					dlerr = "";
-					dlerr_cstr = dlerror();
-					if (dlerr_cstr) {
-						dlerr = dlerr_cstr;
-					}
-					if (dlerr.length()) { validgenerator = false; }
-				}
-				*/
-
 
 				// Print loading summary
-
 				if (validmanifest && (validgenerator || validgeometry || validdetector || validprocessor)) {
-				  
-				  if ((plugin.CRESTA_PrintManifest)){
-				    //				    std::cout << plugin << " -> " << (*(plugin.CRESTA_PrintManifest)) << std::endl;
-				    std::string manifestname = (*(plugin.CRESTA_PrintManifest))();
-				    
-				    if (std::find(fLoadedManifests.begin(), fLoadedManifests.end(), manifestname) == fLoadedManifests.end()) {
-				      
-				      
-				      std::cout << "\tSuccessfully loaded dynamic processor manifest: "
-						<< plugin.soloc << "." << std::endl;
-				      Manifests.push_back(plugin);
-				      std::cout << "Registering name" << std::endl;
-				      fLoadedManifests.push_back(manifestname);
-				      std::cout << "Adding to manifest count"<< std::endl;
-				      NManifests++;
-				      std::cout << "Finished if else statement" << std::endl;
-				    } else {
-				      std::cout << "Skipping duplicate plugin" << std::endl;
-				      //				      dlclose(dlobj);
-				    }
-				    std::cout << "Out of plugin check" << std::endl;
-				  } else {
-				    std::cout << "Skipping dodgy plugin" << std::endl;
-				    //				    dlclose(dlobj);
-				  }
-				  std::cout << "End of manifest name reading" << std::endl;
-				  
+					std::string manifestname = (*(printmanifest))();
+
+					if (std::find(fLoadedManifests.begin(), fLoadedManifests.end(), manifestname) == fLoadedManifests.end()) {
+
+						PluginManifest plugin = PluginManifest();
+						plugin.dllib = dlobj;
+						plugin.soloc = (dirpath + ent->d_name);
+						plugin.CRESTA_PrintManifest = printmanifest;
+						if (validgenerator) plugin.CRESTA_LoadFluxGenerator = generator;
+						if (validgeometry)  plugin.CRESTA_ConstructGeometry = geometry;
+						if (validprocessor) plugin.CRESTA_ConstructProcessor = processor;
+						if (validdetector) plugin.CRESTA_ConstructDetector = detector;
+
+						std::cout << "\tSuccessfully loaded dynamic processor manifest: "
+						          << plugin.soloc << "." << std::endl;
+						Manifests.push_back(plugin);
+						std::cout << "Registering name" << std::endl;
+						fLoadedManifests.push_back(manifestname);
+						std::cout << "Adding to manifest count" << std::endl;
+						NManifests++;
+						std::cout << "Finished if else statement" << std::endl;
+					} else {
+						std::cout << "Skipping duplicate plugin" << std::endl;
+						//				      dlclose(dlobj);
+					}
+					std::cout << "End of manifest name reading" << std::endl;
 				} else {
-				  std::cout << "Closing plugin" << std::endl;
-				  //				  dlclose(dlobj);
-				  //				  delete plugin;
+					std::cout << "Closing plugin" << std::endl;
 				}
 				std::cout << "End of checks" << std::endl;
 
