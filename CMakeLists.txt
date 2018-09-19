@@ -10,6 +10,22 @@ project(CRESTA)
 SET( BUILD_SHARED_LIBS "ON" )
 
 #----------------------------------------------------------------------------
+# Get System
+if(UNIX)
+	if (APPLE) 
+	   SET(MACHINE_TYPE "OSX")
+	   add_definitions(-D__OSX_MACHINE__=1)
+	else() 
+	   SET(MACHINE_TYPE "LINUX")
+	   add_definitions(-D__LINUX_MACHINE__=1)
+	endif()
+
+	message(STATUS "--> Build Machine Type : $MACHINE_TYPE")
+else()
+  message(FATAL_ERROR "CRESTA has only been tested on LINUX and OSX. Please email the authors if you have issues with this.")
+endif()
+
+#----------------------------------------------------------------------------
 # Main CRESTA Setup
 
 message(STATUS "Loading Main Cresta Files")
@@ -93,8 +109,8 @@ if(USE_CADMESH)
   # Check it exists
   if(EXISTS ${CADMESH_DIR})
   else()
-    message(STATUS "BRROW2 Need CADMESH build to build with -DUSE_CADMESH=1")
-    message(FATAL_ERROR "BRROW2 Scripts to download and build CADMESH are in cresta/external.")
+    message(STATUS "--> Need CADMESH build to build with -DUSE_CADMESH=1")
+    message(FATAL_ERROR "--> Scripts to download and build CADMESH are in cresta/external.")
   endif()
 
   # Add libraries and headers if so.
