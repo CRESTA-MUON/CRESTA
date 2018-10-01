@@ -101,7 +101,7 @@ G4VPhysicalVolume* GeoSolid::ConstructPhysicalPlacement(DBTable table, G4Logical
   // Setup orientation
   G4RotationMatrix *rotation = new G4RotationMatrix();
   if (table.Has("orientation")) {
-    const std::vector<double> &orientvector = table.GetVecD("orientation");
+    const std::vector<double> &orientvector = table.GetVecG4D("orientation");
     G4ThreeVector soliddir;
     double angle_y = 0;
     double angle_x = 0;
@@ -127,7 +127,7 @@ G4VPhysicalVolume* GeoSolid::ConstructPhysicalPlacement(DBTable table, G4Logical
 
     if (table.Has("rotation")) {
 
-      const std::vector<double> &rotvector = table.GetVecD("rotation");
+      const std::vector<double> &rotvector = table.GetVecG4D("rotation");
 
       rotation->rotateX(rotvector[0] * CLHEP::deg);
       rotation->rotateY(rotvector[1] * CLHEP::deg);
@@ -137,7 +137,7 @@ G4VPhysicalVolume* GeoSolid::ConstructPhysicalPlacement(DBTable table, G4Logical
 
       if (table.Has("rotation_mother")) {
 
-        const std::vector<double> &rotvector = table.GetVecD("rotation_mother");
+        const std::vector<double> &rotvector = table.GetVecG4D("rotation_mother");
 
         // Get the translation rel. to the global frame
 
