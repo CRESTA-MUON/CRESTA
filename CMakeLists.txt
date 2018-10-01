@@ -20,7 +20,7 @@ if(UNIX)
 	   add_definitions(-D__LINUX_MACHINE__=1)
 	endif()
 
-	message(STATUS "--> Build Machine Type : $MACHINE_TYPE")
+	message(STATUS "--> Build Machine Type : ${MACHINE_TYPE}")
 else()
   message(FATAL_ERROR "CRESTA has only been tested on LINUX and OSX. Please email the authors if you have issues with this.")
 endif()
