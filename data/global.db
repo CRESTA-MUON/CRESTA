@@ -1,0 +1,8 @@
+{
+  name: "GLOBAL",
+  index: "config",
+  flux: "cry",
+  physics: "QGSP_BERT",
+  batchcommands: "",
+  action_initialization: "cresta"
+}

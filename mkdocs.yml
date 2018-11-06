@@ -1,0 +1,15 @@
+site_name: Cosmic Ray Sim Documenation
+pages:
+- Home: index.md
+- User Guide:
+  - Getting Started: user-guide/gettingstarted.md
+  - Editing Tables: user-guide/editingtables.md
+  - Making Geometry: user-guide/makinggeometry.md
+  - Choosing a Flux: user-guide/choosingflux.md
+  - Defining Physics List: user-guide/choosingphysics.md
+  - Defining Detectors: user-guide/addingdetectors.md
+  - Loading Triggers: user-guide/addingtriggers.md
+  - Defining Processors: user-guide/addingprocessors.md
+- Developer Guide:
+  - Accessing DataBase: developers-guide/databaseaccess.md
+theme: readthedocs
