@@ -197,7 +197,7 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
 
         man->FillNtupleDColumn(fThXZIndex, fThetaXZ);
         man->FillNtupleDColumn(fThYZIndex, fThetaYZ);
-        man->FillNtupleDColumn(fIdIndex, fId);
+        //man->FillNtupleDColumn(fIdIndex, fId);
 
         return true;
     } else {
@@ -215,7 +215,7 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
         man->FillNtupleDColumn(fVolPosZIndex, -999.);
         man->FillNtupleDColumn(fThXZIndex, -999.);
         man->FillNtupleDColumn(fThYZIndex, -999.);
-        man->FillNtupleDColumn(fIdIndex, -999.);
+        //man->FillNtupleDColumn(fIdIndex, -999.);
         return false;
     }
 }
