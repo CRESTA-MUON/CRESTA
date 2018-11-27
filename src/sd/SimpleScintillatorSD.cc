@@ -78,8 +78,6 @@ G4bool SimpleScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory* /*tou
     G4ThreeVector volume_position = touchable->GetVolume()->GetTranslation() / m;
     G4int this_id = touchable->GetVolume()->GetCopyNo();
 
-    // std::cout << "Vol: " << volume_position << std::endl;
-
     // Get the hitTime
     G4double hitTime = preStepPoint->GetGlobalTime();
 
@@ -190,16 +188,13 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
         man->FillNtupleDColumn(fPosXIndex, fPosX);
         man->FillNtupleDColumn(fPosYIndex, fPosY);
         man->FillNtupleDColumn(fPosZIndex, fPosZ);
-
         man->FillNtupleDColumn(fVolPosXIndex, fVolPosX);
         man->FillNtupleDColumn(fVolPosYIndex, fVolPosY);
         man->FillNtupleDColumn(fVolPosZIndex, fVolPosZ);
-
         man->FillNtupleDColumn(fThXZIndex, fThetaXZ);
         man->FillNtupleDColumn(fThYZIndex, fThetaYZ);
-        //man->FillNtupleDColumn(fIdIndex, fId);
-
         return true;
+
     } else {
 
         // Set default values
@@ -215,7 +210,6 @@ bool SimpleScintillatorProcessor::ProcessEvent(const G4Event* event) {
         man->FillNtupleDColumn(fVolPosZIndex, -999.);
         man->FillNtupleDColumn(fThXZIndex, -999.);
         man->FillNtupleDColumn(fThYZIndex, -999.);
-        //man->FillNtupleDColumn(fIdIndex, -999.);
         return false;
     }
 }
