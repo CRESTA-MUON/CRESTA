@@ -1,0 +1,11 @@
+{
+  name: "genericflux"
+  index: "config"
+  min_energy: "1*GeV"
+  max_energy: "3*GeV"
+  min_theta: "0.0"
+  max_theta: "2*3.142"
+  min_phi: "0.0"
+  max_phi: "2*3.142"
+  particle: "mu-"
+}
