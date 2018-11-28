@@ -49,6 +49,9 @@ G4Element* GetElement(std::string name);
 /// Function to create detector objects from tables
 G4Material* GetMaterial(std::string name);
 
+/// Get Element from string
+G4Material* GetMaterialWithNewDensity(std::string name, G4double density);
+
 /// Get some logical visualisation attributes depending on
 /// material defaults
 G4VisAttributes* GetVisForMaterial(DBTable table);

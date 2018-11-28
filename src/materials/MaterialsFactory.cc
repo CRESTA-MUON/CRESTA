@@ -62,6 +62,7 @@ G4Element* MaterialsFactory::GetElement(std::string name) {
   return mat;
 }
 
+
 G4Material* MaterialsFactory::GetMaterial(std::string name) {
 
   // Get the Material Manager
@@ -84,14 +85,14 @@ G4Material* MaterialsFactory::GetMaterial(std::string name) {
     mat = new G4Material(name, density, counts.size());
 
     double totalcounts = 0.0;
-    for (int i = 0; i < counts.size(); i++){
+    for (int i = 0; i < counts.size(); i++) {
       totalcounts += counts[i];
     }
-    if (totalcounts != 1.0){
+    if (totalcounts != 1.0) {
       std::cout << "MAT: --> Total Counts : " << totalcounts << std::endl;
-      std::cout << "MAT: --> Rescaling total counts by " << 1.0/totalcounts << " to get unity!" << std::endl;
-      for (int i = 0; i < counts.size(); i++){
-	counts[i] = counts[i] / totalcounts;
+      std::cout << "MAT: --> Rescaling total counts by " << 1.0 / totalcounts << " to get unity!" << std::endl;
+      for (int i = 0; i < counts.size(); i++) {
+        counts[i] = counts[i] / totalcounts;
       }
     }
 
@@ -114,6 +115,65 @@ G4Material* MaterialsFactory::GetMaterial(std::string name) {
     }
   }
 
+
+  return mat;
+}
+
+
+G4Material* MaterialsFactory::GetMaterialWithNewDensity(std::string name, G4double density) {
+
+  // Get the Material Manager
+  G4NistManager* nist = G4NistManager::Instance();
+  G4Material* mat;
+
+  // First Check if its inside the nist manager
+  mat = nist->FindOrBuildMaterial(name);
+  if (mat){ mat = nist->BuildMaterialWithNewDensity(name + "_" + std::to_string(density), name, density); }
+
+  if (!mat) {
+
+    // If not, find the material inside custom database
+    DBTable mattbl = DB::Get()->GetTable("MATERIAL", name);
+    std::vector<std::string> elements = mattbl.GetVecS("element_names");
+    std::vector<double>      counts   = mattbl.GetVecD("element_counts");
+    // G4double density = mattbl.GetG4D("density");
+
+    // Create the material
+    std::cout << "MAT: Creating : " << name << std::endl;
+    mat = new G4Material(name, density, counts.size());
+
+    double totalcounts = 0.0;
+    for (int i = 0; i < counts.size(); i++) {
+      totalcounts += counts[i];
+    }
+    if (totalcounts != 1.0) {
+      std::cout << "MAT: --> Total Counts : " << totalcounts << std::endl;
+      std::cout << "MAT: --> Rescaling total counts by " << 1.0 / totalcounts << " to get unity!" << std::endl;
+      for (int i = 0; i < counts.size(); i++) {
+        counts[i] = counts[i] / totalcounts;
+      }
+    }
+
+    for (uint j = 0; j < counts.size(); j++) {
+      std::cout << "MAT: --> Element : " << elements[j] << std::endl;
+      G4Element* ele = GetElement(elements[j]);
+      mat->AddElement( ele, counts[j] );
+    }
+    std::cout << "MAT: Total Material Density : " << mat->GetDensity()*cm3 / g << " g/cm3" << std::endl;
+
+    // Dump the Table of registered materials
+    // G4cout << *(G4Material::GetMaterialTable()) << G4endl;
+  }
+
+  // G4MaterialPropertiesTable* props = GetMaterialPropertiesTable(name);
+  // if (props) {
+  //   mat->SetMaterialPropertiesTable(props);
+  //   if (props->ConstPropertyExists("BIRKSCONSTANT")) {
+  //     // mat->GetIonisation()->SetBirksConstant( props->GetProperty("BIRKSCONSTANT"));
+  //   }
+  // }
+
+  std::cout << "Built a material : " << mat->GetDensity()*cm3 / g << " g/cm3" << std::endl;
 
   return mat;
 }
