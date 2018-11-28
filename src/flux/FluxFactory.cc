@@ -9,6 +9,8 @@
 #include "flux/LOSPrimaryGenerator.hh"
 #include "flux/PrimaryGeneratorROOT.hh"
 #include "flux/IsotropicSphereSource.hh"
+#include "flux/PrimaryGeneratorGeneric.hh"
+#include "flux/PrimaryGeneratorCos2.hh"
 
 namespace CRESTA {
 
@@ -30,6 +32,8 @@ G4VUserPrimaryGeneratorAction* FluxFactory::LoadFluxGenerator(DBTable table) {
   if (type.compare("los") == 0)    return new PrimaryGeneratorROOT();
   if (type.compare("root") == 0)   return new LOSPrimaryGenerator();
   if (type.compare("isotropicsphere") == 0) return new IsotropicSphereGenerator();
+  if (type.compare("genericflux") == 0) return new PrimaryGeneratorGeneric();
+  if (type.compare("cos2") == 0) return new PrimaryGeneratorCos2();
 
 #ifdef __USE_PUMAS__
   if (type.compare("pumasback") == 0) return new PumasBackwardsGenerator();
